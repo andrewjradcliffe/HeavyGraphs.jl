@@ -81,7 +81,8 @@ Base.get(t::A where {A<:AbstractNode{T, U}}, p, q, ps...) where {T, U} =
 # Base.get(t::A where {A<:AbstractNode{T, U}}, ps...) = get(() -> nothing, t, ps...)
 
 # Convenient definition of haskey based on get
-haspath(t::AbstractNode, p) = get(f, t, p) === nothing ? false : true
+# haspath(t::AbstractNode, p) = get(_returnnothing, t, p) === nothing ? false : true
+haspath(t::AbstractNode, p) = isa(get(_returnnothing, t, p), AbstractNode)
 # better, likely more performant definition; benchmark to determine which to use,
 # then change (2), (3). Even if the above is faster, consider get(...) !== nothing,
 # when one can tolerate receiving something other than a AbstractNode.
