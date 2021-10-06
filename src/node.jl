@@ -240,6 +240,56 @@ function Base.isequal(a::AbstractComplexNode, b::AbstractComplexNode)
 end
 Base.:(==)(a::AbstractComplexNode, b::AbstractComplexNode) = Base.isequal(a, b)
 
+# bi-directional: p. 460-463, 2021-10-06
+function isbidirectional(V₁::AbstractComplexNode, V₂::AbstractComplexNode, k)
+    (K => V₂) ∈ V₁.flink && (K => V₁) ∈ V₂.blink && return true
+    (K => V₂) ∈ V₁.blink && (K => V₁) ∈ V₂.flink && return true
+    false
+end
+
+# this should actually be forwardget (abbrev. fget), and a backwardget should exist
+function bget!(f::Function, V₁::AbstractComplexNode, k)
+    V₂ = get!(f, V₁, k)
+    setindex!(V₂.blink, V₁, k)
+    V₂
+end
+bget!(f::Function, V₁::AbstractComplexNode, k1, k2) = bget!(f, bget!(f, V₁, k1), k1)
+bget!(f::Function, V₁::AbstractComplexNode, k1, k2, ks...) =
+    bget!(bget!(f, bget!(f, V₁, k1), k1), ks...)
+
+function bget(f::Function, V₁::AbstractComplexNode, k)
+    V₂ = get(f, V₁, k)
+    # V₂ === nothing && return nothing
+    # isbidirectional(V₁, V₂, k) || return nothing
+    V₂ === nothing || !isbidirectional(V₁, V₂, k) && return nothing
+    V₂
+end
+function bget(f::Function, V₁::AbstractComplexNode, k1, k2)
+    V₂ = bget(f, V₁, k)
+    V₂ === nothing && return nothing
+    V₃ = bget(f, V₂, k)
+end
+
+function bget(f::Function, V₁::AbstractComplexNode, k1, k2, ks...)
+    V₂ = bget(f, V₁, k)
+    V₂ === nothing && return nothing
+    V₃ = bget(f, V₂, k)
+    V₃ === nothing && return nothing
+    bget(f, V₃, ks...)
+end
+
+function hasbipath(V₁::AbstractComplexNode, k)
+    isa(bget(_returnnothing, V₁, k), AbstractComplexNode)
+end
+function hasbipath(V₁::AbstractComplexNode, k1, k2)
+    isa(bget(_returnnothing, V₁, k1, k2), AbstractComplexNode)
+end
+function hasbipath(V₁::AbstractComplexNode, k1, k2, ks...)
+    isa(bget(_returnnothing, V₁, k1, k2, ks...), AbstractComplexNode)
+end
+
+#### END Opt-ins: AbstractComplexNode
+
 #### Constructors, Conversion and Promotion -- initial experiment
 # ComplexNode(x::AbstractSimpleNode) = ComplexNode(copy(x.link), copyto!(similar(x.val), x.val))
 
@@ -1844,8 +1894,6 @@ function tanalyzeat(f::Function, dims::Vararg{NTuple{S, Int} where S},
     end
     return A
 end
-
-
 
 ############################################################################################
 #### p. 1-5, 2021-10-05
