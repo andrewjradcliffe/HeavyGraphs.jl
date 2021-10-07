@@ -506,6 +506,35 @@ cc = zc
 #                tmp
 #            end))
 # end
+# macro getfieldop1arg(field, op)
+#     :(function $(Symbol(:get_, field, op))(f::Function, t::AbstractNode, v, p)
+#           tmp = get!(f, t, p)
+#           $op(tmp.$field, v)
+#           tmp
+#       end)
+# end
+# macro getfieldop2arg(field, op)
+#     :(function $(Symbol(:get_, field, op))(f::Function, t::AbstractNode, v, p, q)
+#           tmp = get!(f, t, p, q)
+#           $op(tmp.$field, v)
+#           tmp
+#       end)
+# end
+# macro getfieldopvararg(field, op)
+#     :(function $(Symbol(:get_, field, op))(f::Function, t::AbstractNode, v, p, q, ps...)
+#           tmp = get!(f, t, p, q, ps...)
+#           $op(tmp.$field, v)
+#           tmp
+#       end)
+# end
+# # Does not work as field op are consumed directly as symbols
+# for field = (:val,), op = (:empty!,)
+#     @getfieldop1arg field op
+#     @getfieldop2arg field op
+#     @getfieldopvararg field op
+# end
+
+
 # Best approach: just use dispatch on get! to limit number of possible dispatches
 function get_valpush!(f::Function, t::AbstractNode, v, p)
     tmp = get!(f, t, p)
