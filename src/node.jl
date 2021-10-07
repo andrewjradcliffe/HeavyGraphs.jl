@@ -636,7 +636,7 @@ function valgrow!(f::Function, t::AbstractNode, v::AbstractPathKey, p::AbstractP
     return t
 end
 # Possible parallel growth method
-function tvalgrow!(f::Function, t::AbstractNode, v::AbstractPathKeys, p::AbstractPathKeys
+function tvalgrow!(f::Function, t::AbstractNode, v::AbstractPathKeys, p::AbstractPathKeys,
                    itrsource::AbstractDict)
     @sync for p in t
         Threads.@spawn valgrow!(f, p.second, v, p, eachcol(itrsource[p.first]))
@@ -1878,13 +1878,13 @@ function analyzeat!(f::Function, dest::Tuple{Vararg{Array{T}} where T},
     end
     return dest
 end
-function analyzeat(f::Function, dims::Vararg{NTuple{S, Int} where S},
+function analyzeat(f::Function, dims::Tuple{Vararg{NTuple{S, Int} where S}},
                    ts::Vector{<:AbstractNode}, N::Int)
     dest = [zeros(Int, d) for d in dims]
     analyzeat!(f, dest, ts, N)
 end
 #
-function tanalyzeat(f::Function, dims::Vararg{NTuple{S, Int} where S},
+function tanalyzeat(f::Function, dims::Tuple{Vararg{NTuple{S, Int} where S}},
                     gs::Vector{<:AbstractNode}, L::Int)
     N = length(gs)
     M = Threads.threads()
