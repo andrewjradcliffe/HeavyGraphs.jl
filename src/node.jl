@@ -1924,6 +1924,127 @@ function tanalyzeat(f::Function, dims::Tuple{Vararg{NTuple{S, Int} where S}},
     end
     return A
 end
+################################################################
+#### analyzeallupto!, analyzeat! using subset functions, p.500-507, 2021-10-12
+# Alas, it seems to be slightly faster to use Arrays for access,
+# but for subsequent operations, e.g. a .+ b, Tuple{Vararg{Array}} is much faster,
+# or, quantitatively, about 12x faster.
+# Note: Tuple{Vararg{Array{T} where T}} ≡ Tuple{Vararg{Array{T}} where T}
+
+# p. 500
+function analyzeallupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
+                         t::AbstractNode, N::Int, C::Int)
+    C̃ = C + 1
+    C̃ < N || return dest
+    f(dest, ks, t, N, C)
+    isempty(t) && return dest
+    for p in t
+        setindex!(ks, p.first, C)
+        analyzeallupto!(f, dest, ks, p.second, N, C̃)
+    end
+    dest
+end
+
+function analyzeallupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T},
+                         t::AbstractNode, N::Int)
+    ks = Vector{Any}(undef, N - 1)
+    analyzeallupto!(f, dest, ks, t, N, 1)
+end
+
+function analyzeallupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int} where S}},
+                        t::AbstractNode, N::Int)
+    dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
+    analyzeallupto!(f, dest, t, N)
+end
+
+# p. 501
+function mapallupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T},
+                     t::AbstractNode, N::Int, C::Int)
+    C̃ = C + 1
+    C̃ < N || return dest
+    f(dest, t)
+    isempty(t) && return dest
+    for p in t
+        analyzeallupto!(f, dest, p.second, N, C̃)
+    end
+    dest
+end
+
+function mapallupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int} where S}},
+                    t::AbstractNode, N::Int)
+    dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
+    mapallupto!(f, dest, t, N, 1)
+end
+
+# p. 502 -- dispatch on lev_aks
+function analyzeallupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
+                         N::Int, C::Int, lev_aks::Vector{Vector{Any}})
+    C̃ = C + 1
+    C̃ < N || return dest
+    f(dest, ks, t, N, C, lev_aks)
+    isempty(t) && return dest
+    for p in t
+        setindex!(ks, p.first, C)
+        analyzeallupto!(f, dest, ks, p.second, N, C̃, lev_aks)
+    end
+    dest
+end
+
+function analyzeallupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, t::AbstractNode,
+                         N::Int, lev_aks::Vector{Vector{Any}})
+    ks = Vector{Any}(undef, N - 1)
+    analyzeallupto!(f, dest, ks, t, N, 1, lev_aks)
+end
+
+function analyzeallupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int} where S}},
+                        t::AbstractNode, N::Int, lev_aks::Vector{Vector{Any}})
+    dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
+    analyzeallupto!(f, dest, t, N, lev_aks)
+end
+
+#### filter variants -- p. 505-507
+function analyzeat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+                    t::AbstractNode, N::Int, C::Int)
+    isempty(t) && return dest
+    C̃ = C + 1
+    g = fs[C]
+    if C̃ < N
+        for p in t
+            g(p) && analyzeat!(f, fs, dest, p.second, N, C̃)
+        end
+    elseif C̃ == N
+        for p in t
+            g(p) && f(dest, p)
+        end
+    end
+    dest
+end
+
+function analyzeallupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+                         ks::Vector, t::AbstractNode, N::Int, C::Int)
+    C̃ = C + 1
+    C̃ < N || return dest
+    f(fs, dest, ks, t, N, C)
+    isempty(t) && return dest
+    g = fs[C]
+    for p in t
+        g(p) && (setindex!(ks, p.first, C); analyzeallupto!(f, fs, dest, ks, t, N, C̃))
+    end
+    dest
+end
+
+function analyzeallupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+                         ks::Vector, t::AbstractNode, N::Int, C::Int, lev_aks::Vector{Vector{Any}})
+    C̃ = C + 1
+    C̃ < N || return dest
+    f(fs, dest, ks, t, N, C, lev_aks)
+    isempty(t) && return dest
+    g = fs[C]
+    for p in t
+        g(p) && (setindex!(ks, p.first, C); analyzeallupto!(f, fs, dest, ks, t, N, C̃, lev_aks))
+    end
+    dest
+end
 
 ############################################################################################
 #### p. 1-5, 2021-10-05
@@ -2169,3 +2290,5 @@ decentr = mranges(q, r, M)
 easyr == fastr
 @benchmark equalranges(q, r, M) # 47.35
 @benchmark mranges(q, r, M) # 53.00
+############################################################################################
+#### 2021-10-07: p. 489, 490
