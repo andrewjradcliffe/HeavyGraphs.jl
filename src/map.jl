@@ -18,6 +18,8 @@ Transform the graph/tree `t` by applying `f` to each element at a given level, `
 Results are stored in `dest`; it is assumed that the number and dimensions of arrays
 are sufficient to store the results of calling `f`.
 
+Call signature of `f` is: `f(dest, p::Pair)`.
+
 See also: [`mapat`](@ref)
 
 """
@@ -43,6 +45,8 @@ Transform the graph/tree `t` by applying `f` to each element at a given level, `
 Results are stored in a tuple of zero-initialized arrays, the number and dimension of which
 are specified by `dims`.
 
+Call signature of `f` is: `f(dest, p::Pair)`.
+
 See also: [`mapat!`](@ref)
 
 """
@@ -59,6 +63,9 @@ end
 Transform the graph/tree `t` by applying `f` to a subset of elements at a given level, `N`.
 Performs a filtered traversal in which a subset is formed at each level from
 the corresponding element (note: linear indexed) of the filter functions `fs`.
+
+Call signature of `f` is: `f(dest, p::Pair)`.
+Call signature of `fs[C]` is: fs[C](p::Pair).
 
 See also: [`mapat!`](@ref)
 
@@ -88,6 +95,9 @@ Transform the graph/tree `t` by applying `f` to a subset of elements at a given 
 Performs a filtered traversal in which a subset is formed at each level from
 the corresponding element (note: linear indexed) of the filter functions `fs`.
 
+Call signature of `f` is: `f(dest, p::Pair)`.
+Call signature of `fs[C]` is: fs[C](p::Pair).
+
 See also: [`mapat!`](@ref)
 
 """
@@ -103,7 +113,9 @@ end
                 t::AbstractNode, N::Int, C::Int)
 
 Analogous to `mapat!`, but `f` call includes as arguments the full path indices,
-which may be necessary in some circumstances. Resultant call signature of `f` is `f(dest, p, ks)`.
+which may be necessary in some circumstances.
+
+Call signature of `f` is: `f(dest, ks, p::Pair)`.
 
 See also: [`mapat!`](@ref)
 
@@ -120,7 +132,7 @@ function indexmapat!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vec
     elseif C̃ == N
         for p in t
             setindex!(ks, p.first, C)
-            f(dest, p, ks)
+            f(dest, ks, p)
         end
     end
     dest
@@ -130,7 +142,9 @@ end
     indexmapat(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractNode, N::Int)
 
 Analogous to `mapat`, but `f` call includes as arguments the full path indices,
-which may be necessary in some circumstances. Resultant call signature of `f` is `f(dest, p, ks)`.
+which may be necessary in some circumstances.
+
+Call signature of `f` is: `f(dest, ks, p::Pair)`.
 
 See also: [`mapat`](@ref)
 
@@ -148,6 +162,9 @@ end
                 t::AbstractNode, N::Int, C::Int)
 
 Indexing analogy to `mapat!` with filtered traversal.
+
+Call signature of `f` is: `f(dest, ks, p::Pair)`.
+Call signature of `fs[C]` is: fs[C](p::Pair).
 """
 function indexmapat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
                      ks::Vector, t::AbstractNode, N::Int, C::Int)
@@ -160,7 +177,7 @@ function indexmapat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array
         end
     elseif C̃ == N
         for p in t
-            g(p) && (setindex!(ks, p.first, C); f(dest, p, ks))
+            g(p) && (setindex!(ks, p.first, C); f(dest, ks, p))
         end
     end
     dest
@@ -171,6 +188,9 @@ end
                t::AbstractNode, N::Int)
 
 Indexing analogy to `mapat` with filtered traversal.
+
+Call signature of `f` is: `f(dest, ks, p::Pair)`.
+Call signature of `fs[C]` is: fs[C](p::Pair).
 """
 function indexmapat(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
                t::AbstractNode, N::Int)
@@ -188,6 +208,8 @@ end
 Transform the graph/tree `t` by applying `f` to each element on each level up to a
 given level `N`. Results are stored in `dest`; it is assumed that the number and
 dimensions of arrays are sufficient to store the results of calling `f`.
+
+Call signature of `f` is: `f(dest, t::AbstractNode)`.
 
 See also: [`mapupto`](@ref)
 """
@@ -209,6 +231,8 @@ Transform the graph/tree `t` by applying `f` to each element on each level up to
 given level `N`. Results are stored in a tuple of zero-initialized arrays, the number
 and dimension of which are specified by `dims`.
 
+Call signature of `f` is: `f(dest, t::AbstractNode)`.
+
 See also: [`mapupto!`](@ref)
 """
 function mapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractNode, N::Int)
@@ -224,6 +248,9 @@ end
 Transform the graph/tree `t` by applying `f` to each element on each level up to a
 given level `N`. Performs a filtered traversal in which a subset is formed at each level from
 the corresponding element (note: linear indexed) of the filter functions `fs`.
+
+Call signature of `f` is: `f(dest, t::AbstractNode)`.
+Call signature of `fs[C]` is: fs[C](p::Pair).
 
 See also: [`mapupto`](@ref)
 """
@@ -248,6 +275,9 @@ Transform the graph/tree `t` by applying `f` to each element on each level up to
 given level `N`. Performs a filtered traversal in which a subset is formed at each level from
 the corresponding element (note: linear indexed) of the filter functions `fs`.
 
+Call signature of `f` is: `f(dest, t::AbstractNode)`.
+Call signature of `fs[C]` is: fs[C](p::Pair).
+
 See also: [`mapupto!`](@ref)
 """
 function mapupto(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
@@ -262,8 +292,9 @@ end
              t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
 
 Analogous to `mapupto!`, but `f` call includes the given level `N`, the current level `C`,
-and the vector of level-respective index sets, `levs_ks`. Resultant call
-signature of `f` is `f(dest, t, N, C, levs_ks)`.
+and the vector of level-respective index sets, `levs_ks`.
+
+Call signature of `f` is: `f(dest, t::AbstractNode, N, C, levs_ks)`.
 """
 function mapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T},
                   t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
@@ -282,8 +313,9 @@ end
             t::AbstractNode, N::Int, levs_ks::Vector{Vector{Any}})
 
 Analogous to `mapupto`, but `f` call includes the given level `N`, the current level `C`,
-and the vector of level-respective index sets, `levs_ks`. Resultant call
-signature of `f` is `f(dest, t, N, C, levs_ks)`.
+and the vector of level-respective index sets, `levs_ks`.
+
+Call signature of `f` is: `f(dest, t::AbstractNode, N, C, levs_ks)`.
 """
 function mapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
                  t::AbstractNode, N::Int, levs_ks::Vector{Vector{Any}})
@@ -296,16 +328,17 @@ end
     mapupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
              t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
 
-Analogous to `mapupto!`, but performs a filtered traversal in which a subset is formed at
-each level from the corresponding element (note: linear indexed) of the filter functions `fs`.
-Also incorporates the level-respective index sets, `levs_ks`; resultant call
-signature of `f` is `f(fs, dest, t, N, C, levs_ks)`.
+Analogous to `mapupto!`, but performs a filtered traversal and also incorporates
+the level-respective index sets, `levs_ks`.
+
+Call signature of `f` is: `f(dest, t::AbstractNode, N, C, levs_ks)`.
+Call signature of `fs[C]` is: fs[C](p::Pair).
 """
 function mapupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
                   t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
     C̃ = C + 1
     C̃ < N || return dest
-    f(fs, dest, t, N, C, levs_ks)
+    f(dest, t, N, C, levs_ks)
     isempty(t) && return dest
     g = fs[C]
     for p in t
@@ -318,10 +351,11 @@ end
     mapupto(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
             t::AbstractNode, N::Int, levs_ks::Vector{Vector{Any}})
 
-Analogous to `mapupto`, but performs a filtered traversal in which a subset is formed at
-each level from the corresponding element (note: linear indexed) of the filter functions `fs`.
-Also incorporates the level-respective index sets, `levs_ks`; resultant call
-signature of `f` is `f(fs, dest, t, N, C, levs_ks)`.
+Analogous to `mapupto`, but performs a filtered traversal and also incorporates
+the level-respective index sets, `levs_ks`.
+
+Call signature of `f` is: `f(dest, t::AbstractNode, N, C, levs_ks)`.
+Call signature of `fs[C]` is: fs[C](p::Pair).
 """
 function mapupto(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
                  t::AbstractNode, N::Int, levs_ks::Vector{Vector{Any}})
@@ -336,7 +370,8 @@ end
 
 Analogous to `mapupto!`, but `f` call includes as arguments the full path indices,
 the current level `C` and the given level `N`, which may be necessary in some circumstances.
-Resultant call signature of `f` is `f(dest, t, ks, N, C)`.
+
+Call signature of `f` is: `f(dest, ks, t::AbstractNode, N, C)`.
 
 See also: [`mapupto!`](@ref)
 
@@ -359,7 +394,8 @@ end
 
 Analogous to `mapupto`, but `f` call includes as arguments the full path indices,
 the current level `C` and the given level `N`, which may be necessary in some circumstances.
-Resultant call signature of `f` is `f(dest, t, ks, N, C)`.
+
+Call signature of `f` is: `f(dest, ks, t::AbstractNode, N, C)`.
 
 See also: [`mapupto`](@ref)
 
@@ -377,8 +413,9 @@ end
     indexmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T},
                   t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
 
-Level index set-respective analogy to `mapupto!`. Resultant call signature of `f`
-is `f(dest, ks, t, N, C, levs_ks)`.
+Level index set-respective analogy to `mapupto!`.
+
+Call signature of `f` is: `f(dest, ks, t::AbstractNode, N, C, levs_ks)`.
 """
 function indexmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
                        N::Int, C::Int, levs_ks::Vector{Vector{Any}})
@@ -397,8 +434,9 @@ end
     indexmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
                  t::AbstractNode, N::Int, levs_ks::Vector{Vector{Any}})
 
-Level index set-respective analogy to `mapupto`. Resultant call signature of `f`
-is `f(dest, ks, t, N, C, levs_ks)`.
+Level index set-respective analogy to `mapupto`.
+
+Call signature of `f` is: `f(dest, ks, t::AbstractNode, N, C, levs_ks)`.
 """
 function indexmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
                       t::AbstractNode, N::Int, levs_ks::Vector{Vector{Any}})
@@ -414,13 +452,16 @@ end
     indexmapupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
                   t::AbstractNode, N::Int, C::Int)
 
-Filtered traversal analogy to `mapupto!`. Resultant call signature of `f` is `f(dest, ks, t, N, C)`.
+Filtered traversal analogy to `mapupto!`.
+
+Call signature of `f` is: `f(dest, ks, t::AbstractNode, N, C)`.
+Call signature of `fs[C]` is: fs[C](p::Pair).
 """
 function indexmapupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
                        ks::Vector, t::AbstractNode, N::Int, C::Int)
     C̃ = C + 1
     C̃ < N || return dest
-    f(dest, ks, t) # f(fs, dest, ks, t, N, C)
+    f(dest, ks, t, N, C)
     isempty(t) && return dest
     g = fs[C]
     for p in t
@@ -433,7 +474,10 @@ end
     indexmapupto(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
                  t::AbstractNode, N::Int)
 
-Filtered traversal analogy to `mapupto`. Resultant call signature of `f` is `f(dest, ks, t, N, C)`.
+Filtered traversal analogy to `mapupto`.
+
+Call signature of `f` is: `f(dest, ks, t::AbstractNode, N, C)`.
+Call signature of `fs[C]` is: fs[C](p::Pair).
 """
 function indexmapupto(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
                       t::AbstractNode, N::Int)
@@ -447,15 +491,17 @@ end
     indexmapupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
                   t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
 
-Level index set-respective analogy to `mapupto!`, but performs a filtered traversal
-in which a subset is formed at each level from the corresponding element of the filter
-functions `fs`. Resultant call signature of `f` is `f(fs, dest, ks, t, N, C, levs_ks)`.
+Analogous to `mapupto!`, but performs a filtered traversal and also incorporates
+the level-respective index sets, `levs_ks`.
+
+Call signature of `f` is: `f(dest, ks, t::AbstractNode, N, C, levs_ks)`.
+Call signature of `fs[C]` is: fs[C](p::Pair).
 """
 function indexmapupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
                        ks::Vector, t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
     C̃ = C + 1
     C̃ < N || return dest
-    f(fs, dest, ks, t, N, C, levs_ks)
+    f(dest, ks, t, N, C, levs_ks)
     isempty(t) && return dest
     g = fs[C]
     for p in t
@@ -468,9 +514,11 @@ end
     indexmapupto(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
                  t::AbstractNode, N::Int, levs_ks::Vector{Vector{Any}})
 
-Level index set-respective analogy to `mapupto`, but performs a filtered traversal
-in which a subset is formed at each level from the corresponding element of the filter
-functions `fs`. Resultant call signature of `f` is `f(fs, dest, ks, t, N, C, levs_ks)`.
+Analogous to `mapupto`, but performs a filtered traversal and also incorporates
+the level-respective index sets, `levs_ks`.
+
+Call signature of `f` is: `f(dest, ks, t::AbstractNode, N, C, levs_ks)`.
+Call signature of `fs[C]` is: fs[C](p::Pair).
 """
 function indexmapupto(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
                       t::AbstractNode, N::Int, levs_ks::Vector{Vector{Any}})
