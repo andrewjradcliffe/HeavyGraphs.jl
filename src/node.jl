@@ -1829,14 +1829,14 @@ function countallthrough(f::Function, t::AbstractNode, N::Int)
 end
 ################################################################
 #### 2021-10-03: see p. 479-484
-function foreach(f::Function, t::AbstractNode)
+function Base.foreach(f::Function, t::AbstractNode)
     for p in t
         f(p)
     end
     nothing
 end
 
-function findall(f::Function, t::AbstractNode)
+function Base.findall(f::Function, t::AbstractNode)
     idxs = Any[] # or, idxs = Vector{eltype(keys(t))}()
     for p in t
         f(p) && (push!(idxs, p.first))
@@ -1844,7 +1844,7 @@ function findall(f::Function, t::AbstractNode)
     idxs
 end
 
-function count(f::Function, t::AbstractNode)
+function Base.count(f::Function, t::AbstractNode)
     cnt = 0
     for p in t
         f(p) && (cnt += 1)
