@@ -55,7 +55,7 @@ function mapat(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::Abst
     mapat!(f, dest, t, N, 1)
 end
 
-# Variant with filter
+#### filter
 """
     mapat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
            t::AbstractNode, N::Int, C::Int)
@@ -139,7 +139,7 @@ function mapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::Ab
     mapupto!(f, dest, t, N, 1)
 end
 
-# filter variant
+#### filter
 """
     mapupto!(f::Function, fs::Vector{Function}, dest::Tuple{Variant{Array{T}} where T},
              t::AbstractNode, N::Int, C::Int)
@@ -179,7 +179,7 @@ function mapupto(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S,
     mapupto!(f, fs, dest, t, N, 1)
 end
 
-# levs_ks variant
+#### levs_ks
 """
     mapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T},
              t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
@@ -216,7 +216,7 @@ function mapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
     mapupto!(f, dest, t, N, 1, levs_ks)
 end
 
-# filter and levs_ks
+#### filter and levs_ks
 """
     mapupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
              t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
