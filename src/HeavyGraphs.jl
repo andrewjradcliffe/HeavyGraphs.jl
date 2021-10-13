@@ -7,7 +7,11 @@ export mapat, mapat!, mapupto, mapupto!
 # indexedmap.jl
 export indexmapat, indexmapat!, indexmapupto, indexmapupto!
 
-include("map.jl")
-include("indexmap.jl")
+# multipliers.jl
+export multabsentupto, multabsent
+
+# include("map.jl")
+# include("indexmap.jl")
+# include("multipliers.jl")
 
 end
