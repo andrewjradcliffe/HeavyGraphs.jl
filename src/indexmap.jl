@@ -310,3 +310,120 @@ function indexmapupto(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTup
     ks = Vector{Any}(undef, N - 1)
     indexmapupto!(f, fs, dest, ks, t, N, 1, levs_ks)
 end
+
+################ reduction of vector of into single dest
+function indexmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
+                       ts::Vector{<:AbstractNode}, N::Int, C::Int)
+    for t in ts
+        indexmapupto!(f, dest, ks, t, N, C)
+    end
+    dest
+end
+
+function indexmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                      ts::Vector{<:AbstractNode}, N::Int)
+    dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
+    ks = Vector{Any}(undef, N - 1)
+    indexmapupto!(f, dest, ks, ts, N, 1)
+end
+
+function tindexmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                       ts::Vector{<:AbstractNode}, L::Int)
+    N = length(ts)
+    M = Threads.threads()
+    ranges = equalranges(N, M)
+    A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
+    Threads.@threads for m = 1:M
+        A[m] = indexmapupto(f, dims, ts[ranges[m]], L)
+    end
+    return A
+end
+
+#### filter
+function indexmapupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+                       ks::Vector, ts::Vector{<:AbstractNode}, N::Int, C::Int)
+    for t in ts
+        indexmapupto!(f, fs, dest, ks, t, N, C)
+    end
+    dest
+end
+
+function indexmapupto(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                      ts::Vector{<:AbstractNode}, N::Int)
+    dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
+    ks = Vector{Any}(undef, N - 1)
+    indexmapupto!(f, fs, dest, ks, ts, N, 1)
+end
+
+function tindexmapupto(f::Function, fs::Vector{Function},
+                       dims::Tuple{Vararg{NTuple{S, Int}} where S}, ts::Vector{<:AbstractNode},
+                       L::Int)
+    N = length(ts)
+    M = Threads.threads()
+    ranges = equalranges(N, M)
+    A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
+    Threads.@threads for m = 1:M
+        A[m] = indexmapupto(f, fs, dims, ts[ranges[m]], L)
+    end
+    return A
+end
+
+#### levs_ks
+
+function indexmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
+                       ts::Vector{<:AbstractNode}, N::Int, C::Int,
+                       levs_kss::Vector{Vector{Vector{Any}}})
+    for i in eachindex(ts)
+        indexmapupto!(f, dest, ks, ts[i], N, C, levs_kss[i])
+    end
+    dest
+end
+
+function indexmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                      ts::Vector{<:AbstractNode}, N::Int, levs_kss::Vector{Vector{Vector{Any}}})
+    dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
+    ks = Vector{Any}(undef, N - 1)
+    indexmapupto!(f, dest, ks, ts, N, 1, levs_kss)
+end
+
+function tindexmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                       ts::Vector{<:AbstractNode}, L::Int, levs_kss::Vector{Vector{Vector{Any}}})
+    N = length(ts)
+    M = Threads.threads()
+    ranges = equalranges(N, M)
+    A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
+    Threads.@threads for m = 1:M
+        A[m] = indexmapupto(f, dims, ts[ranges[m]], L, levs_kss[ranges[m]])
+    end
+    return A
+end
+
+#### filter and levs_ks
+function indexmapupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+                       ks::Vector, ts::Vector{<:AbstractNode}, N::Int, C::Int,
+                       levs_kss::Vector{Vector{Vector{Any}}})
+    for i in eachindex(ts)
+        indexmapupto!(f, fs, dest, ks, ts[i], N, C, levs_kss[i])
+    end
+    dest
+end
+
+function indexmapupto(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                      ts::Vector{<:AbstractNode}, N::Int, levs_kss::Vector{Vector{Vector{Any}}})
+    dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
+    ks = Vector{Any}(undef, N - 1)
+    indexmapupto!(f, fs, dest, ks, ts, N, 1, levs_kss)
+end
+
+function tindexmapupto(f::Function, fs::Vector{Function},
+                       dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                       ts::Vector{<:AbstractNode}, L::Int, levs_kss::Vector{Vector{Vector{Any}}})
+    N = length(ts)
+    M = Threads.threads()
+    ranges = equalranges(N, M)
+    A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
+    Threads.@threads for m = 1:M
+        A[m] = indexmapupto(f, fs, dims, ts[ranges[m]], L, levs_kss[ranges[m]])
+    end
+    return A
+end
