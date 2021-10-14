@@ -2,10 +2,10 @@ module HeavyGraphs
 
 
 # map.jl
-export mapat, mapat!, mapupto, mapupto!
+export mapat, mapat!, tmapat, mapupto, mapupto!, tmapupto
 
 # indexedmap.jl
-export indexmapat, indexmapat!, indexmapupto, indexmapupto!
+export indexmapat, indexmapat!, tindexmap, indexmapupto, indexmapupto!, tindexmapupto
 
 # multipliers.jl
 export multabsentupto, multabsent
