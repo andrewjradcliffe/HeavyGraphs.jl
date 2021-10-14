@@ -1875,55 +1875,55 @@ function findallpaths(f::Function, t::AbstractNode)
     findallpaths!(f, A, ks, t)
 end
 
-#### A draft of analyzeat!, p. 483, 2021-10-03
-function analyzeat!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
-                    t::AbstractNode, N::Int, C::Int)
-    isempty(t) && return dest
-    C̃ = C + 1
-    if C̃ < N
-        for p in t
-            setindex!(ks, p.first, C)
-            analyzeat!(f, dest, ks, p.second, N, C̃)
-        end
-    elseif C̃ == N
-        for p in t
-            setindex!(ks, p.first, C)
-            f(dest, p, ks)
-        end
-    end
-    return dest
-end
-function analyzeat!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, t::AbstractNode, N::Int)
-    ks = Vector{Any}(undef, N - 1)
-    analyzeat!(f, dest, ks, t, N, 1)
-end
-#### 2021-10-05: p. 1-4
-function analyzeat!(f::Function, dest::Tuple{Vararg{Array{T}} where T},
-                    ts::Vector{<:AbstractNode}, N::Int)
-    ks = Vector{Any}(undef, N - 1)
-    C = 1
-    for t in ts
-        analyzeat!(f, dest, ks, t, C, N)
-    end
-    return dest
-end
-function analyzeat(f::Function, dims::Tuple{Vararg{NTuple{S, Int} where S}},
-                   ts::Vector{<:AbstractNode}, N::Int)
-    dest = [zeros(Int, d) for d in dims]
-    analyzeat!(f, dest, ts, N)
-end
-#
-function tanalyzeat(f::Function, dims::Tuple{Vararg{NTuple{S, Int} where S}},
-                    gs::Vector{<:AbstractNode}, L::Int)
-    N = length(gs)
-    M = Threads.threads()
-    ranges = equalranges(N, M)
-    A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
-    Threads.@threads for m = 1:M
-        A[m] = analyzeat(f, dims, gs[ranges[m]], L)
-    end
-    return A
-end
+# #### A draft of analyzeat!, p. 483, 2021-10-03
+# function analyzeat!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
+#                     t::AbstractNode, N::Int, C::Int)
+#     isempty(t) && return dest
+#     C̃ = C + 1
+#     if C̃ < N
+#         for p in t
+#             setindex!(ks, p.first, C)
+#             analyzeat!(f, dest, ks, p.second, N, C̃)
+#         end
+#     elseif C̃ == N
+#         for p in t
+#             setindex!(ks, p.first, C)
+#             f(dest, p, ks)
+#         end
+#     end
+#     return dest
+# end
+# function analyzeat!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, t::AbstractNode, N::Int)
+#     ks = Vector{Any}(undef, N - 1)
+#     analyzeat!(f, dest, ks, t, N, 1)
+# end
+# #### 2021-10-05: p. 1-4
+# function analyzeat!(f::Function, dest::Tuple{Vararg{Array{T}} where T},
+#                     ts::Vector{<:AbstractNode}, N::Int)
+#     ks = Vector{Any}(undef, N - 1)
+#     C = 1
+#     for t in ts
+#         analyzeat!(f, dest, ks, t, C, N)
+#     end
+#     return dest
+# end
+# function analyzeat(f::Function, dims::Tuple{Vararg{NTuple{S, Int} where S}},
+#                    ts::Vector{<:AbstractNode}, N::Int)
+#     dest = [zeros(Int, d) for d in dims]
+#     analyzeat!(f, dest, ts, N)
+# end
+# #
+# function tanalyzeat(f::Function, dims::Tuple{Vararg{NTuple{S, Int} where S}},
+#                     gs::Vector{<:AbstractNode}, L::Int)
+#     N = length(gs)
+#     M = Threads.threads()
+#     ranges = equalranges(N, M)
+#     A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
+#     Threads.@threads for m = 1:M
+#         A[m] = analyzeat(f, dims, gs[ranges[m]], L)
+#     end
+#     return A
+# end
 
 ############################################################################################
 #### p. 1-5, 2021-10-05
