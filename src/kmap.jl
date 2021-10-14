@@ -5,7 +5,7 @@
 #
 ############################################################################################
 """
-    indexmapat!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
+    kmapat!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
                 t::AbstractNode, N::Int, C::Int)
 
 Analogy to `mapat!` which tracks Cartesian key-index of iteration, passing
@@ -13,17 +13,17 @@ it as an additional argument to `f`.
 
 Call signature of `f` is: `f(dest, ks, p::Pair)`.
 
-See also: [`mapat!`](@ref), [`indexmapat`](@ref), [`indexmapfilterat`](@ref), [`indexmapfilterat!`](@ref)
+See also: [`mapat!`](@ref), [`kmapat`](@ref), [`kmapfilterat`](@ref), [`kmapfilterat!`](@ref)
 
 """
-function indexmapat!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
+function kmapat!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
                      t::AbstractNode, N::Int, C::Int)
     isempty(t) && return dest
     C̃ = C + 1
     if C̃ < N
         for p in t
             setindex!(ks, p.first, C)
-            indexmapat!(f, dest, ks, p.second, N, C̃)
+            kmapat!(f, dest, ks, p.second, N, C̃)
         end
     elseif C̃ == N
         for p in t
@@ -35,26 +35,26 @@ function indexmapat!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vec
 end
 
 """
-    indexmapat(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractNode, N::Int)
+    kmapat(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractNode, N::Int)
 
 Analogy to `mapat` which tracks Cartesian key-index of iteration, passing
 it as an additional argument to `f`.
 
 Call signature of `f` is: `f(dest, ks, p::Pair)`.
 
-See also: [`mapat`](@ref), [`indexmapat`](@ref), [`indexmapfilterat`](@ref), [`indexmapfilterat!`](@ref)
+See also: [`mapat`](@ref), [`kmapat`](@ref), [`kmapfilterat`](@ref), [`kmapfilterat!`](@ref)
 
 """
-function indexmapat(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+function kmapat(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
                     t::AbstractNode, N::Int)
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     ks = Vector{Any}(undef, N - 1)
-    indexmapat!(f, dest, ks, t, N, 1)
+    kmapat!(f, dest, ks, t, N, 1)
 end
 
 #### filter
 """
-    indexmapfilterat!(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+    kmapfilterat!(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
                       ks::Vector, t::AbstractNode, N::Int, C::Int)
 
 Indexing analogy to `mapfilterat!` with filtered traversal.
@@ -62,16 +62,16 @@ Indexing analogy to `mapfilterat!` with filtered traversal.
 Call signature of `f` is: `f(dest, ks, p::Pair)`.
 Call signature of `fs[C]` is: fs[C](p::Pair).
 
-See also: [`mapfilterat!`](@ref), [`indexmapat`](@ref), [`indexmapat!`](@ref)
+See also: [`mapfilterat!`](@ref), [`kmapat`](@ref), [`kmapat!`](@ref)
 """
-function indexmapfilterat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+function kmapfilterat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
                            ks::Vector, t::AbstractNode, N::Int, C::Int)
     isempty(t) && return dest
     C̃ = C + 1
     g = fs[C]
     if C̃ < N
         for p in t
-            g(p) && (setindex!(ks, p.first, C); indexmapfilterat!(f, fs, dest, p.second, N, C̃))
+            g(p) && (setindex!(ks, p.first, C); kmapfilterat!(f, fs, dest, p.second, N, C̃))
         end
     elseif C̃ == N
         for p in t
@@ -82,7 +82,7 @@ function indexmapfilterat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg
 end
 
 """
-    indexmapfilterat(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+    kmapfilterat(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
                      t::AbstractNode, N::Int)
 
 Indexing analogy to `mapfilterat` with filtered traversal.
@@ -90,61 +90,61 @@ Indexing analogy to `mapfilterat` with filtered traversal.
 Call signature of `f` is: `f(dest, ks, p::Pair)`.
 Call signature of `fs[C]` is: fs[C](p::Pair).
 
-See also: [`mapfilterat`](@ref), [`indexmapat`](@ref), [`indexmapat!`](@ref)
+See also: [`mapfilterat`](@ref), [`kmapat`](@ref), [`kmapat!`](@ref)
 """
-function indexmapfilterat(f::Function, fs::Vector{Function},
+function kmapfilterat(f::Function, fs::Vector{Function},
                           dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractNode, N::Int)
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     ks = Vector{Any}(undef, N - 1)
-    indexmapfilterat!(f, fs, dest, ks, t, N, 1)
+    kmapfilterat!(f, fs, dest, ks, t, N, 1)
 end
 
 ################ reduction of vector of into single dest
-function indexmapat!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
+function kmapat!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
                      ts::Vector{<:AbstractNode}, N::Int, C::Int)
     for t in ts
-        indexmapat!(f, dest, ks, t, N, C)
+        kmapat!(f, dest, ks, t, N, C)
     end
     dest
 end
 
-function indexmapat(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+function kmapat(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
                     ts::Vector{<:AbstractNode}, N::Int)
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     ks = Vector{Any}(undef, N - 1)
-    indexmapat!(f, dest, ks, ts, N, 1)
+    kmapat!(f, dest, ks, ts, N, 1)
 end
 
-function tindexmapat(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+function tkmapat(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
                      ts::Vector{<:AbstractNode}, L::Int)
     N = length(ts)
     M = Threads.threads()
     ranges = equalranges(N, M)
     A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
     Threads.@threads for m = 1:M
-        A[m] = indexmapat(f, dims, ts[ranges[m]], L)
+        A[m] = kmapat(f, dims, ts[ranges[m]], L)
     end
     return A
 end
 
 #### filter
-function indexmapfilterat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+function kmapfilterat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
                            ks::Vector, ts::Vector{<:AbstractNode}, N::Int, C::Int)
     for t in ts
-        indexmapfilterat!(f, fs, dest, ks, t, N, C)
+        kmapfilterat!(f, fs, dest, ks, t, N, C)
     end
     dest
 end
 
-function indexmapfilterat(f::Function, fs::Vector{Function},
+function kmapfilterat(f::Function, fs::Vector{Function},
                           dims::Tuple{Vararg{NTuple{S, Int}} where S},
                           ts::Vector{<:AbstractNode}, N::Int)
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     ks = Vector{Any}(undef, N - 1)
-    indexmapfilterat!(f, fs, dest, ks, ts, N, 1)
+    kmapfilterat!(f, fs, dest, ks, ts, N, 1)
 end
 
-function tindexmapfilterat(f::Function, fs::Vector{Function},
+function tkmapfilterat(f::Function, fs::Vector{Function},
                            dims::Tuple{Vararg{NTuple{S, Int}} where S},
                            ts::Vector{<:AbstractNode}, L::Int)
     N = length(ts)
@@ -152,14 +152,14 @@ function tindexmapfilterat(f::Function, fs::Vector{Function},
     ranges = equalranges(N, M)
     A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
     Threads.@threads for m = 1:M
-        A[m] = indexmapfilterat(f, fs, dims, ts[ranges[m]], L)
+        A[m] = kmapfilterat(f, fs, dims, ts[ranges[m]], L)
     end
     return A
 end
 
 ################################################################
 """
-    indexmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector
+    kmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector
                   t::AbstractNode, N::Int, C::Int)
 
 Analogy to `mapupto!` which tracks Cartesian key-index of iteration, passing
@@ -167,10 +167,10 @@ it as an additional argument to `f`.
 
 Call signature of `f` is: `f(dest, ks, t::AbstractNode, N, C)`.
 
-See also: [`mapupto!`](@ref), [`indexmapfilterupto`](@ref), [`indexmapfilterupto!`](@ref)
+See also: [`mapupto!`](@ref), [`kmapfilterupto`](@ref), [`kmapfilterupto!`](@ref)
 
 """
-function indexmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
+function kmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
                        t::AbstractNode, N::Int, C::Int)
     C̃ = C + 1
     C̃ < N || return dest
@@ -178,32 +178,32 @@ function indexmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::V
     isempty(t) && return dest
     for p in t
         setindex!(ks, p.first, C)
-        indexmapupto!(f, dest, ks, p.second, N, C̃)
+        kmapupto!(f, dest, ks, p.second, N, C̃)
     end
     dest
 end
 
 """
-    indexmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractNode, N::Int)
+    kmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractNode, N::Int)
 
 Analogy to `mapupto!` which tracks Cartesian key-index of iteration, passing
 it as an additional argument to `f`.
 
 Call signature of `f` is: `f(dest, ks, t::AbstractNode, N, C)`.
 
-See also: [`mapupto`](@ref), [`indexmapfilterupto`](@ref), [`indexmapfilterupto!`](@ref)
+See also: [`mapupto`](@ref), [`kmapfilterupto`](@ref), [`kmapfilterupto!`](@ref)
 
 """
-function indexmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+function kmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
                       t::AbstractNode, N::Int)
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     ks = Vector{Any}(undef, N - 1)
-    indexmapupto!(f, dest, ks, t, N, 1)
+    kmapupto!(f, dest, ks, t, N, 1)
 end
 
 #### filter
 """
-    indexmapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+    kmapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
                         ks::Vector, t::AbstractNode, N::Int, C::Int)
 
 Filtered traversal analogy to `mapfilterupto!`.
@@ -211,9 +211,9 @@ Filtered traversal analogy to `mapfilterupto!`.
 Call signature of `f` is: `f(dest, ks, t::AbstractNode, N, C)`.
 Call signature of `fs[C]` is: fs[C](p::Pair).
 
-See also: [`mapfilterupto!`](@ref), [`indexmapupto`](@ref), [`indexmapupto!`](@ref)
+See also: [`mapfilterupto!`](@ref), [`kmapupto`](@ref), [`kmapupto!`](@ref)
 """
-function indexmapfilterupto!(f::Function, fs::Vector{Function},
+function kmapfilterupto!(f::Function, fs::Vector{Function},
                              dest::Tuple{Vararg{Array{T}} where T},
                              ks::Vector, t::AbstractNode, N::Int, C::Int)
     C̃ = C + 1
@@ -222,13 +222,13 @@ function indexmapfilterupto!(f::Function, fs::Vector{Function},
     isempty(t) && return dest
     g = fs[C]
     for p in t
-        g(p) && (setindex!(ks, p.first, C); indexmapfilterupto!(f, fs, dest, ks, p.second, N, C̃))
+        g(p) && (setindex!(ks, p.first, C); kmapfilterupto!(f, fs, dest, ks, p.second, N, C̃))
     end
     dest
 end
 
 """
-    indexmapfilterupto(f::Function, fs::Vector{Function},
+    kmapfilterupto(f::Function, fs::Vector{Function},
                        dims::Tuple{Vararg{NTuple{S, Int}} where S},
                        t::AbstractNode, N::Int)
 
@@ -237,28 +237,28 @@ Filtered traversal analogy to `mapfilterupto`.
 Call signature of `f` is: `f(dest, ks, t::AbstractNode, N, C)`.
 Call signature of `fs[C]` is: fs[C](p::Pair).
 
-See also: [`mapfilterupto`](@ref), [`indexmapupto`](@ref), [`indexmapupto!`](@ref)
+See also: [`mapfilterupto`](@ref), [`kmapupto`](@ref), [`kmapupto!`](@ref)
 
 """
-function indexmapfilterupto(f::Function, fs::Vector{Function},
+function kmapfilterupto(f::Function, fs::Vector{Function},
                             dims::Tuple{Vararg{NTuple{S, Int}} where S},
                             t::AbstractNode, N::Int)
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     ks = Vector{Any}(undef, N - 1)
-    indexmapfilterupto!(f, fs, dest, ks, t, N, 1)
+    kmapfilterupto!(f, fs, dest, ks, t, N, 1)
 end
 
 #### levs_ks
 
 """
-    indexmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
+    kmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
                   t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
 
 Level index set-respective analogy to `mapupto!`.
 
 Call signature of `f` is: `f(dest, ks, t::AbstractNode, N, C, levs_ks)`.
 """
-function indexmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
+function kmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
                        N::Int, C::Int, levs_ks::Vector{Vector{Any}})
     C̃ = C + 1
     C̃ < N || return dest
@@ -266,29 +266,29 @@ function indexmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::V
     isempty(t) && return dest
     for p in t
         setindex!(ks, p.first, C)
-        indexmapupto!(f, dest, ks, p.second, N, C̃, levs_ks)
+        kmapupto!(f, dest, ks, p.second, N, C̃, levs_ks)
     end
     dest
 end
 
 """
-    indexmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+    kmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
                  t::AbstractNode, N::Int, levs_ks::Vector{Vector{Any}})
 
 Level index set-respective analogy to `mapupto`.
 
 Call signature of `f` is: `f(dest, ks, t::AbstractNode, N, C, levs_ks)`.
 """
-function indexmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+function kmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
                       t::AbstractNode, N::Int, levs_ks::Vector{Vector{Any}})
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     ks = Vector{Any}(undef, N - 1)
-    indexmapupto!(f, dest, ks, t, N, 1, levs_ks)
+    kmapupto!(f, dest, ks, t, N, 1, levs_ks)
 end
 
 #### filter and levs_ks
 """
-    indexmapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+    kmapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
                         ks::Vector, t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
 
 Filtered traversal, with level-respective index sets analogy to `mapfilterupto!`.
@@ -296,7 +296,7 @@ Filtered traversal, with level-respective index sets analogy to `mapfilterupto!`
 Call signature of `f` is: `f(dest, ks, t::AbstractNode, N, C, levs_ks)`.
 Call signature of `fs[C]` is: fs[C](p::Pair).
 """
-function indexmapfilterupto!(f::Function, fs::Vector{Function},
+function kmapfilterupto!(f::Function, fs::Vector{Function},
                              dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
                              t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
     C̃ = C + 1
@@ -305,13 +305,13 @@ function indexmapfilterupto!(f::Function, fs::Vector{Function},
     isempty(t) && return dest
     g = fs[C]
     for p in t
-        g(p) && (setindex!(ks, p.first, C); indexmapfilterupto!(f, fs, dest, ks, p.second, N, C̃, levs_ks))
+        g(p) && (setindex!(ks, p.first, C); kmapfilterupto!(f, fs, dest, ks, p.second, N, C̃, levs_ks))
     end
     dest
 end
 
 """
-    indexmapfilterupto(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+    kmapfilterupto(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
                        t::AbstractNode, N::Int, levs_ks::Vector{Vector{Any}})
 
 Filtered traversal, with level-respective index sets analogy to `mapfilterupto`.
@@ -319,61 +319,61 @@ Filtered traversal, with level-respective index sets analogy to `mapfilterupto`.
 Call signature of `f` is: `f(dest, ks, t::AbstractNode, N, C, levs_ks)`.
 Call signature of `fs[C]` is: fs[C](p::Pair).
 """
-function indexmapfilterupto(f::Function, fs::Vector{Function},
+function kmapfilterupto(f::Function, fs::Vector{Function},
                             dims::Tuple{Vararg{NTuple{S, Int}} where S},
                             t::AbstractNode, N::Int, levs_ks::Vector{Vector{Any}})
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     ks = Vector{Any}(undef, N - 1)
-    indexmapfilterupto!(f, fs, dest, ks, t, N, 1, levs_ks)
+    kmapfilterupto!(f, fs, dest, ks, t, N, 1, levs_ks)
 end
 
 ################ reduction of vector of into single dest
-function indexmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
+function kmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
                        ts::Vector{<:AbstractNode}, N::Int, C::Int)
     for t in ts
-        indexmapupto!(f, dest, ks, t, N, C)
+        kmapupto!(f, dest, ks, t, N, C)
     end
     dest
 end
 
-function indexmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+function kmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
                       ts::Vector{<:AbstractNode}, N::Int)
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     ks = Vector{Any}(undef, N - 1)
-    indexmapupto!(f, dest, ks, ts, N, 1)
+    kmapupto!(f, dest, ks, ts, N, 1)
 end
 
-function tindexmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+function tkmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
                        ts::Vector{<:AbstractNode}, L::Int)
     N = length(ts)
     M = Threads.threads()
     ranges = equalranges(N, M)
     A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
     Threads.@threads for m = 1:M
-        A[m] = indexmapupto(f, dims, ts[ranges[m]], L)
+        A[m] = kmapupto(f, dims, ts[ranges[m]], L)
     end
     return A
 end
 
 #### filter
-function indexmapfilterupto!(f::Function, fs::Vector{Function},
+function kmapfilterupto!(f::Function, fs::Vector{Function},
                              dest::Tuple{Vararg{Array{T}} where T},
                              ks::Vector, ts::Vector{<:AbstractNode}, N::Int, C::Int)
     for t in ts
-        indexmapfilterupto!(f, fs, dest, ks, t, N, C)
+        kmapfilterupto!(f, fs, dest, ks, t, N, C)
     end
     dest
 end
 
-function indexmapfilterupto(f::Function, fs::Vector{Function},
+function kmapfilterupto(f::Function, fs::Vector{Function},
                             dims::Tuple{Vararg{NTuple{S, Int}} where S},
                             ts::Vector{<:AbstractNode}, N::Int)
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     ks = Vector{Any}(undef, N - 1)
-    indexmapfilterupto!(f, fs, dest, ks, ts, N, 1)
+    kmapfilterupto!(f, fs, dest, ks, ts, N, 1)
 end
 
-function tindexmapfilterupto(f::Function, fs::Vector{Function},
+function tkmapfilterupto(f::Function, fs::Vector{Function},
                              dims::Tuple{Vararg{NTuple{S, Int}} where S}, ts::Vector{<:AbstractNode},
                              L::Int)
     N = length(ts)
@@ -381,62 +381,62 @@ function tindexmapfilterupto(f::Function, fs::Vector{Function},
     ranges = equalranges(N, M)
     A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
     Threads.@threads for m = 1:M
-        A[m] = indexmapfilterupto(f, fs, dims, ts[ranges[m]], L)
+        A[m] = kmapfilterupto(f, fs, dims, ts[ranges[m]], L)
     end
     return A
 end
 
 #### levs_ks
 
-function indexmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
+function kmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
                        ts::Vector{<:AbstractNode}, N::Int, C::Int,
                        levs_kss::Vector{Vector{Vector{Any}}})
     for i in eachindex(ts)
-        indexmapupto!(f, dest, ks, ts[i], N, C, levs_kss[i])
+        kmapupto!(f, dest, ks, ts[i], N, C, levs_kss[i])
     end
     dest
 end
 
-function indexmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+function kmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
                       ts::Vector{<:AbstractNode}, N::Int, levs_kss::Vector{Vector{Vector{Any}}})
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     ks = Vector{Any}(undef, N - 1)
-    indexmapupto!(f, dest, ks, ts, N, 1, levs_kss)
+    kmapupto!(f, dest, ks, ts, N, 1, levs_kss)
 end
 
-function tindexmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+function tkmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
                        ts::Vector{<:AbstractNode}, L::Int, levs_kss::Vector{Vector{Vector{Any}}})
     N = length(ts)
     M = Threads.threads()
     ranges = equalranges(N, M)
     A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
     Threads.@threads for m = 1:M
-        A[m] = indexmapupto(f, dims, ts[ranges[m]], L, levs_kss[ranges[m]])
+        A[m] = kmapupto(f, dims, ts[ranges[m]], L, levs_kss[ranges[m]])
     end
     return A
 end
 
 #### filter and levs_ks
-function indexmapfilterupto!(f::Function, fs::Vector{Function},
+function kmapfilterupto!(f::Function, fs::Vector{Function},
                              dest::Tuple{Vararg{Array{T}} where T},
                              ks::Vector, ts::Vector{<:AbstractNode}, N::Int, C::Int,
                              levs_kss::Vector{Vector{Vector{Any}}})
     for i in eachindex(ts)
-        indexmapfilterupto!(f, fs, dest, ks, ts[i], N, C, levs_kss[i])
+        kmapfilterupto!(f, fs, dest, ks, ts[i], N, C, levs_kss[i])
     end
     dest
 end
 
-function indexmapfilterupto(f::Function, fs::Vector{Function},
+function kmapfilterupto(f::Function, fs::Vector{Function},
                             dims::Tuple{Vararg{NTuple{S, Int}} where S},
                             ts::Vector{<:AbstractNode}, N::Int,
                             levs_kss::Vector{Vector{Vector{Any}}})
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     ks = Vector{Any}(undef, N - 1)
-    indexmapfilterupto!(f, fs, dest, ks, ts, N, 1, levs_kss)
+    kmapfilterupto!(f, fs, dest, ks, ts, N, 1, levs_kss)
 end
 
-function tindexmapfilterupto(f::Function, fs::Vector{Function},
+function tkmapfilterupto(f::Function, fs::Vector{Function},
                              dims::Tuple{Vararg{NTuple{S, Int}} where S},
                              ts::Vector{<:AbstractNode}, L::Int,
                              levs_kss::Vector{Vector{Vector{Any}}})
@@ -445,7 +445,7 @@ function tindexmapfilterupto(f::Function, fs::Vector{Function},
     ranges = equalranges(N, M)
     A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
     Threads.@threads for m = 1:M
-        A[m] = indexmapfilterupto(f, fs, dims, ts[ranges[m]], L, levs_kss[ranges[m]])
+        A[m] = kmapfilterupto(f, fs, dims, ts[ranges[m]], L, levs_kss[ranges[m]])
     end
     return A
 end

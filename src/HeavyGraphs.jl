@@ -7,17 +7,17 @@ export mapat, mapat!, tmapat,
     mapupto, mapupto!, tmapupto,
     mapfilterupto, mapfilterupto!, tmapfilterupto
 
-# indexedmap.jl
-export indexmapat, indexmapat!, tindexmapat,
-    indexmapfilterat, indexmapfilterat!, tindexmapfilterat,
-    indexmapupto, indexmapupto!, tindexmapupto,
-    indexmapfilterupto, indexmapfilterupto!, tindexmapfilterupto
+# kmap.jl
+export kmapat, kmapat!, tkmapat,
+    kmapfilterat, kmapfilterat!, tkmapfilterat,
+    kmapupto, kmapupto!, tkmapupto,
+    kmapfilterupto, kmapfilterupto!, tkmapfilterupto
 
 # multipliers.jl
 export multabsentupto, multabsent
 
 # include("map.jl")
-# include("indexmap.jl")
+# include("kmap.jl")
 # include("multipliers.jl")
 
 end
