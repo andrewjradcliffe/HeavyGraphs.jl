@@ -1919,7 +1919,7 @@ function tanalyzeat(f::Function, dims::Tuple{Vararg{NTuple{S, Int} where S}},
     M = Threads.threads()
     ranges = equalranges(N, M)
     A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
-    Threads.@threads :static for m = 1:M
+    Threads.@threads for m = 1:M
         A[m] = analyzeat(f, dims, gs[ranges[m]], L)
     end
     return A
