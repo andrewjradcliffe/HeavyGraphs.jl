@@ -95,6 +95,61 @@ function indexmapat(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple
     indexmapat!(f, fs, dest, ks, t, N, 1)
 end
 
+################ reduction of vector of into single dest
+function indexmapat!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
+                     ts::Vector{<:AbstractNode}, N::Int, C::Int)
+    for t in ts
+        indexmapat!(f, dest, ks, t, N, C)
+    end
+    dest
+end
+
+function indexmapat(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                    ts::Vector{<:AbstractNode}, N::Int)
+    dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
+    ks = Vector{Any}(undef, N - 1)
+    indexmapat!(f, dest, ks, ts, N, 1)
+end
+
+function indexmapat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+                     ks::Vector, ts::Vector{<:AbstractNode}, N::Int, C::Int)
+    for t in ts
+        indexmapat!(f, fs, dest, ks, t, N, C)
+    end
+    dest
+end
+
+function indexmapat(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                    ts::Vector{<:AbstractNode}, N::Int)
+    dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
+    ks = Vector{Any}(undef, N - 1)
+    indexmapat!(f, fs, dest, ks, ts, N, 1)
+end
+
+function tindexmapat(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                     ts::Vector{<:AbstractNode}, L::Int)
+    N = length(ts)
+    M = Threads.threads()
+    ranges = equalranges(N, M)
+    A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
+    Threads.@threads for m = 1:M
+        A[m] = indexmapat(f, dims, ts[ranges[m]], L)
+    end
+    return A
+end
+
+function tindexmapat(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                     ts::Vector{<:AbstractNode}, L::Int)
+    N = length(ts)
+    M = Threads.threads()
+    ranges = equalranges(N, M)
+    A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
+    Threads.@threads for m = 1:M
+        A[m] = indexmapat(f, fs, dims, ts[ranges[m]], L)
+    end
+    return A
+end
+
 ################################################################
 """
     indexmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector
