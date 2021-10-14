@@ -20,7 +20,7 @@ are sufficient to store the results of calling `f`.
 
 Call signature of `f` is: `f(dest, p::Pair)`.
 
-See also: [`mapat`](@ref)
+See also: [`mapat`](@ref), [`mapfilterat`](@ref), [`mapfilterat!`](@ref)
 
 """
 function mapat!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, t::AbstractNode, N::Int, C::Int)
@@ -47,7 +47,7 @@ are specified by `dims`.
 
 Call signature of `f` is: `f(dest, p::Pair)`.
 
-See also: [`mapat!`](@ref)
+See also: [`mapat!`](@ref), [`mapfilterat`](@ref), [`mapfilterat!`](@ref)
 
 """
 function mapat(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractNode, N::Int)
@@ -57,23 +57,25 @@ end
 
 #### filter
 """
-    mapat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
-           t::AbstractNode, N::Int, C::Int)
+    mapfilterat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+                 t::AbstractNode, N::Int, C::Int)
 
 Performs a filtered traversal in which a subset is formed at each level from
 the corresponding element (note: linear indexed) of the filter functions `fs`.
 
 Call signature of `f` is: `f(dest, p::Pair)`.
 Call signature of `fs[C]` is: fs[C](p::Pair).
+
+See also: [`mapfilterat`](@ref), [`mapat`](@ref), [`mapat!`](@ref)
 """
-function mapat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
-                t::AbstractNode, N::Int, C::Int)
+function mapfilterat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+                      t::AbstractNode, N::Int, C::Int)
     isempty(t) && return dest
     C̃ = C + 1
     g = fs[C]
     if C̃ < N
         for p in t
-            g(p) && mapat!(f, fs, dest, p.second, N, C̃)
+            g(p) && mapfilterat!(f, fs, dest, p.second, N, C̃)
         end
     elseif C̃ == N
         for p in t
@@ -84,19 +86,21 @@ function mapat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} 
 end
 
 """
-    mapat(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
-          t::AbstractNode, N::Int)
+    mapfilterat(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                t::AbstractNode, N::Int)
 
 Performs a filtered traversal in which a subset is formed at each level from
 the corresponding element (note: linear indexed) of the filter functions `fs`.
 
 Call signature of `f` is: `f(dest, p::Pair)`.
 Call signature of `fs[C]` is: fs[C](p::Pair).
+
+See also: [`mapfilterat!`](@ref), [`mapat`](@ref), [`mapat!`](@ref)
 """
-function mapat(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
-               t::AbstractNode, N::Int)
+function mapfilterat(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                     t::AbstractNode, N::Int)
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
-    mapat!(f, fs, dest, t, N, 1)
+    mapfilterat!(f, fs, dest, t, N, 1)
 end
 
 ################ reduction of vector of into single dest
@@ -127,28 +131,28 @@ function tmapat(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
 end
 
 #### filter
-function mapat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
-                ts::Vector{<:AbstractNode}, N::Int, C::Int)
+function mapfilterat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+                      ts::Vector{<:AbstractNode}, N::Int, C::Int)
     for t in ts
-        mapat!(f, fs, dest, t, N, C)
+        mapfilterat!(f, fs, dest, t, N, C)
     end
     dest
 end
 
-function mapat(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
-               ts::Vector{<:AbstractNode}, N::Int)
+function mapfilterat(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                     ts::Vector{<:AbstractNode}, N::Int)
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
-    mapat!(f, fs, dest, ts, N, 1)
+    mapfilterat!(f, fs, dest, ts, N, 1)
 end
 
-function tmapat(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                ts::Vector{<:AbstractNode}, L::Int)
+function tmapfilterat(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                      ts::Vector{<:AbstractNode}, L::Int)
     N = length(ts)
     M = Threads.threads()
     ranges = equalranges(N, M)
     A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
     Threads.@threads for m = 1:M
-        A[m] = mapat(f, fs, dims, ts[ranges[m]], L)
+        A[m] = mapfilterat(f, fs, dims, ts[ranges[m]], L)
     end
     return A
 end
@@ -164,7 +168,7 @@ dimensions of arrays are sufficient to store the results of calling `f`.
 
 Call signature of `f` is: `f(dest, t::AbstractNode)`.
 
-See also: [`mapupto`](@ref)
+See also: [`mapupto`](@ref), [`mapfilterupto`](@ref), [`mapfilterupto!`](@ref)
 """
 function mapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, t::AbstractNode, N::Int, C::Int)
     C̃ = C + 1
@@ -186,7 +190,7 @@ and dimension of which are specified by `dims`.
 
 Call signature of `f` is: `f(dest, t::AbstractNode)`.
 
-See also: [`mapupto!`](@ref)
+See also: [`mapupto!`](@ref), [`mapfilterupto`](@ref), [`mapfilterupto!`](@ref)
 """
 function mapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractNode, N::Int)
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
@@ -195,42 +199,46 @@ end
 
 #### filter
 """
-    mapupto!(f::Function, fs::Vector{Function}, dest::Tuple{Variant{Array{T}} where T},
-             t::AbstractNode, N::Int, C::Int)
+    mapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Variant{Array{T}} where T},
+                   t::AbstractNode, N::Int, C::Int)
 
 Performs a filtered traversal in which a subset is formed at each level from
 the corresponding element (note: linear indexed) of the filter functions `fs`.
 
 Call signature of `f` is: `f(dest, t::AbstractNode)`.
 Call signature of `fs[C]` is: fs[C](p::Pair).
+
+See also: [`mapfilterupto`](@ref), [`mapupto`](@ref), [`mapupto!`](@ref)
 """
-function mapupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
-                  t::AbstractNode, N::Int, C::Int)
+function mapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+                        t::AbstractNode, N::Int, C::Int)
     C̃ = C + 1
     C̃ < N || return dest
     f(dest, t)
     isempty(t) && return dest
     g = fs[C]
     for p in t
-        g(p) && mapupto!(f, fs, dest, p.second, N, C̃)
+        g(p) && mapfilterupto!(f, fs, dest, p.second, N, C̃)
     end
     dest
 end
 
 """
-    mapupto(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
-            t::AbstractNode, N::Int)
+    mapfilterupto(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                  t::AbstractNode, N::Int)
 
 Performs a filtered traversal in which a subset is formed at each level from
 the corresponding element (note: linear indexed) of the filter functions `fs`.
 
 Call signature of `f` is: `f(dest, t::AbstractNode)`.
 Call signature of `fs[C]` is: fs[C](p::Pair).
+
+See also: [`mapfilterupto!`](@ref), [`mapupto`](@ref), [`mapupto!`](@ref)
 """
-function mapupto(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                 t::AbstractNode, N::Int)
+function mapfilterupto(f::Function, fs::Vector{Function},
+                       dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractNode, N::Int)
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
-    mapupto!(f, fs, dest, t, N, 1)
+    mapfilterupto!(f, fs, dest, t, N, 1)
 end
 
 #### levs_ks
@@ -272,8 +280,8 @@ end
 
 #### filter and levs_ks
 """
-    mapupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
-             t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
+    mapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+                   t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
 
 Performs filtered traversal; provides the given level `N`,
 the current level `C`, and the vector of level-respective index sets,
@@ -282,22 +290,22 @@ the current level `C`, and the vector of level-respective index sets,
 Call signature of `f` is: `f(dest, t::AbstractNode, N, C, levs_ks)`.
 Call signature of `fs[C]` is: fs[C](p::Pair).
 """
-function mapupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
-                  t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
+function mapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+                        t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
     C̃ = C + 1
     C̃ < N || return dest
     f(dest, t, N, C, levs_ks)
     isempty(t) && return dest
     g = fs[C]
     for p in t
-        g(p) && mapupto!(f, fs, dest, p.second, N, C̃, levs_ks)
+        g(p) && mapfilterupto!(f, fs, dest, p.second, N, C̃, levs_ks)
     end
     dest
 end
 
 """
-    mapupto(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
-            t::AbstractNode, N::Int, levs_ks::Vector{Vector{Any}})
+    mapfilterupto(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                  t::AbstractNode, N::Int, levs_ks::Vector{Vector{Any}})
 
 Performs filtered traversal; provides the given level `N`,
 the current level `C`, and the vector of level-respective index sets,
@@ -306,10 +314,11 @@ the current level `C`, and the vector of level-respective index sets,
 Call signature of `f` is: `f(dest, t::AbstractNode, N, C, levs_ks)`.
 Call signature of `fs[C]` is: fs[C](p::Pair).
 """
-function mapupto(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                 t::AbstractNode, N::Int, levs_ks::Vector{Vector{Any}})
+function mapfilterupto(f::Function, fs::Vector{Function},
+                       dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractNode,
+                       N::Int, levs_ks::Vector{Vector{Any}})
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
-    mapupto!(f, fs, dest, t, N, 1, levs_ks)
+    mapfilterupto!(f, fs, dest, t, N, 1, levs_ks)
 end
 
 ################ reduction of vector of into single dest
@@ -340,28 +349,30 @@ function tmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
 end
 
 #### filter
-function mapupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
-                  ts::Vector{<:AbstractNode}, N::Int, C::Int)
+function mapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+                        ts::Vector{<:AbstractNode}, N::Int, C::Int)
     for t in ts
-        mapupto!(f, fs, dest, t, N, C)
+        mapfilterupto!(f, fs, dest, t, N, C)
     end
     dest
 end
 
-function mapupto(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                 ts::Vector{<:AbstractNode}, N::Int)
+function mapfilterupto(f::Function, fs::Vector{Function},
+                       dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                       ts::Vector{<:AbstractNode}, N::Int)
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
-    mapupto!(f, fs, dest, ts, N, 1)
+    mapfilterupto!(f, fs, dest, ts, N, 1)
 end
 
-function tmapupto(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                  ts::Vector{<:AbstractNode}, L::Int)
+function tmapfilterupto(f::Function, fs::Vector{Function},
+                        dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                        ts::Vector{<:AbstractNode}, L::Int)
     N = length(ts)
     M = Threads.threads()
     ranges = equalranges(N, M)
     A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
     Threads.@threads for m = 1:M
-        A[m] = mapupto(f, fs, dims, ts[ranges[m]], L)
+        A[m] = mapfilterupto(f, fs, dims, ts[ranges[m]], L)
     end
     return A
 end
@@ -395,28 +406,31 @@ function tmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
 end
 
 #### filter and levs_ks
-function mapupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
-                  ts::Vector{<:AbstractNode}, N::Int, C::Int, levs_kss::Vector{Vector{Vector{Any}}})
+function mapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+                        ts::Vector{<:AbstractNode}, N::Int, C::Int,
+                        levs_kss::Vector{Vector{Vector{Any}}})
     for i in eachindex(ts)
-        mapupto!(f, fs, dest, ts[i], N, C, levs_kss[i])
+        mapfilterupto!(f, fs, dest, ts[i], N, C, levs_kss[i])
     end
     dest
 end
 
-function mapupto(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                 ts::Vector{<:AbstractNode}, N::Int, levs_kss::Vector{Vector{Vector{Any}}})
+function mapfilterupto(f::Function, fs::Vector{Function},
+                       dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                       ts::Vector{<:AbstractNode}, N::Int, levs_kss::Vector{Vector{Vector{Any}}})
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
-    mapupto!(f, fs, dest, ts, N, 1, levs_kss)
+    mapfilterupto!(f, fs, dest, ts, N, 1, levs_kss)
 end
 
-function tmapupto(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                  ts::Vector{<:AbstractNode}, L::Int, levs_kss::Vector{Vector{Vector{Any}}})
+function tmapfilterupto(f::Function, fs::Vector{Function},
+                        dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                        ts::Vector{<:AbstractNode}, L::Int, levs_kss::Vector{Vector{Vector{Any}}})
     N = length(ts)
     M = Threads.threads()
     ranges = equalranges(N, M)
     A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
     Threads.@threads for m = 1:M
-        A[m] = mapupto(f, fs, dims, ts[ranges[m]], L, levs_kss[ranges[m]])
+        A[m] = mapfilterupto(f, fs, dims, ts[ranges[m]], L, levs_kss[ranges[m]])
     end
     return A
 end
