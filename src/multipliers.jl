@@ -22,8 +22,9 @@ function multabsentupto(t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{
     Ñ = N - 1
     C ≥ Ñ && return 0
     # ν = length(setdiff(levs_ks[C], keys(t)))
-    # much more efficient
-    ν = length(levs_ks[C]) - length(t) + count(∉(levs_ks[C]), keys(t))
+    # much more efficient -- or: setdiffcard(levs_ks[C], keys(t))
+    # ν = length(levs_ks[C]) - length(t) + count(∉(levs_ks[C]), keys(t))
+    ν = length(levs_ks[C]) - count(∈(levs_ks[C]), keys(t)) # |A| - |A ∩ B|
     C̃ = C + 1
     while C̃ < Ñ
         ν *= length(levs_ks[C̃])
@@ -90,8 +91,9 @@ function multabsent(t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}
     Ñ = N - 1
     C > Ñ && return 0
     # ν = length(setdiff(levs_ks[C], keys(t)))
-    # much more efficient
-    ν = length(levs_ks[C]) - length(t) + count(∉(levs_ks[C]), keys(t))
+    # much more efficient -- or: setdiffcard(levs_ks[C], keys(t))
+    # ν = length(levs_ks[C]) - length(t) + count(∉(levs_ks[C]), keys(t))
+    ν = length(levs_ks[C]) - count(∈(levs_ks[C]), keys(t)) # |A| - |A ∩ B|
     C̃ = C + 1
     while C̃ ≤ Ñ
         ν *= length(levs_ks[C̃])
