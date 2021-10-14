@@ -1842,6 +1842,8 @@ function Base.findall(f::Function, t::AbstractNode)
         f(p) && (push!(idxs, p.first))
     end
     idxs
+    # or:
+    collect(first(p) for p in t if f(p))
 end
 
 function Base.count(f::Function, t::AbstractNode)
