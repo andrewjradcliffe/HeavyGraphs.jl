@@ -2,11 +2,16 @@ module HeavyGraphs
 
 
 # map.jl
-export mapat, mapat!, tmapat, mapfilterat, mapfilterat!, tmapfilterat,
-    mapupto, mapupto!, tmapupto, mapfilterupto, mapfilterupto!, tmapfilterupto
+export mapat, mapat!, tmapat,
+    mapfilterat, mapfilterat!, tmapfilterat,
+    mapupto, mapupto!, tmapupto,
+    mapfilterupto, mapfilterupto!, tmapfilterupto
 
 # indexedmap.jl
-export indexmapat, indexmapat!, tindexmap, indexmapupto, indexmapupto!, tindexmapupto
+export indexmapat, indexmapat!, tindexmapat,
+    indexmapfilterat, indexmapfilterat!, tindexmapfilterat,
+    indexmapupto, indexmapupto!, tindexmapupto,
+    indexmapfilterupto, indexmapfilterupto!, tindexmapfilterupto
 
 # multipliers.jl
 export multabsentupto, multabsent
