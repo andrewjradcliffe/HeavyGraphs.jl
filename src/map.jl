@@ -99,6 +99,59 @@ function mapat(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, I
     mapat!(f, fs, dest, t, N, 1)
 end
 
+################ reduction of vector of into single dest
+function mapat!(f::Function, dest::Tuple{Vararg{Array{T}} where T},
+                ts::Vector{<:AbstractNode}, N::Int, C::Int)
+    for t in ts
+        mapat!(f, dest, t, N, C)
+    end
+    dest
+end
+
+function mapat(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+               ts::Vector{<:AbstractNode}, N::Int)
+    dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
+    mapat!(f, dest, ts, N, 1)
+end
+
+function mapat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+                ts::Vector{<:AbstractNode}, N::Int, C::Int)
+    for t in ts
+        mapat!(f, fs, dest, t, N, C)
+    end
+    dest
+end
+
+function mapat(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+               ts::Vector{<:AbstractNode}, N::Int)
+    dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
+    mapat!(f, fs, dest, ts, N, 1)
+end
+
+function tmapat(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                ts::Vector{<:AbstractNode}, L::Int)
+    N = length(ts)
+    M = Threads.threads()
+    ranges = equalranges(N, M)
+    A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
+    Threads.@threads for m = 1:M
+        A[m] = mapat(f, dims, ts[ranges[m]], L)
+    end
+    return A
+end
+
+function tmapat(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                ts::Vector{<:AbstractNode}, L::Int)
+    N = length(ts)
+    M = Threads.threads()
+    ranges = equalranges(N, M)
+    A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
+    Threads.@threads for m = 1:M
+        A[m] = mapat(f, fs, dims, ts[ranges[m]], L)
+    end
+    return A
+end
+
 ################################################################
 
 """
