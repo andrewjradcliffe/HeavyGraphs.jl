@@ -22,7 +22,7 @@
 """
     foreachat(f::Function, t::AbstractNode, N::Int, C::Int)
 
-Apply `f` to all nodes at a given level, `N`.
+Apply `f` to all nodes at a given level, `N`. Caller is responsible for `C + 1` ≤ `N`.
 """
 function foreachat(f::Function, t::AbstractNode, N::Int, C::Int)
     # if C < N - 1
@@ -46,12 +46,10 @@ function foreachat(f::Function, t::AbstractNode, N::Int, C::Int)
         for p in t
             foreachat(f, p.second, N, C̃)
         end
-    elseif C̃ == N
+    else#if C̃ == N
         for p in t
             f(p)
         end
-        # Alternative that may lead to more inlining:
-        # foreach(f, t)
     end
     return nothing
 end
@@ -61,9 +59,7 @@ end
 
 Apply `f` to all nodes at a given level, `N`.
 """
-function foreachat(f::Function, t::AbstractNode, N::Int)
-    foreachat(f, t, N, 1)
-end
+foreachat(f::Function, t::AbstractNode, N::Int) = foreachat(f, t, N, 1)
 
 function foreachats!(f::Function, x::AbstractNode, Ns::NTuple{M, Int}) where {M}
     states = C + 1 .== Ns
@@ -185,6 +181,13 @@ end
 #     # foreachat_filter!(f, x, length(subsets), 1, subsets)
 # end
 
+"""
+    foreachfilterat(f::Function, fs::Vector{Function}, t::AbstractNode, N::Int, C::Int)
+
+Apply `f` to all nodes at a given level, `N`, using a filtered traversal, with
+filter specified at each level by the respective element of `fs`. Caller is
+responsible for `C + 1` ≤ `N`.
+"""
 function foreachfilterat(f::Function, fs::Vector{Function}, t::AbstractNode, N::Int, C::Int)
     isempty(t) && return nothing
     C̃ = C + 1
@@ -193,7 +196,7 @@ function foreachfilterat(f::Function, fs::Vector{Function}, t::AbstractNode, N::
         for p in t
             g(p) && foreachfilterat(f, fs, p.second, N, C̃)
         end
-    elseif C̃ == N
+    else#if C̃ == N
         for p in t
             g(p) && f(p)
         end
@@ -385,6 +388,13 @@ function forall_breadthfirst(f::Function, t::AbstractNode)
     return nothing
 end
 
+"""
+    forallfrom(f::Function, t::AbstractNode, N::Int, C::Int)
+
+Apply `f` to all nodes starting at given level, `N`, then proceeding
+recursively through any graph/trees which are present.
+Caller is responsible for `C + 1` ≤ `N`.
+"""
 function forallfrom(f::Function, t::AbstractNode, N::Int, C::Int)
     # if C < N - 1
     #     if !isempty(t)
@@ -407,7 +417,7 @@ function forallfrom(f::Function, t::AbstractNode, N::Int, C::Int)
         for p in t
             forallfrom(f, p.second, N, C̃)
         end
-    elseif C̃ == N
+    else#if C̃ == N
         for p in t
             forall_breadthfirst(f, p.second)
         end
@@ -415,8 +425,21 @@ function forallfrom(f::Function, t::AbstractNode, N::Int, C::Int)
     return nothing
 end
 
+"""
+    forallfrom(f::Function, t::AbstractNode, N::Int)
+
+Apply `f` to all nodes starting at given level, `N`, then proceeding
+recursively through any graph/trees which are present.
+"""
 forallfrom(f::Function, t::AbstractNode, N::Int) = forallfrom!(f, t, N, 1)
 
+"""
+    forallthrough(f::Function, t::AbstractNode, N::Int, C::Int)
+
+Apply `f` to all nodes up to and including those at given level, `N`, which
+is the stopping point of the recursion.
+Caller is responsible for `C + 1` ≤ `N`.
+"""
 function forallthrough(f::Function, t::AbstractNode, N::Int, C::Int)
     # f(t)
     # isempty(t) && return nothing
@@ -443,6 +466,12 @@ function forallthrough(f::Function, t::AbstractNode, N::Int, C::Int)
     return nothing
 end
 
+"""
+    forallthrough(f::Function, t::AbstractNode, N::Int)
+
+Apply `f` to all nodes up to and including those at given level, `N`, which
+is the stopping point of the recursion.
+"""
 forallthrough(f::Function, t::AbstractNode, N::Int) = forallthrough!(f, t, N, 1)
 
 ####
