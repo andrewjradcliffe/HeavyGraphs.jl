@@ -261,7 +261,7 @@ See also: [`mapfilterupto`](@ref), [`kmapupto`](@ref), [`kmapupto!`](@ref)
 function kmapfilterupto(f::Function, fs::Vector{Function},
                         dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractNode, N::Int)
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
-    ks = Vector{Any}(undef, N - 1)
+    ks = Vector{Any}(undef, N - 2)
     kmapfilterupto!(f, fs, dest, ks, t, N, 1)
 end
 
@@ -310,7 +310,7 @@ Call signature of `f` is: `f(dest, ks, t::AbstractNode, N, C, levs_ks)`.
 function kmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
                   t::AbstractNode, N::Int, levs_ks::Vector{Vector{Any}})
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
-    ks = Vector{Any}(undef, N - 1)
+    ks = Vector{Any}(undef, N - 2)
     kmapupto!(f, dest, ks, t, N, 1, levs_ks)
 end
 
@@ -361,7 +361,7 @@ function kmapfilterupto(f::Function, fs::Vector{Function},
                         dims::Tuple{Vararg{NTuple{S, Int}} where S},
                         t::AbstractNode, N::Int, levs_ks::Vector{Vector{Any}})
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
-    ks = Vector{Any}(undef, N - 1)
+    ks = Vector{Any}(undef, N - 2)
     kmapfilterupto!(f, fs, dest, ks, t, N, 1, levs_ks)
 end
 
@@ -377,7 +377,7 @@ end
 function kmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
                   ts::Vector{<:AbstractNode}, N::Int)
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
-    ks = Vector{Any}(undef, N - 1)
+    ks = Vector{Any}(undef, N - 2)
     kmapupto!(f, dest, ks, ts, N, 1)
 end
 
@@ -406,7 +406,7 @@ function kmapfilterupto(f::Function, fs::Vector{Function},
                         dims::Tuple{Vararg{NTuple{S, Int}} where S},
                         ts::Vector{<:AbstractNode}, N::Int)
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
-    ks = Vector{Any}(undef, N - 1)
+    ks = Vector{Any}(undef, N - 2)
     kmapfilterupto!(f, fs, dest, ks, ts, N, 1)
 end
 
@@ -436,7 +436,7 @@ end
 function kmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
                   ts::Vector{<:AbstractNode}, N::Int, levs_kss::Vector{Vector{Vector{Any}}})
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
-    ks = Vector{Any}(undef, N - 1)
+    ks = Vector{Any}(undef, N - 2)
     kmapupto!(f, dest, ks, ts, N, 1, levs_kss)
 end
 
@@ -466,7 +466,7 @@ function kmapfilterupto(f::Function, fs::Vector{Function},
                         dims::Tuple{Vararg{NTuple{S, Int}} where S},
                         ts::Vector{<:AbstractNode}, N::Int, levs_kss::Vector{Vector{Vector{Any}}})
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
-    ks = Vector{Any}(undef, N - 1)
+    ks = Vector{Any}(undef, N - 2)
     kmapfilterupto!(f, fs, dest, ks, ts, N, 1, levs_kss)
 end
 
