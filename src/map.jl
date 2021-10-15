@@ -175,7 +175,7 @@ function mapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, t::Abstrac
     # C̃ < N || return dest
     # f(dest, t)
     # isempty(t) && return dest
-    C < N || return dest
+    # C < N || return dest # necessary to ensure safety, but technically optional
     f(dest, t)
     isempty(t) && return dest
     C̃ = C + 1
@@ -227,7 +227,7 @@ function mapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Ar
     #     g(p) && mapfilterupto!(f, fs, dest, p.second, N, C̃)
     # end
     # dest
-    C < N || return dest
+    # C < N || return dest # necessary to ensure safety, but technically optional
     f(dest, t)
     isempty(t) && return dest
     C̃ = C + 1
@@ -278,7 +278,7 @@ function mapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T},
     #     mapupto!(f, dest, p.second, N, C̃, levs_ks)
     # end
     # dest
-    C < N || return dest
+    # C < N || return dest # necessary to ensure safety, but technically optional
     f(dest, t, N, C, levs_ks)
     isempty(t) && return dest
     C̃ = C + 1
@@ -328,7 +328,7 @@ function mapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Ar
     #     g(p) && mapfilterupto!(f, fs, dest, p.second, N, C̃, levs_ks)
     # end
     # dest
-    C < N || return dest
+    # C < N || return dest # necessary to ensure safety, but technically optional
     f(dest, t, N, C, levs_ks)
     isempty(t) && return dest
     C̃ = C + 1

@@ -180,7 +180,7 @@ function kmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vecto
     #     kmapupto!(f, dest, ks, p.second, N, C̃)
     # end
     # dest
-    C < N || return dest
+    # C < N || return dest # necessary to ensure safety, but technically optional
     f(dest, ks, t, N, C)
     isempty(t) && return dest
     C̃ = C + 1
@@ -233,7 +233,7 @@ function kmapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{A
     #     g(p) && (setindex!(ks, p.first, C); kmapfilterupto!(f, fs, dest, ks, p.second, N, C̃))
     # end
     # dest
-    C < N || return dest
+    # C < N || return dest # necessary to ensure safety, but technically optional
     f(dest, ks, t, N, C)
     isempty(t) && return dest
     C̃ = C + 1
@@ -286,7 +286,7 @@ function kmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vecto
     #     kmapupto!(f, dest, ks, p.second, N, C̃, levs_ks)
     # end
     # dest
-    C < N || return dest
+    # C < N || return dest # necessary to ensure safety, but technically optional
     f(dest, ks, t, N, C, levs_ks)
     isempty(t) && return dest
     C̃ = C + 1
@@ -335,7 +335,7 @@ function kmapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{A
     #     g(p) && (setindex!(ks, p.first, C); kmapfilterupto!(f, fs, dest, ks, p.second, N, C̃, levs_ks))
     # end
     # dest
-    C < N || return dest
+    # C < N || return dest # necessary to ensure safety, but technically optional
     f(dest, ks, t, N, C, levs_ks)
     isempty(t) && return dest
     C̃ = C + 1
