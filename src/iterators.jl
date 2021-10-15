@@ -330,14 +330,13 @@ function countat(f::Function, t::AbstractNode, N::Int, C::Int)
         end
     elseif C̃ == N
         for p in t
-            tmp += f(p)
+            f(p) && (tmp += 1)
         end
     end
     return tmp
 end
 
-# countat(f::Function, t::AbstractNode, N::Int) = countat(f, t, N, 1)
-# @benchmark countat(_rettrue, t, 10)
+countat(f::Function, t::AbstractNode, N::Int) = countat(f, t, N, 1)
 
 ####
 function forall_depthfirst!(f::Function, t::AbstractNode)
