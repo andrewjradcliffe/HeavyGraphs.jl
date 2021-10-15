@@ -438,28 +438,42 @@ function forallthrough(f::Function, t::AbstractNode, N::Int)
 end
 
 ####
-function countall!(f::Function, A::Vector{Int}, t::AbstractNode)
-    # if !isempty(t)
-    #     for p in t
-    #         countall!(f, A, p.second)
-    #     end
-    # end
-    # A[1] += f(t)
-    # return A
-    # Terse form -- 2021-09-24: approtimately 18% faster
-    A[1] += f(t)
-    isempty(t) && return A
+# function countall!(f::Function, A::Vector{Int}, t::AbstractNode)
+#     # if !isempty(t)
+#     #     for p in t
+#     #         countall!(f, A, p.second)
+#     #     end
+#     # end
+#     # A[1] += f(t)
+#     # return A
+#     # Terse form -- 2021-09-24: approtimately 18% faster
+#     A[1] += f(t)
+#     isempty(t) && return A
+#     for p in t
+#         countall!(f, A, p.second)
+#     end
+#     return A
+# end
+
+# function countall(f::Function, t::AbstractNode)
+#     A = Int[0]
+#     countall!(f, A, t)
+#     A[1]
+# end
+
+# Much more efficient -- 16 bytes vs. 112
+function countall(f::Function, t::AbstractNode)
+    tmp = 0
+    f(t) && (tmp +=1)
+    isempty(t) && return tmp
+    # isempty(t) && return f(t) ? 1 : 0
     for p in t
-        countall!(f, A, p.second)
+        tmp += countall(f, p.second)
     end
-    return A
+    return tmp
 end
 
-function countall(f::Function, t::AbstractNode)
-    A = Int[0]
-    countall!(f, A, t)
-    A[1]
-end
+
 
 function countallfrom!(f::Function, A::Vector{Int}, t::AbstractNode, N::Int, C::Int)
     # if C < N - 1
