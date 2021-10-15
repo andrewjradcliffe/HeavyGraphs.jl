@@ -372,10 +372,11 @@ countupto(f::Function, t::AbstractNode, N::Int) = countthrough(f, t, N - 1) #cou
 """
     findpathsat!(f::Function, A::Vector{<:Vector}, ks::Vector, t::AbstractNode, N::Int, C::Int)
 
-`push!` into `A` the Cartesian indices of elements at the given level `N`,
-starting at the level `C`, for which `f` returns true.
+`push!` into `A` the Cartesian indices of elements at the given level `N`, starting at the
+level `C`, for which `f` returns true. Call signature of `f` is: `f(t::AbstractNode)`.
 
-Call signature of `f` is: `f(t::AbstractNode)`.
+See also: [`findpathsat`](@ref), [`findpathsall!`](@ref), [`findpathsfrom!`](@ref),
+[`findpathsthrough!`](@ref), [`findpathsupto!`](@ref)
 """
 function findpathsat!(f::Function, A::Vector{<:Vector}, ks::Vector, t::AbstractNode, N::Int, C::Int)
     isempty(t) && return A
@@ -396,15 +397,13 @@ end
 """
     findpathsat(f::Function, t::AbstractNode, N::Int)
 
-Return the Cartesian indices of elements at the given level `N`,
-starting at the level `C=1`, for which `f` returns true.
+Return the Cartesian indices of elements at the given level `N`,  starting at the
+level `C=1`, for which `f` returns true. Call signature of `f` is: `f(t::AbstractNode)`.
 
-Call signature of `f` is: `f(t::AbstractNode)`.
+See also: [`findpathsat!`](@ref)
 """
 function findpathsat(f::Function, t::AbstractNode, N::Int)
-    ks = Vector{Any}(undef, N - 1)
-    A = Vector{Vector{Any}}()
-    findpathsat!(f, A, ks, t, N, 1)
+    findpathsat!(f, Vector{Vector{Any}}(), Vector{Any}(undef, N - 1), t, N, 1)
 end
 
 ####
@@ -413,9 +412,10 @@ end
     findpathsall!(f::Function, A::Vector{<:Vector}, ks::Vector, t::AbstractNode)
 
 `push!` into `A` the Cartesian indices of elements for which `f` returns true.
-Recursion runs over all nodes on all levels.
+Recursion runs over all nodes on all levels. Call signature of `f` is: `f(t::AbstractNode)`.
 
-Call signature of `f` is: `f(t::AbstractNode)`.
+See also: [`findpathsall`](@ref), [`findpathsat!`](@ref), [`findpathsfrom!`](@ref),
+[`findpathsthrough!`](@ref), [`findpathsupto!`](@ref)
 """
 function findpathsall!(f::Function, A::Vector{<:Vector}, ks::Vector, t::AbstractNode)
     if !isempty(t)
@@ -438,14 +438,12 @@ end
     findpathsall(f::Function, t::AbstractNode)
 
 Return a vector of the Cartesian indices of elements for which `f` returns true.
-Recursion runs over all nodes on all levels.
+Recursion runs over all nodes on all levels. Call signature of `f` is: `f(t::AbstractNode)`.
 
-Call signature of `f` is: `f(t::AbstractNode)`.
+See also: [`findpathsall!`](@ref)
 """
 function findpathsall(f::Function, t::AbstractNode)
-    A = Vector{Vector{Any}}()
-    ks = Any[]
-    findpathsall!(f, A, ks, t)
+    findpathsall!(f, Vector{Vector{Any}}(), Any[], t)
 end
 
 """
@@ -453,7 +451,6 @@ end
 
 `push!` into `A` the Cartesian indices of elements for which `f` returns true.
 Proceed to `N - 1`th level, begin recursion which acts on all levels, the first of which is `N`.
-
 Call signature of `f` is: `f(t::AbstractNode)`.
 """
 function findpathsfrom!(f::Function, A::Vector{<:Vector}, t::AbstractNode, N::Int, C::Int)
@@ -477,12 +474,10 @@ end
 
 Return a vector of the Cartesian indices of elements for which `f` returns true.
 Proceed to `N - 1`th level, begin recursion which acts on all levels, the first of which is `N`.
-
 Call signature of `f` is: `f(t::AbstractNode)`.
 """
 function findpathsfrom(f::Function, t::AbstractNode, N::Int)
-    A = Vector{Vector{Any}}()
-    findpathsfrom!(f, A, t, N, 1)
+    findpathsfrom!(f, Vector{Vector{Any}}(), t, N, 1)
 end
 
 """
@@ -490,7 +485,6 @@ end
 
 `push!` into `A` the Cartesian indices of elements for which `f` returns true.
 Recursion runs over all nodes on all levels up to and including `N`.
-
 Call signature of `f` is: `f(t::AbstractNode)`.
 """
 function findpathsthrough!(f::Function, A::Vector{<:Vector}, ks::Vector, t::AbstractNode, N::Int)
@@ -515,23 +509,18 @@ end
 
 Return a vector of the Cartesian indices of elements for which `f` returns true.
 Recursion runs over all nodes on all levels up to and including `N`.
-
 Call signature of `f` is: `f(t::AbstractNode)`.
 """
 function findpathsthrough(f::Function, t::AbstractNode, N::Int)
-    A = Vector{Vector{Any}}()
-    ks = Any[]
-    findpathsthrough!(f, A, ks, t, N)
+    findpathsthrough!(f, Vector{Vector{Any}}(), Any[], t, N)
 end
 
 """
     findpathsupto!(f::Function, A::Vector{<:Vector}, ks::Vector, t::AbstractNode, N::Int)
 
 `push!` into `A` the Cartesian indices of elements for which `f` returns true.
-Recursion runs over all nodes on all levels up to _but not_ including
-`N` (i.e. up to and including `N - 1`).
-
-Call signature of `f` is: `f(t::AbstractNode)`.
+Recursion runs over all nodes on all levels up to _but not_
+including `N` (i.e. up to and including `N - 1`). Call signature of `f` is: `f(t::AbstractNode)`.
 """
 findpathsupto!(f::Function, A::Vector{<:Vector}, ks::Vector, t::AbstractNode, N::Int) =
     findpathsthrough!(f, A, ks, t, N - 1)
@@ -543,8 +532,6 @@ findpathsupto!(f::Function, A::Vector{<:Vector}, ks::Vector, t::AbstractNode, N:
 
 Return a vector of the Cartesian indices of elements for which `f` returns true.
 Recursion runs over all nodes on all levels up to _but not_ including
-`N` (i.e. up to and including `N - 1`).
-
-Call signature of `f` is: `f(t::AbstractNode)`.
+`N` (i.e. up to and including `N - 1`). Call signature of `f` is: `f(t::AbstractNode)`.
 """
 findpathsupto(f::Function, t::AbstractNode, N::Int) = findpathsthrough(f, t, N - 1)
