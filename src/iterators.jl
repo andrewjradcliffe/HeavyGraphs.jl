@@ -47,13 +47,13 @@ function foreachat(f::Function, t::AbstractNode, N::Int, C::Int)
             foreachat(f, p.second, N, C̃)
         end
     elseif C̃ == N
-        # for p in t
-        #     f(p)
-        # end
+        for p in t
+            f(p)
+        end
         # Alternative that may lead to more inlining:
-        foreach(f, t)
+        # foreach(f, t)
     end
-    nothing
+    return nothing
 end
 
 """
@@ -320,6 +320,12 @@ end
 # @benchmark _countat(_rettrue, t, 10)
 # # _countat(x -> first(x) % 3 == 0, t, 10)
 
+"""
+    countat(f::Function, t::AbstractNode, N::Int, C::Int)
+
+Count the number of elements at the given level `N`, starting at the level `C`,
+for which the function `f` returns true. Caller is responsible for `C + 1` ≤ `N`.
+"""
 function countat(f::Function, t::AbstractNode, N::Int, C::Int)
     tmp = 0
     isempty(t) && return tmp
@@ -328,7 +334,7 @@ function countat(f::Function, t::AbstractNode, N::Int, C::Int)
         for p in t
             tmp += countat(f, p.second, N, C̃)
         end
-    elseif C̃ == N
+    else#if C̃ == N
         for p in t
             f(p) && (tmp += 1)
         end
@@ -336,13 +342,19 @@ function countat(f::Function, t::AbstractNode, N::Int, C::Int)
     return tmp
 end
 
+"""
+    countat(f::Function, t::AbstractNode, N::Int)
+
+Count the number of elements at the given level `N`, starting at the level `C`,
+for which the function `f` returns true.
+"""
 countat(f::Function, t::AbstractNode, N::Int) = countat(f, t, N, 1)
 
 ####
-function forall_depthfirst!(f::Function, t::AbstractNode)
+function forall_depthfirst(f::Function, t::AbstractNode)
     if !isempty(t)
         for p in t
-            forall_depthfirst!(f, p.second)
+            forall_depthfirst(f, p.second)
         end
     end
     f(t)
@@ -356,24 +368,24 @@ function forall_depthfirst!(f::Function, t::AbstractNode)
     # return nothing
 end
 
-function forall_breadthfirst!(f::Function, t::AbstractNode)
-    f(t)
-    if !isempty(t)
-        for p in t
-            forall_breadthfirst!(f, p.second)
-        end
-    end
-    return t
-    # Terse form
+function forall_breadthfirst(f::Function, t::AbstractNode)
     # f(t)
-    # isempty(t) && return nothing
-    # for p in t
-    #     forall_breadthfirst!(f, p.second)
+    # if !isempty(t)
+    #     for p in t
+    #         forall_breadthfirst(f, p.second)
+    #     end
     # end
-    # return nothing
+    # return t
+    # Terse form
+    f(t)
+    isempty(t) && return nothing
+    for p in t
+        forall_breadthfirst!(f, p.second)
+    end
+    return nothing
 end
 
-function forallfrom!(f::Function, t::AbstractNode, N::Int, C::Int)
+function forallfrom(f::Function, t::AbstractNode, N::Int, C::Int)
     # if C < N - 1
     #     if !isempty(t)
     #         for p in t
@@ -393,49 +405,45 @@ function forallfrom!(f::Function, t::AbstractNode, N::Int, C::Int)
     C̃ = C + 1
     if C̃ < N
         for p in t
-            forallfrom!(f, p.second, N, C̃)
+            forallfrom(f, p.second, N, C̃)
         end
     elseif C̃ == N
         for p in t
-            forall_breadthfirst!(f, p.second)
+            forall_breadthfirst(f, p.second)
         end
     end
-    nothing
+    return nothing
 end
 
-function forallfrom!(f::Function, t::AbstractNode, N::Int)
-    forallfrom!(f, t, N, 1)
-end
+forallfrom(f::Function, t::AbstractNode, N::Int) = forallfrom!(f, t, N, 1)
 
-function forallthrough!(f::Function, t::AbstractNode, N::Int, C::Int)
-    f(t)
-    isempty(t) && return nothing
-    C̃ = C + 1
-    if C̃ < N
-        for p in t
-            forallthrough!(f, p.second, N, C̃)
-        end
-    elseif C̃ == N
-        for p in t
-            f(p.second)
-        end
-    end
-    nothing
-    # Works, but enters function for each node at last level. Might be less efficient.
+function forallthrough(f::Function, t::AbstractNode, N::Int, C::Int)
     # f(t)
     # isempty(t) && return nothing
     # C̃ = C + 1
-    # if C̃ ≤ N
+    # if C̃ < N
     #     for p in t
     #         forallthrough!(f, p.second, N, C̃)
     #     end
+    # elseif C̃ == N
+    #     for p in t
+    #         f(p.second)
+    #     end
     # end
     # return nothing
+    # Works, but enters function for each node at last level. Might be less efficient.
+    f(t)
+    isempty(t) && return nothing
+    C̃ = C + 1
+    if C̃ ≤ N
+        for p in t
+            forallthrough!(f, p.second, N, C̃)
+        end
+    end
+    return nothing
 end
 
-function forallthrough(f::Function, t::AbstractNode, N::Int)
-    forallthrough!(f, t, N, 1)
-end
+forallthrough(f::Function, t::AbstractNode, N::Int) = forallthrough!(f, t, N, 1)
 
 ####
 # function countall!(f::Function, A::Vector{Int}, t::AbstractNode)
@@ -526,6 +534,7 @@ function countallfrom(f::Function, t::AbstractNode, N::Int, C::Int)
     end
     return tmp
 end
+
 countallfrom(f::Function, t::AbstractNode, N::Int) = countallfrom(f, t, N, 1)
 
 # function countallthrough!(f::Function, A::Vector{Int}, t::AbstractNode, N::Int, C::Int)
@@ -573,6 +582,7 @@ function countallthrough(f::Function, t::AbstractNode, N::Int, C::Int)
     end
     return tmp
 end
+
 countallthrough(f::Function, t::AbstractNode, N::Int) = countallthrough(f, t, N, 1)
 
 function countallupto(f::Function, t::AbstractNode, N::Int, C::Int)
@@ -587,4 +597,5 @@ function countallupto(f::Function, t::AbstractNode, N::Int, C::Int)
     end
     return tmp
 end
+
 countallupto(f::Function, t::AbstractNode, N::Int) = countallupto(f, t, N, 1)
