@@ -276,6 +276,15 @@ Call signature of `f` is: `f(t::AbstractNode)`.
 countat(f::Function, t::AbstractNode, N::Int) = countat(f, t, N, 1)
 
 # Much more efficient -- 16 bytes vs. 112
+
+"""
+    countall(f::Function, t::AbstractNode)
+
+Count the number of elements for which `f` returns true. Recursion runs over
+all nodes on all levels.
+
+Call signature of `f` is: `f(t::AbstractNode)`.
+"""
 function countall(f::Function, t::AbstractNode)
     s = 0
     f(t) && (s +=1)
@@ -296,6 +305,14 @@ function countall(f::Function, t::AbstractNode)
 end
 # @benchmark countall(_rettrue, t)
 
+"""
+    countfrom(f::Function, t::AbstractNode, N::Int, C::Int)
+
+Count the number of elements for which `f` returns true. Proceed to `N - 1`th level,
+begin recursion which acts on all levels, the first of which is `N`.
+
+Call signature of `f` is: `f(t::AbstractNode)`.
+"""
 function countfrom(f::Function, t::AbstractNode, N::Int, C::Int)
     s = 0
     isempty(t) && return s
@@ -315,6 +332,14 @@ end
 countfrom(f::Function, t::AbstractNode, N::Int) = countfrom(f, t, N, 1)
 # @benchmark countfrom(_rettrue, t, 10)
 
+"""
+    countthrough(f::Function, t::AbstractNode, N::Int, C::Int)
+
+Count the number of elements for which `f` returns true. Recursion runs on
+all nodes on all levels up to and including `N`.
+
+Call signature of `f` is: `f(t::AbstractNode)`.
+"""
 function countthrough(f::Function, t::AbstractNode, N::Int, C::Int)
     s = 0
     f(t) && (s += 1)
@@ -331,11 +356,18 @@ end
 countthrough(f::Function, t::AbstractNode, N::Int) = countthrough(f, t, N, 1)
 # @benchmark countthrough(_rettrue, t, 2)
 
+"""
+    countupto(f::Function, t::AbstractNode, N::Int, C::Int)
+
+Count the number of elements for which `f` returns true. Recursion runs on
+all nodes on all levels up to _but not_ including `N` (i.e. up to and including `N - 1`).
+
+Call signature of `f` is: `f(t::AbstractNode)`.
+"""
 function countupto(f::Function, t::AbstractNode, N::Int, C::Int)
     s = 0
     # C < N || return s # necessary to ensure safety, but technically optional
     f(t) && (s += 1)
-    # s = f(t) ? 1 : 0
     isempty(t) && return s
     C̃ = C + 1
     if C̃ < N
