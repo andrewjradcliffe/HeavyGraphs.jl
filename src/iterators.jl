@@ -556,7 +556,7 @@ function countallfrom(f::Function, t::AbstractNode, N::Int, C::Int)
         for p in t
             tmp += countallfrom(f, p.second, N, C̃)
         end
-    elseif C̃ == N
+    else#if C̃ == N
         for p in t
             tmp += countall(f, p.second)
         end
