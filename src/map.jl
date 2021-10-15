@@ -171,14 +171,20 @@ Call signature of `f` is: `f(dest, t::AbstractNode)`.
 See also: [`mapupto`](@ref), [`mapfilterupto`](@ref), [`mapfilterupto!`](@ref)
 """
 function mapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, t::AbstractNode, N::Int, C::Int)
-    C̃ = C + 1
-    C̃ < N || return dest
+    # C̃ = C + 1
+    # C̃ < N || return dest
+    # f(dest, t)
+    # isempty(t) && return dest
+    C < N || return dest
     f(dest, t)
     isempty(t) && return dest
-    for p in t
-        mapupto!(f, dest, p.second, N, C̃)
+    C̃ = C + 1
+    if C̃ < N #|| return dest
+        for p in t
+            mapupto!(f, dest, p.second, N, C̃)
+        end
     end
-    dest
+    return dest
 end
 
 """
@@ -212,15 +218,26 @@ See also: [`mapfilterupto`](@ref), [`mapupto`](@ref), [`mapupto!`](@ref)
 """
 function mapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
                         t::AbstractNode, N::Int, C::Int)
-    C̃ = C + 1
-    C̃ < N || return dest
+    # C̃ = C + 1
+    # f(dest, t)
+    # C̃ < N || return dest
+    # isempty(t) && return dest
+    # g = fs[C]
+    # for p in t
+    #     g(p) && mapfilterupto!(f, fs, dest, p.second, N, C̃)
+    # end
+    # dest
+    C < N || return dest
     f(dest, t)
     isempty(t) && return dest
+    C̃ = C + 1
     g = fs[C]
-    for p in t
-        g(p) && mapfilterupto!(f, fs, dest, p.second, N, C̃)
+    if C̃ < N #|| return dest
+        for p in t
+            g(p) && mapfilterupto!(f, fs, dest, p.second, N, C̃)
+        end
     end
-    dest
+    return dest
 end
 
 """
@@ -253,14 +270,24 @@ Call signature of `f` is: `f(dest, t::AbstractNode, N, C, levs_ks)`.
 """
 function mapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T},
                   t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
-    C̃ = C + 1
-    C̃ < N || return dest
+    # C̃ = C + 1
+    # f(dest, t, N, C, levs_ks)
+    # C̃ < N || return dest
+    # isempty(t) && return dest
+    # for p in t
+    #     mapupto!(f, dest, p.second, N, C̃, levs_ks)
+    # end
+    # dest
+    C < N || return dest
     f(dest, t, N, C, levs_ks)
     isempty(t) && return dest
-    for p in t
-        mapupto!(f, dest, p.second, N, C̃, levs_ks)
+    C̃ = C + 1
+    if C̃ < N #|| return dest
+        for p in t
+            mapupto!(f, dest, p.second, N, C̃, levs_ks)
+        end
     end
-    dest
+    return dest
 end
 
 """
@@ -292,15 +319,26 @@ Call signature of `fs[C]` is: `fs[C](p::Pair)`.
 """
 function mapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
                         t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
-    C̃ = C + 1
-    C̃ < N || return dest
+    # C̃ = C + 1
+    # f(dest, t, N, C, levs_ks)
+    # C̃ < N || return dest
+    # isempty(t) && return dest
+    # g = fs[C]
+    # for p in t
+    #     g(p) && mapfilterupto!(f, fs, dest, p.second, N, C̃, levs_ks)
+    # end
+    # dest
+    C < N || return dest
     f(dest, t, N, C, levs_ks)
     isempty(t) && return dest
+    C̃ = C + 1
     g = fs[C]
-    for p in t
-        g(p) && mapfilterupto!(f, fs, dest, p.second, N, C̃, levs_ks)
+    if C̃ < N #|| return dest
+        for p in t
+            g(p) && mapfilterupto!(f, fs, dest, p.second, N, C̃, levs_ks)
+        end
     end
-    dest
+    return dest
 end
 
 """

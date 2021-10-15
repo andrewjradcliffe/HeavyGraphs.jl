@@ -171,15 +171,26 @@ See also: [`mapupto!`](@ref), [`kmapfilterupto`](@ref), [`kmapfilterupto!`](@ref
 """
 function kmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
                    t::AbstractNode, N::Int, C::Int)
-    C̃ = C + 1
-    C̃ < N || return dest
+    # C̃ = C + 1
+    # C̃ < N || return dest
+    # f(dest, ks, t, N, C)
+    # isempty(t) && return dest
+    # for p in t
+    #     setindex!(ks, p.first, C)
+    #     kmapupto!(f, dest, ks, p.second, N, C̃)
+    # end
+    # dest
+    C < N || return dest
     f(dest, ks, t, N, C)
     isempty(t) && return dest
-    for p in t
-        setindex!(ks, p.first, C)
-        kmapupto!(f, dest, ks, p.second, N, C̃)
+    C̃ = C + 1
+    if C̃ < N #|| return dest
+        for p in t
+            setindex!(ks, p.first, C)
+            kmapupto!(f, dest, p.second, N, C̃)
+        end
     end
-    dest
+    return dest
 end
 
 """
@@ -213,15 +224,26 @@ See also: [`mapfilterupto!`](@ref), [`kmapupto`](@ref), [`kmapupto!`](@ref)
 """
 function kmapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
                          ks::Vector, t::AbstractNode, N::Int, C::Int)
-    C̃ = C + 1
-    C̃ < N || return dest
+    # C̃ = C + 1
+    # C̃ < N || return dest
+    # f(dest, ks, t, N, C)
+    # isempty(t) && return dest
+    # g = fs[C]
+    # for p in t
+    #     g(p) && (setindex!(ks, p.first, C); kmapfilterupto!(f, fs, dest, ks, p.second, N, C̃))
+    # end
+    # dest
+    C < N || return dest
     f(dest, ks, t, N, C)
     isempty(t) && return dest
+    C̃ = C + 1
     g = fs[C]
-    for p in t
-        g(p) && (setindex!(ks, p.first, C); kmapfilterupto!(f, fs, dest, ks, p.second, N, C̃))
+    if C̃ < N #|| return dest
+        for p in t
+            g(p) && (setindex!(ks, p.first, C); kmapfilterupto!(f, fs, dest, ks, p.second, N, C̃))
+        end
     end
-    dest
+    return dest
 end
 
 """
@@ -255,15 +277,26 @@ Call signature of `f` is: `f(dest, ks, t::AbstractNode, N, C, levs_ks)`.
 """
 function kmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
                    N::Int, C::Int, levs_ks::Vector{Vector{Any}})
-    C̃ = C + 1
-    C̃ < N || return dest
+    # C̃ = C + 1
+    # C̃ < N || return dest
+    # f(dest, ks, t, N, C, levs_ks)
+    # isempty(t) && return dest
+    # for p in t
+    #     setindex!(ks, p.first, C)
+    #     kmapupto!(f, dest, ks, p.second, N, C̃, levs_ks)
+    # end
+    # dest
+    C < N || return dest
     f(dest, ks, t, N, C, levs_ks)
     isempty(t) && return dest
-    for p in t
-        setindex!(ks, p.first, C)
-        kmapupto!(f, dest, ks, p.second, N, C̃, levs_ks)
+    C̃ = C + 1
+    if C̃ < N #|| return dest
+        for p in t
+            setindex!(ks, p.first, C)
+            kmapupto!(f, dest, p.second, N, C̃)
+        end
     end
-    dest
+    return dest
 end
 
 """
@@ -293,15 +326,26 @@ Call signature of `fs[C]` is: `fs[C](p::Pair)`.
 """
 function kmapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
                          ks::Vector, t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
-    C̃ = C + 1
-    C̃ < N || return dest
+    # C̃ = C + 1
+    # C̃ < N || return dest
+    # f(dest, ks, t, N, C, levs_ks)
+    # isempty(t) && return dest
+    # g = fs[C]
+    # for p in t
+    #     g(p) && (setindex!(ks, p.first, C); kmapfilterupto!(f, fs, dest, ks, p.second, N, C̃, levs_ks))
+    # end
+    # dest
+    C < N || return dest
     f(dest, ks, t, N, C, levs_ks)
     isempty(t) && return dest
+    C̃ = C + 1
     g = fs[C]
-    for p in t
-        g(p) && (setindex!(ks, p.first, C); kmapfilterupto!(f, fs, dest, ks, p.second, N, C̃, levs_ks))
+    if C̃ < N #|| return dest
+        for p in t
+            g(p) && (setindex!(ks, p.first, C); kmapfilterupto!(f, fs, dest, ks, p.second, N, C̃, levs_ks))
+        end
     end
-    dest
+    return dest
 end
 
 """
