@@ -87,6 +87,9 @@ foreachat(f::Function, t::AbstractNode, N::Int) = foreachat(f, t, N, 1)
 Apply `f` to all nodes at a given level, `N`, using a filtered traversal, with
 filter specified at each level by the respective element of `fs`. Caller is
 responsible for `C + 1` ≤ `N`.
+
+Call signature of `f` is: `f(t::AbstractNode)`.
+Call signature of `fs[C]` is: `fs[C](p::Pair)`
 """
 function foreachfilterat(f::Function, fs::Vector{Function}, t::AbstractNode, N::Int, C::Int)
     isempty(t) && return nothing
@@ -137,35 +140,6 @@ end
 
 ####
 
-"""
-    countat(f::Function, t::AbstractNode, N::Int, C::Int)
-
-Count the number of elements at the given level `N`, starting at the level `C`,
-for which the function `f` returns true. Caller is responsible for `C + 1` ≤ `N`.
-"""
-function countat(f::Function, t::AbstractNode, N::Int, C::Int)
-    s = 0
-    isempty(t) && return s
-    C̃ = C + 1
-    if C̃ < N
-        for p in t
-            s += countat(f, p.second, N, C̃)
-        end
-    else#if C̃ == N
-        for p in t
-            f(p) && (s += 1)
-        end
-    end
-    return s
-end
-
-"""
-    countat(f::Function, t::AbstractNode, N::Int)
-
-Count the number of elements at the given level `N`, starting at the level `C`,
-for which the function `f` returns true.
-"""
-countat(f::Function, t::AbstractNode, N::Int) = countat(f, t, N, 1)
 
 ####
 function forall_depthfirst(f::Function, t::AbstractNode)
@@ -266,6 +240,41 @@ is the stopping point of the recursion.
 forallthrough(f::Function, t::AbstractNode, N::Int) = forallthrough!(f, t, N, 1)
 
 
+################################################################
+"""
+    countat(f::Function, t::AbstractNode, N::Int, C::Int)
+
+Count the number of elements at the given level `N`, starting at the level `C`,
+for which the function `f` returns true. Caller is responsible for `C + 1` ≤ `N`.
+
+Call signature of `f` is: `f(t::AbstractNode)`.
+"""
+function countat(f::Function, t::AbstractNode, N::Int, C::Int)
+    s = 0
+    isempty(t) && return s
+    C̃ = C + 1
+    if C̃ < N
+        for p in t
+            s += countat(f, p.second, N, C̃)
+        end
+    else#if C̃ == N
+        for p in t
+            f(p.second) && (s += 1)
+        end
+    end
+    return s
+end
+
+"""
+    countat(f::Function, t::AbstractNode, N::Int)
+
+Count the number of elements at the given level `N`, starting at the level `C=1`,
+for which the function `f` returns true.
+
+Call signature of `f` is: `f(t::AbstractNode)`.
+"""
+countat(f::Function, t::AbstractNode, N::Int) = countat(f, t, N, 1)
+
 # Much more efficient -- 16 bytes vs. 112
 function countall(f::Function, t::AbstractNode)
     s = 0
@@ -276,15 +285,24 @@ function countall(f::Function, t::AbstractNode)
         s += countall(f, p.second)
     end
     return s
+    # # Alternate phrasing to enforce interface: f(p::Pair{Any,AbstractNode})
+    # s = 0
+    # isempty(t) && return s
+    # for p in t
+    #     f(p) && (s += 1)
+    #     s += countall(f, p.second)
+    # end
+    # return s
 end
+# @benchmark countall(_rettrue, t)
 
-function countallfrom(f::Function, t::AbstractNode, N::Int, C::Int)
+function countfrom(f::Function, t::AbstractNode, N::Int, C::Int)
     s = 0
     isempty(t) && return s
     C̃ = C + 1
     if C̃ < N
         for p in t
-            s += countallfrom(f, p.second, N, C̃)
+            s += countfrom(f, p.second, N, C̃)
         end
     else#if C̃ == N
         for p in t
@@ -294,34 +312,52 @@ function countallfrom(f::Function, t::AbstractNode, N::Int, C::Int)
     return s
 end
 
-countallfrom(f::Function, t::AbstractNode, N::Int) = countallfrom(f, t, N, 1)
+countfrom(f::Function, t::AbstractNode, N::Int) = countfrom(f, t, N, 1)
+# @benchmark countfrom(_rettrue, t, 10)
 
-function countallthrough(f::Function, t::AbstractNode, N::Int, C::Int)
+function countthrough(f::Function, t::AbstractNode, N::Int, C::Int)
     s = 0
     f(t) && (s += 1)
     isempty(t) && return s
     C̃ = C + 1
     if C̃ ≤ N
         for p in t
-            s += countallthrough(f, p.second, N, C̃)
+            s += countthrough(f, p.second, N, C̃)
         end
     end
     return s
 end
 
-countallthrough(f::Function, t::AbstractNode, N::Int) = countallthrough(f, t, N, 1)
+countthrough(f::Function, t::AbstractNode, N::Int) = countthrough(f, t, N, 1)
+# @benchmark countthrough(_rettrue, t, 2)
 
-function countallupto(f::Function, t::AbstractNode, N::Int, C::Int)
+function countupto(f::Function, t::AbstractNode, N::Int, C::Int)
     s = 0
+    # C < N || return s # necessary to ensure safety, but technically optional
     f(t) && (s += 1)
+    # s = f(t) ? 1 : 0
     isempty(t) && return s
     C̃ = C + 1
     if C̃ < N
         for p in t
-            s += countallthrough(f, p.second, N, C̃)
+            s += countupto(f, p.second, N, C̃)
         end
     end
+    # # Variant 2
+    # isempty(t) && return s
+    # C̃ = C + 1
+    # C̃ < N || return s
+    # for p in t
+    #     s += countupto(f, p.second, N, C̃)
+    # end
+    # # Variant 3
+    # C̃ = C + 1
+    # (C̃ ≥ N || isempty(t)) && return s
+    # for p in t
+    #     s += countupto(f, p.second, N, C̃)
+    # end
     return s
 end
 
-countallupto(f::Function, t::AbstractNode, N::Int) = countallupto(f, t, N, 1)
+countupto(f::Function, t::AbstractNode, N::Int) = countupto(f, t, N, 1)
+# @benchmark countupto(_rettrue, t, 2)
