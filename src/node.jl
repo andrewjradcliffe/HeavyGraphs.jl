@@ -106,6 +106,8 @@ Base.get!(f::Function, x::A where {A<:AbstractNode{T, U}}, k1, k2) where {T, U} 
 # specialization.
 Base.get!(f::Function, x::A where {A<:AbstractNode{T, U}}, k1, k2, ks::Vararg{Any, N}) where {N} where {T, U} =
     get!(f, get!(f, get!(f, x, k1), k2), ks...)
+# An interesting note: get!.(() -> SimpleNode(), Ref(x), [1:100;])
+# does exactly what one would expect.
 
 Base.getindex(x::AbstractNode, key) = getindex(x.link, key)
 ## Solves type-instability at cost of 50% more time and 32 bytes allocation
@@ -207,9 +209,25 @@ function Base.merge!(a::AbstractSimpleNode, bs::AbstractSimpleNode...)
     a
 end
 
+# p. 528-529, 2021-10-15
+function maxdepth(t::AbstractNode, C::Int=0)
+    C̃ = C + 1
+    isempty(t) && return C̃
+    C̃ₘ = C̃
+    for p in t
+        C̃ₘ = max(C̃ₘ, maxdepth(p.second, C̃))
+    end
+    return C̃ₘ
+end
 
-
-
+function maxbreadth(t::AbstractNode)
+    b::Int = length(t)
+    isempty(t) && return b
+    for p in t
+        b = max(b, maxbreadth(p.second))
+    end
+    return b
+end
 
 #### comparison operators
 # function Base.isequal(a::A where {A<:AbstractNode{T₁, U₁}},
