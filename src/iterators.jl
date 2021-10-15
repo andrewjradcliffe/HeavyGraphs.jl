@@ -254,48 +254,47 @@ function findallpathsat(f::Function, t::AbstractNode, N::Int)
 end
 
 ####
-function countat!(f::Function, A::Vector{Int}, t::AbstractNode, N::Int, C::Int)
-    # if C < N - 1
-    #     if !isempty(t)
-    #         for v in values(t)
-    #             countat!(f, A, v, N, C + 1)
-    #         end
-    #     end
-    # elseif C == N - 1
-    #     if !isempty(t)
-    #         for p in t
-    #             A[1] += f(p)
-    #         end
-    #     end
-    # end
-    # return A
-    # Terse form
-    isempty(t) && return A
-    C̃ = C + 1
-    if C̃ < N
-        for p in t
-            countat!(f, A, p.second, N, C̃)
-        end
-    elseif C̃ == N
-        for p in t
-            A[1] += f(p)
-        end
-    end
-    return A
-end
+# function countat!(f::Function, A::Vector{Int}, t::AbstractNode, N::Int, C::Int)
+#     # if C < N - 1
+#     #     if !isempty(t)
+#     #         for v in values(t)
+#     #             countat!(f, A, v, N, C + 1)
+#     #         end
+#     #     end
+#     # elseif C == N - 1
+#     #     if !isempty(t)
+#     #         for p in t
+#     #             A[1] += f(p)
+#     #         end
+#     #     end
+#     # end
+#     # return A
+#     # Terse form
+#     isempty(t) && return A
+#     C̃ = C + 1
+#     if C̃ < N
+#         for p in t
+#             countat!(f, A, p.second, N, C̃)
+#         end
+#     elseif C̃ == N
+#         for p in t
+#             A[1] += f(p)
+#         end
+#     end
+#     return A
+# end
 
-function countat(f::Function, t::AbstractNode, N::Int)
-    A = Int[0]
-    countat!(f, A, t, N, 1)
-    A[1]
-end
+# function countat(f::Function, t::AbstractNode, N::Int)
+#     A = Int[0]
+#     countat!(f, A, t, N, 1)
+#     A[1]
+# end
 
 # _rettrue(p) = true
 # @benchmark countat(_rettrue, t, 10)
 # countat(x -> first(x) % 3 == 0, t, 10)
 
 # Technically, faster by ≈ 25%, but loses convenience of countat!
-
 # function _countat(f::Function, tmp::Int, t::AbstractNode, N::Int, C::Int)
 #     isempty(t) && return tmp
 #     C̃ = C + 1
@@ -319,7 +318,26 @@ end
 # _countat(f::Function, t::AbstractNode, N::Int) = _countat(f, 0, t, N, 1)
 
 # @benchmark _countat(_rettrue, t, 10)
-# _countat(x -> first(x) % 3 == 0, t, 10)
+# # _countat(x -> first(x) % 3 == 0, t, 10)
+
+function countat(f::Function, t::AbstractNode, N::Int, C::Int)
+    tmp = 0
+    isempty(t) && return tmp
+    C̃ = C + 1
+    if C̃ < N
+        for p in t
+            tmp += countat(f, p.second, N, C̃)
+        end
+    elseif C̃ == N
+        for p in t
+            tmp += f(p)
+        end
+    end
+    return tmp
+end
+
+# countat(f::Function, t::AbstractNode, N::Int) = countat(f, t, N, 1)
+# @benchmark countat(_rettrue, t, 10)
 
 ####
 function forall_depthfirst!(f::Function, t::AbstractNode)
