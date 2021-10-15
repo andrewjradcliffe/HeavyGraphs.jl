@@ -276,7 +276,6 @@ Call signature of `f` is: `f(t::AbstractNode)`.
 countat(f::Function, t::AbstractNode, N::Int) = countat(f, t, N, 1)
 
 # Much more efficient -- 16 bytes vs. 112
-
 """
     countall(f::Function, t::AbstractNode)
 
@@ -303,7 +302,6 @@ function countall(f::Function, t::AbstractNode)
     # end
     # return s
 end
-# @benchmark countall(_rettrue, t)
 
 """
     countfrom(f::Function, t::AbstractNode, N::Int, C::Int)
@@ -330,7 +328,6 @@ function countfrom(f::Function, t::AbstractNode, N::Int, C::Int)
 end
 
 countfrom(f::Function, t::AbstractNode, N::Int) = countfrom(f, t, N, 1)
-# @benchmark countfrom(_rettrue, t, 10)
 
 """
     countthrough(f::Function, t::AbstractNode, N::Int, C::Int)
@@ -354,7 +351,6 @@ function countthrough(f::Function, t::AbstractNode, N::Int, C::Int)
 end
 
 countthrough(f::Function, t::AbstractNode, N::Int) = countthrough(f, t, N, 1)
-# @benchmark countthrough(_rettrue, t, 2)
 
 """
     countupto(f::Function, t::AbstractNode, N::Int, C::Int)
@@ -392,4 +388,3 @@ function countupto(f::Function, t::AbstractNode, N::Int, C::Int)
 end
 
 countupto(f::Function, t::AbstractNode, N::Int) = countupto(f, t, N, 1)
-# @benchmark countupto(_rettrue, t, 2)
