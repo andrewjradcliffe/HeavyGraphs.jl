@@ -64,7 +64,7 @@ Performs a filtered traversal in which a subset is formed at each level from
 the corresponding element (note: linear indexed) of the filter functions `fs`.
 
 Call signature of `f` is: `f(dest, p::Pair)`.
-Call signature of `fs[C]` is: fs[C](p::Pair).
+Call signature of `fs[C]` is: `fs[C](p::Pair)`.
 
 See also: [`mapfilterat`](@ref), [`mapat`](@ref), [`mapat!`](@ref)
 """
@@ -93,7 +93,7 @@ Performs a filtered traversal in which a subset is formed at each level from
 the corresponding element (note: linear indexed) of the filter functions `fs`.
 
 Call signature of `f` is: `f(dest, p::Pair)`.
-Call signature of `fs[C]` is: fs[C](p::Pair).
+Call signature of `fs[C]` is: `fs[C](p::Pair)`.
 
 See also: [`mapfilterat!`](@ref), [`mapat`](@ref), [`mapat!`](@ref)
 """
@@ -206,7 +206,7 @@ Performs a filtered traversal in which a subset is formed at each level from
 the corresponding element (note: linear indexed) of the filter functions `fs`.
 
 Call signature of `f` is: `f(dest, t::AbstractNode)`.
-Call signature of `fs[C]` is: fs[C](p::Pair).
+Call signature of `fs[C]` is: `fs[C](p::Pair)`.
 
 See also: [`mapfilterupto`](@ref), [`mapupto`](@ref), [`mapupto!`](@ref)
 """
@@ -231,7 +231,7 @@ Performs a filtered traversal in which a subset is formed at each level from
 the corresponding element (note: linear indexed) of the filter functions `fs`.
 
 Call signature of `f` is: `f(dest, t::AbstractNode)`.
-Call signature of `fs[C]` is: fs[C](p::Pair).
+Call signature of `fs[C]` is: `fs[C](p::Pair)`.
 
 See also: [`mapfilterupto!`](@ref), [`mapupto`](@ref), [`mapupto!`](@ref)
 """
@@ -288,7 +288,7 @@ the current level `C`, and the vector of level-respective index sets,
 `levs_ks` as arguments to `f`.
 
 Call signature of `f` is: `f(dest, t::AbstractNode, N, C, levs_ks)`.
-Call signature of `fs[C]` is: fs[C](p::Pair).
+Call signature of `fs[C]` is: `fs[C](p::Pair)`.
 """
 function mapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
                         t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
@@ -312,7 +312,7 @@ the current level `C`, and the vector of level-respective index sets,
 `levs_ks` as arguments to `f`.
 
 Call signature of `f` is: `f(dest, t::AbstractNode, N, C, levs_ks)`.
-Call signature of `fs[C]` is: fs[C](p::Pair).
+Call signature of `fs[C]` is: `fs[C](p::Pair)`.
 """
 function mapfilterupto(f::Function, fs::Vector{Function},
                        dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractNode,

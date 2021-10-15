@@ -60,7 +60,7 @@ end
 Indexing analogy to `mapfilterat!` with filtered traversal.
 
 Call signature of `f` is: `f(dest, ks, p::Pair)`.
-Call signature of `fs[C]` is: fs[C](p::Pair).
+Call signature of `fs[C]` is: `fs[C](p::Pair)`.
 
 See also: [`mapfilterat!`](@ref), [`kmapat`](@ref), [`kmapat!`](@ref)
 """
@@ -88,7 +88,7 @@ end
 Indexing analogy to `mapfilterat` with filtered traversal.
 
 Call signature of `f` is: `f(dest, ks, p::Pair)`.
-Call signature of `fs[C]` is: fs[C](p::Pair).
+Call signature of `fs[C]` is: `fs[C](p::Pair)`.
 
 See also: [`mapfilterat`](@ref), [`kmapat`](@ref), [`kmapat!`](@ref)
 """
@@ -207,7 +207,7 @@ end
 Filtered traversal analogy to `mapfilterupto!`.
 
 Call signature of `f` is: `f(dest, ks, t::AbstractNode, N, C)`.
-Call signature of `fs[C]` is: fs[C](p::Pair).
+Call signature of `fs[C]` is: `fs[C](p::Pair)`.
 
 See also: [`mapfilterupto!`](@ref), [`kmapupto`](@ref), [`kmapupto!`](@ref)
 """
@@ -231,7 +231,7 @@ end
 Filtered traversal analogy to `mapfilterupto`.
 
 Call signature of `f` is: `f(dest, ks, t::AbstractNode, N, C)`.
-Call signature of `fs[C]` is: fs[C](p::Pair).
+Call signature of `fs[C]` is: `fs[C](p::Pair)`.
 
 See also: [`mapfilterupto`](@ref), [`kmapupto`](@ref), [`kmapupto!`](@ref)
 
@@ -289,7 +289,7 @@ end
 Filtered traversal, with level-respective index sets analogy to `mapfilterupto!`.
 
 Call signature of `f` is: `f(dest, ks, t::AbstractNode, N, C, levs_ks)`.
-Call signature of `fs[C]` is: fs[C](p::Pair).
+Call signature of `fs[C]` is: `fs[C](p::Pair)`.
 """
 function kmapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
                          ks::Vector, t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
@@ -311,7 +311,7 @@ end
 Filtered traversal, with level-respective index sets analogy to `mapfilterupto`.
 
 Call signature of `f` is: `f(dest, ks, t::AbstractNode, N, C, levs_ks)`.
-Call signature of `fs[C]` is: fs[C](p::Pair).
+Call signature of `fs[C]` is: `fs[C](p::Pair)`.
 """
 function kmapfilterupto(f::Function, fs::Vector{Function},
                         dims::Tuple{Vararg{NTuple{S, Int}} where S},
