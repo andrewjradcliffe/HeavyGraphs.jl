@@ -235,7 +235,7 @@ function findallpathsat!(f::Function, A::Vector{<:Vector}, ks::Vector, t::Abstra
     if C̃ < N # equivalent to C < N - 1
         for p in t
             @inbounds setindex!(ks, p.first, C)
-            findallat!(f, A, ks, p.second, N, C̃)
+            findallpathsat!(f, A, ks, p.second, N, C̃)
         end
     elseif C̃ == N
         for p in t
@@ -250,8 +250,7 @@ end
 function findallpathsat(f::Function, t::AbstractNode, N::Int)
     ks = Vector{Any}(undef, N - 1)
     A = Vector{Vector{Any}}()
-    C = 1
-    findallpathsat!(f, A, ks, t, N, C)
+    findallpathsat!(f, A, ks, t, N, 1)
 end
 
 ####
