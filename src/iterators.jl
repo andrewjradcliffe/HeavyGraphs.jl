@@ -473,75 +473,118 @@ function countall(f::Function, t::AbstractNode)
     return tmp
 end
 
+# function countallfrom!(f::Function, A::Vector{Int}, t::AbstractNode, N::Int, C::Int)
+#     # if C < N - 1
+#     #     if !isempty(t)
+#     #         for p in t
+#     #             countallfrom!(f, A, p.second, N, C + 1)
+#     #         end
+#     #     end
+#     # elseif C == N - 1
+#     #     if !isempty(t)
+#     #         for p in t
+#     #             countall!(f, A, p.second)
+#     #         end
+#     #     end
+#     # end
+#     # return A
+#     # Terse form
+#     # A[1] += f(t) # Not necessary as countall! will perform this, even if empty
+#     isempty(t) && return A
+#     C̃ = C + 1
+#     if C̃ < N
+#         for p in t
+#             countallfrom!(f, A, p.second, N, C̃)
+#         end
+#     elseif C̃ == N
+#         for p in t
+#             countall!(f, A, p.second)
+#         end
+#     end
+#     return A
+# end
 
+# function countallfrom(f::Function, t::AbstractNode, N::Int)
+#     A = Int[0]
+#     C = 1
+#     countallfrom!(f, A, t, N, C)
+#     A[1]
+# end
 
-function countallfrom!(f::Function, A::Vector{Int}, t::AbstractNode, N::Int, C::Int)
-    # if C < N - 1
-    #     if !isempty(t)
-    #         for p in t
-    #             countallfrom!(f, A, p.second, N, C + 1)
-    #         end
-    #     end
-    # elseif C == N - 1
-    #     if !isempty(t)
-    #         for p in t
-    #             countall!(f, A, p.second)
-    #         end
-    #     end
-    # end
-    # return A
-    # Terse form
-    # A[1] += f(t) # Not necessary as countall! will perform this, even if empty
-    isempty(t) && return A
+function countallfrom(f::Function, t::AbstractNode, N::Int, C::Int)
+    tmp = 0
+    isempty(t) && return tmp
     C̃ = C + 1
     if C̃ < N
         for p in t
-            countallfrom!(f, A, p.second, N, C̃)
+            tmp += countallfrom(f, p.second, N, C̃)
         end
     elseif C̃ == N
         for p in t
-            countall!(f, A, p.second)
+            tmp += countall(f, p.second)
         end
     end
-    return A
+    return tmp
 end
+countallfrom(f::Function, t::AbstractNode, N::Int) = countallfrom(f, t, N, 1)
 
-function countallfrom(f::Function, t::AbstractNode, N::Int)
-    A = Int[0]
-    C = 1
-    countallfrom!(f, A, t, N, C)
-    A[1]
+# function countallthrough!(f::Function, A::Vector{Int}, t::AbstractNode, N::Int, C::Int)
+#     A[1] += f(t)
+#     isempty(t) && return A
+#     C̃ = C + 1
+#     if C̃ < N
+#         for p in t
+#             countallthrough!(f, A, p.second, N, C̃)
+#         end
+#     elseif C̃ == N
+#         for p in t
+#             A[1] += f(p.second)
+#         end
+#     end
+#     return A
+#     # Works, but enters function for each node at last level. Might be less efficient.
+#     # A[1] += f(t)
+#     # isempty(t) && return A
+#     # C̃ = C + 1
+#     # if C̃ ≤ N
+#     #     for p in t
+#     #         countallthrough!(f, A, p.second, N, C̃)
+#     #     end
+#     # end
+#     # return A
+# end
+
+# function countallthrough(f::Function, t::AbstractNode, N::Int)
+#     A = Int[0]
+#     C = 1
+#     countallthrough!(f, A, t, N, C)
+#     A[1]
+# end
+
+function countallthrough(f::Function, t::AbstractNode, N::Int, C::Int)
+    tmp = 0
+    f(t) && (tmp += 1)
+    isempty(t) && return tmp
+    C̃ = C + 1
+    if C̃ ≤ N
+        for p in t
+            tmp += countallthrough(f, p.second, N, C̃)
+        end
+    end
+    return tmp
 end
+countallthrough(f::Function, t::AbstractNode, N::Int) = countallthrough(f, t, N, 1)
 
-function countallthrough!(f::Function, A::Vector{Int}, t::AbstractNode, N::Int, C::Int)
-    A[1] += f(t)
-    isempty(t) && return A
+function countallupto(f::Function, t::AbstractNode, N::Int, C::Int)
+    tmp = 0
+    f(t) && (tmp += 1)
+    isempty(t) && return tmp
     C̃ = C + 1
     if C̃ < N
         for p in t
-            countallthrough!(f, A, p.second, N, C̃)
-        end
-    elseif C̃ == N
-        for p in t
-            A[1] += f(p.second)
+            tmp += countallthrough(f, p.second, N, C̃)
         end
     end
-    return A
-    # Works, but enters function for each node at last level. Might be less efficient.
-    # A[1] += f(t)
-    # isempty(t) && return A
-    # C̃ = C + 1
-    # if C̃ ≤ N
-    #     for p in t
-    #         countallthrough!(f, A, p.second, N, C̃)
-    #     end
-    # end
-    # return A
+    return tmp
 end
-
-function countallthrough(f::Function, t::AbstractNode, N::Int)
-    A = Int[0]
-    C = 1
-    countallthrough!(f, A, t, N, C)
-    A[1]
-end
+countallupto(f::Function, t::AbstractNode, N::Int) = countallupto(f, t, N, 1)
