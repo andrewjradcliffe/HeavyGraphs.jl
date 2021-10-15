@@ -16,6 +16,13 @@ export kmapat, kmapat!, tkmapat,
 # multipliers.jl
 export multabsentupto, multabsent
 
+# iterators.jl
+export foreachat, foreachfilterat, foreach_depthfirst, foreach_breadthfirst,
+    foreachfrom, foreachthrough, foreachupto,
+    countat, countall, countfrom, countthrough, countupto,
+    findpathsat, findpathsat!, findpathsall, findpathsall!,
+    findpathsfrom, findpathsfrom!, findpathsthrough, findpathsthrough!, findpathsupto, findpathsupto!
+
 # include("map.jl")
 # include("kmap.jl")
 # include("multipliers.jl")

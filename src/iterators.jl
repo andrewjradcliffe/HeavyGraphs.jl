@@ -8,7 +8,7 @@
 #### Iterators: see p. 421-430, 2021-09-13
 # - foreach variants
 # - findall variants
-# - forall variants
+# - foreach variants
 # - count variants
 # - countall variants
 #### Design concept
@@ -114,10 +114,10 @@ foreachfilterat(f::Function, fs::Vector{Function}, t::AbstractNode) =
     foreachfilterat(f, fs, t, length(fs), 1)
 
 ####
-function forall_depthfirst(f::Function, t::AbstractNode)
+function foreach_depthfirst(f::Function, t::AbstractNode)
     if !isempty(t)
         for p in t
-            forall_depthfirst(f, p.second)
+            foreach_depthfirst(f, p.second)
         end
     end
     f(t)
@@ -125,65 +125,65 @@ function forall_depthfirst(f::Function, t::AbstractNode)
     # Terse form
     # isempty(t) && (f(t); return nothing)
     # for p in t
-    #     forall_depthfirst!(f, p.second)
+    #     foreach_depthfirst!(f, p.second)
     # end
     # f(t)
     # return nothing
 end
 
-function forall_breadthfirst(f::Function, t::AbstractNode)
+function foreach_breadthfirst(f::Function, t::AbstractNode)
     f(t)
     isempty(t) && return nothing
     for p in t
-        forall_breadthfirst!(f, p.second)
+        foreach_breadthfirst(f, p.second)
     end
     return nothing
 end
 
 """
-    forallfrom(f::Function, t::AbstractNode, N::Int, C::Int)
+    foreachfrom(f::Function, t::AbstractNode, N::Int, C::Int)
 
 Apply `f` to all nodes starting at given level, `N`, then proceeding
 recursively through any graph/trees which are present.
 Caller is responsible for `C + 1` ≤ `N`.
 """
-function forallfrom(f::Function, t::AbstractNode, N::Int, C::Int)
+function foreachfrom(f::Function, t::AbstractNode, N::Int, C::Int)
     isempty(t) && return nothing
     C̃ = C + 1
     if C̃ < N
         for p in t
-            forallfrom(f, p.second, N, C̃)
+            foreachfrom(f, p.second, N, C̃)
         end
     else#if C̃ == N
         for p in t
-            forall_breadthfirst(f, p.second)
+            foreach_breadthfirst(f, p.second)
         end
     end
     return nothing
 end
 
 """
-    forallfrom(f::Function, t::AbstractNode, N::Int)
+    foreachfrom(f::Function, t::AbstractNode, N::Int)
 
 Apply `f` to all nodes starting at given level, `N`, then proceeding
 recursively through any graph/trees which are present.
 """
-forallfrom(f::Function, t::AbstractNode, N::Int) = forallfrom!(f, t, N, 1)
+foreachfrom(f::Function, t::AbstractNode, N::Int) = foreachfrom!(f, t, N, 1)
 
 """
-    forallthrough(f::Function, t::AbstractNode, N::Int, C::Int)
+    foreachthrough(f::Function, t::AbstractNode, N::Int, C::Int)
 
 Apply `f` to all nodes up to and including those at given level, `N`, which
 is the stopping point of the recursion.
 Caller is responsible for `C + 1` ≤ `N`.
 """
-function forallthrough(f::Function, t::AbstractNode, N::Int, C::Int)
+function foreachthrough(f::Function, t::AbstractNode, N::Int, C::Int)
     # f(t)
     # isempty(t) && return nothing
     # C̃ = C + 1
     # if C̃ < N
     #     for p in t
-    #         forallthrough!(f, p.second, N, C̃)
+    #         foreachthrough!(f, p.second, N, C̃)
     #     end
     # elseif C̃ == N
     #     for p in t
@@ -197,20 +197,37 @@ function forallthrough(f::Function, t::AbstractNode, N::Int, C::Int)
     C̃ = C + 1
     if C̃ ≤ N
         for p in t
-            forallthrough!(f, p.second, N, C̃)
+            foreachthrough(f, p.second, N, C̃)
         end
     end
     return nothing
 end
 
 """
-    forallthrough(f::Function, t::AbstractNode, N::Int)
+    foreachthrough(f::Function, t::AbstractNode, N::Int)
 
 Apply `f` to all nodes up to and including those at given level, `N`, which
 is the stopping point of the recursion.
 """
-forallthrough(f::Function, t::AbstractNode, N::Int) = forallthrough!(f, t, N, 1)
+foreachthrough(f::Function, t::AbstractNode, N::Int) = foreachthrough(f, t, N, 1)
 
+"""
+    foreachupto(f::Function, t::AbstractNode, N::Int, C::Int)
+
+Apply `f` to all nodes up to and including those at given level, `N`, which
+is the stopping point of the recursion. Caller is responsible for `C + 1` ≤ `N`.
+"""
+foreachupto(f::Function, t::AbstractNode, N::Int, C::Int) =
+    foreachthrough(f, t, N - 1, C)
+
+"""
+    foreachupto(f::Function, t::AbstractNode, N::Int)
+
+Apply `f` to all nodes up to and including those at given level, `N`, which
+is the stopping point of the recursion.
+"""
+foreachupto(f::Function, t::AbstractNode, N::Int) =
+    foreachthrough(f, t, N - 1)
 
 ################################################################
 """
