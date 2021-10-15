@@ -204,13 +204,11 @@ function foreachfilterat(f::Function, fs::Vector{Function}, t::AbstractNode, N::
     nothing
 end
 
-function foreachfilterat(f::Function, fs::Vector{Function}, t::AbstractNode, N::Int)
+foreachfilterat(f::Function, fs::Vector{Function}, t::AbstractNode, N::Int) =
     foreachfilterat(f, fs, t, N, 1)
-end
 
-function foreachfilterat(f::Function, fs::Vector{Function}, t::AbstractNode)
+foreachfilterat(f::Function, fs::Vector{Function}, t::AbstractNode) =
     foreachfilterat(f, fs, t, length(fs), 1)
-end
 
 ####
 # modified 2021-10-03; see p. 480-481
