@@ -127,6 +127,12 @@ function tmapat(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
     Threads.@threads for m = 1:M
         A[m] = mapat(f, dims, ts[ranges[m]], L)
     end
+    # B = ntuple(i -> zeros(Int, dims[i]), length(dims))
+    # for m in eachindex(A)
+    #     for i in eachindex(B)
+    #         sum!(B[i], A[m][i])
+    #     end
+    # end
     return reduce(.+, A)
 end
 
