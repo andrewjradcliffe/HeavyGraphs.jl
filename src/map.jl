@@ -127,7 +127,7 @@ function tmapat(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
     Threads.@threads for m = 1:M
         A[m] = mapat(f, dims, ts[ranges[m]], L)
     end
-    return sum(A)
+    return reduce(.+, A)
 end
 
 #### filter
@@ -154,7 +154,7 @@ function tmapfilterat(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTup
     Threads.@threads for m = 1:M
         A[m] = mapfilterat(f, fs, dims, ts[ranges[m]], L)
     end
-    return sum(A)
+    return reduce(.+, A)
 end
 
 ################################################################
@@ -383,7 +383,7 @@ function tmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
     Threads.@threads for m = 1:M
         A[m] = mapupto(f, dims, ts[ranges[m]], L)
     end
-    return sum(A)
+    return reduce(.+, A)
 end
 
 #### filter
@@ -412,7 +412,7 @@ function tmapfilterupto(f::Function, fs::Vector{Function},
     Threads.@threads for m = 1:M
         A[m] = mapfilterupto(f, fs, dims, ts[ranges[m]], L)
     end
-    return sum(A)
+    return reduce(.+, A)
 end
 
 #### levs_ks
@@ -441,7 +441,7 @@ function tmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
     Threads.@threads for m = 1:M
         A[m] = mapupto(f, dims, ts[ranges[m]], L, levs_kss[ranges[m]])
     end
-    return sum(A)
+    return reduce(.+, A)
 end
 
 #### filter and levs_ks
@@ -472,5 +472,5 @@ function tmapfilterupto(f::Function, fs::Vector{Function},
     Threads.@threads for m = 1:M
         A[m] = mapfilterupto(f, fs, dims, ts[ranges[m]], L, levs_kss[ranges[m]])
     end
-    return sum(A)
+    return reduce(.+, A)
 end
