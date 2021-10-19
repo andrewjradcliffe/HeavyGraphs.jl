@@ -11,12 +11,20 @@
 # - foreach variants
 # - count variants
 # - countall variants
-#### Design concept
-# "at" means apply f to the nodes at a given level
-# "from" means apply f to the nodes at a given level, then recursively applying f
-# to all nodes linked to each node below.
-# "through" means apply f to all nodes up to on levels up to and including the
-# given level.
+################ Design concept
+#### Suffixes
+# "at"      : proceed to N-1ᵗʰ level, act on Nᵗʰ
+# "from"    : proceed to N-1ᵗʰ level, begin recursion which acts on all levels,
+# the first of which is Nᵗʰ
+# "through" : begin recursion which acts on all levels up to and including N
+# "upto"    : begin recursion which acts on all levels up to but not including N.
+# same as   : begin recursion which acts on all levels up to and including N-1.
+# "all"     : begin recursion which acts on all levels
+#### Prefixes
+# "count"     : return number of nodes for which f(node)::Bool returns true
+# "sum"       : return total computed by evaluating f(node) on all nodes visited by traversal
+# "foreach"   : return nothing. Evaluate f(node) on all nodes visited by traversal
+# "findpaths" : return Cartesian indices of nodes for which f(node)::Bool return true
 ################
 # modified 2021-10-03; see p. 480-481
 """
