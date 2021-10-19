@@ -116,15 +116,15 @@ function kmapat(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
 end
 
 function tkmapat(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                 ts::Vector{<:AbstractNode}, L::Int)
+                 ts::Vector{<:AbstractNode}, L::Int, M::Int=Threads.nthreads())
     N = length(ts)
-    M = Threads.threads()
+    # M = Threads.threads()
     ranges = equalranges(N, M)
     A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
     Threads.@threads for m = 1:M
         A[m] = kmapat(f, dims, ts[ranges[m]], L)
     end
-    return A
+    return sum(A)
 end
 
 #### filter
@@ -145,15 +145,15 @@ end
 
 function tkmapfilterat(f::Function, fs::Vector{Function},
                        dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                       ts::Vector{<:AbstractNode}, L::Int)
+                       ts::Vector{<:AbstractNode}, L::Int, M::Int=Threads.nthreads())
     N = length(ts)
-    M = Threads.threads()
+    # M = Threads.threads()
     ranges = equalranges(N, M)
     A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
     Threads.@threads for m = 1:M
         A[m] = kmapfilterat(f, fs, dims, ts[ranges[m]], L)
     end
-    return A
+    return sum(A)
 end
 
 ################################################################
@@ -382,15 +382,15 @@ function kmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
 end
 
 function tkmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                   ts::Vector{<:AbstractNode}, L::Int)
+                   ts::Vector{<:AbstractNode}, L::Int, M::Int=Threads.nthreads())
     N = length(ts)
-    M = Threads.threads()
+    # M = Threads.threads()
     ranges = equalranges(N, M)
     A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
     Threads.@threads for m = 1:M
         A[m] = kmapupto(f, dims, ts[ranges[m]], L)
     end
-    return A
+    return sum(A)
 end
 
 #### filter
@@ -412,15 +412,15 @@ end
 
 function tkmapfilterupto(f::Function, fs::Vector{Function},
                          dims::Tuple{Vararg{NTuple{S, Int}} where S}, ts::Vector{<:AbstractNode},
-                         L::Int)
+                         L::Int, M::Int=Threads.nthreads())
     N = length(ts)
-    M = Threads.threads()
+    # M = Threads.threads()
     ranges = equalranges(N, M)
     A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
     Threads.@threads for m = 1:M
         A[m] = kmapfilterupto(f, fs, dims, ts[ranges[m]], L)
     end
-    return A
+    return sum(A)
 end
 
 #### levs_ks
@@ -441,15 +441,16 @@ function kmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
 end
 
 function tkmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                   ts::Vector{<:AbstractNode}, L::Int, levs_kss::Vector{Vector{Vector{Any}}})
+                   ts::Vector{<:AbstractNode}, L::Int, levs_kss::Vector{Vector{Vector{Any}}},
+                   M::Int=Threads.nthreads())
     N = length(ts)
-    M = Threads.threads()
+    # M = Threads.threads()
     ranges = equalranges(N, M)
     A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
     Threads.@threads for m = 1:M
         A[m] = kmapupto(f, dims, ts[ranges[m]], L, levs_kss[ranges[m]])
     end
-    return A
+    return sum(A)
 end
 
 #### filter and levs_ks
@@ -472,13 +473,14 @@ end
 
 function tkmapfilterupto(f::Function, fs::Vector{Function},
                          dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                         ts::Vector{<:AbstractNode}, L::Int, levs_kss::Vector{Vector{Vector{Any}}})
+                         ts::Vector{<:AbstractNode}, L::Int, levs_kss::Vector{Vector{Vector{Any}}},
+                         M::Int=Threads.nthreads())
     N = length(ts)
-    M = Threads.threads()
+    # M = Threads.threads()
     ranges = equalranges(N, M)
     A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
     Threads.@threads for m = 1:M
         A[m] = kmapfilterupto(f, fs, dims, ts[ranges[m]], L, levs_kss[ranges[m]])
     end
-    return A
+    return sum(A)
 end

@@ -119,15 +119,15 @@ function mapat(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
 end
 
 function tmapat(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                ts::Vector{<:AbstractNode}, L::Int)
+                ts::Vector{<:AbstractNode}, L::Int, M::Int=Threads.nthreads())
     N = length(ts)
-    M = Threads.threads()
+    # M = Threads.threads()
     ranges = equalranges(N, M)
     A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
     Threads.@threads for m = 1:M
         A[m] = mapat(f, dims, ts[ranges[m]], L)
     end
-    return A
+    return sum(A)
 end
 
 #### filter
@@ -146,15 +146,15 @@ function mapfilterat(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTupl
 end
 
 function tmapfilterat(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                      ts::Vector{<:AbstractNode}, L::Int)
+                      ts::Vector{<:AbstractNode}, L::Int, M::Int=Threads.nthreads())
     N = length(ts)
-    M = Threads.threads()
+    # M = Threads.threads()
     ranges = equalranges(N, M)
     A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
     Threads.@threads for m = 1:M
         A[m] = mapfilterat(f, fs, dims, ts[ranges[m]], L)
     end
-    return A
+    return sum(A)
 end
 
 ################################################################
@@ -375,15 +375,15 @@ function mapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
 end
 
 function tmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                  ts::Vector{<:AbstractNode}, L::Int)
+                  ts::Vector{<:AbstractNode}, L::Int, M::Int=Threads.nthreads())
     N = length(ts)
-    M = Threads.threads()
+    # M = Threads.threads()
     ranges = equalranges(N, M)
     A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
     Threads.@threads for m = 1:M
         A[m] = mapupto(f, dims, ts[ranges[m]], L)
     end
-    return A
+    return sum(A)
 end
 
 #### filter
@@ -404,15 +404,15 @@ end
 
 function tmapfilterupto(f::Function, fs::Vector{Function},
                         dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                        ts::Vector{<:AbstractNode}, L::Int)
+                        ts::Vector{<:AbstractNode}, L::Int, M::Int=Threads.nthreads())
     N = length(ts)
-    M = Threads.threads()
+    # M = Threads.threads()
     ranges = equalranges(N, M)
     A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
     Threads.@threads for m = 1:M
         A[m] = mapfilterupto(f, fs, dims, ts[ranges[m]], L)
     end
-    return A
+    return sum(A)
 end
 
 #### levs_ks
@@ -432,15 +432,16 @@ function mapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
 end
 
 function tmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                  ts::Vector{<:AbstractNode}, L::Int, levs_kss::Vector{Vector{Vector{Any}}})
+                  ts::Vector{<:AbstractNode}, L::Int, levs_kss::Vector{Vector{Vector{Any}}},
+                  M::Int=Threads.nthreads())
     N = length(ts)
-    M = Threads.threads()
+    # M = Threads.threads()
     ranges = equalranges(N, M)
     A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
     Threads.@threads for m = 1:M
         A[m] = mapupto(f, dims, ts[ranges[m]], L, levs_kss[ranges[m]])
     end
-    return A
+    return sum(A)
 end
 
 #### filter and levs_ks
@@ -462,13 +463,14 @@ end
 
 function tmapfilterupto(f::Function, fs::Vector{Function},
                         dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                        ts::Vector{<:AbstractNode}, L::Int, levs_kss::Vector{Vector{Vector{Any}}})
+                        ts::Vector{<:AbstractNode}, L::Int, levs_kss::Vector{Vector{Vector{Any}}},
+                        M::Int=Threads.nthreads())
     N = length(ts)
-    M = Threads.threads()
+    # M = Threads.threads()
     ranges = equalranges(N, M)
     A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
     Threads.@threads for m = 1:M
         A[m] = mapfilterupto(f, fs, dims, ts[ranges[m]], L, levs_kss[ranges[m]])
     end
-    return A
+    return sum(A)
 end
