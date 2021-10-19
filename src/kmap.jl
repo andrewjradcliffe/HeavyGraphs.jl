@@ -206,7 +206,7 @@ See also: [`mapupto`](@ref), [`kmapfilterupto`](@ref), [`kmapfilterupto!`](@ref)
 """
 function kmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractNode, N::Int)
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
-    ks = Vector{Any}(undef, N - 1)
+    ks = Vector{Any}(undef, N - 2)
     kmapupto!(f, dest, ks, t, N, 1)
 end
 
