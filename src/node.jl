@@ -52,14 +52,19 @@ Base.pairs(x::A where {A<:AbstractNode{T, U}}) where {T, U} = pairs(x.link)
 # f must be () -> nothing for this to work properly.
 # Other functions which can be feasible must return nothing in order for
 # the same behavior to be achieved.
-Base.get(f::Function, x::A where {A<:AbstractNode{T, U}}, key) where {T, U} = get(f, x.link, key)
-Base.get(f::Function, t::A where {A<:AbstractNode{T, U}}, p, q) where {T, U} =
-    (tmp = get(f, t, p); tmp === nothing ? nothing : get(f, tmp, q))
-function Base.get(f::Function, t::A where {A<:AbstractNode{T, U}}, p, q, ps::Vararg{Any, N}) where {N} where {T, U}
-    tmp = get(f, t, p)
-    tmp === nothing ? (return nothing) : (tmp = get(f, tmp, q))
+function Base.get(f::Function, t::A, k1)::Union{Nothing, A} where {T, U, A<:AbstractNode{T, U}}
+    get(f, x.link, k1)
+end
+
+function Base.get(f::Function, t::A, k1, k2)::Union{Nothing, A} where {T, U, A<:AbstractNode{T, U}}
+    tmp = get(f, t, k1);
+    tmp === nothing ? nothing : get(f, tmp, k2)
+end
+function Base.get(f::Function, t::A, k1, k2, ks::Vararg{Any, N})::Union{Nothing, A} where {N} where {T, U, A<:AbstractNode{T, U}}
+    tmp = get(f, t, k1)
+    tmp === nothing ? (return nothing) : (tmp = get(f, tmp, k2))
     tmp === nothing && return nothing
-    get(f, tmp, ps...)
+    get(f, tmp, ks...)
     # Alternative 1
     # tmp = get(f, t, p)
     # tmp === nothing && return nothing
