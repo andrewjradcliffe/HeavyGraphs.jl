@@ -1288,10 +1288,13 @@ pm5 = PathKeys([[IndexedPathKey(i) for i = 1:10]; IndexedPathKey(string, 11); [I
 @benchmark grow!(gf, SimpleNode(), pm5, eachcol(qmat)) seconds=30
 #
 qmat = reshape([1:200000;], (10, 20000));
+qmatc = [qmat[:, j] for j = 1:size(qmat, 2)];
 pni6 = PathKeys([IndexedPathKey(i) for i = 1:10]);
 pm6 = PathKeys([[IndexedPathKey(i) for i = 1:9]; IndexedPathKey(string, 10)]);
 @benchmark grow!(gf, SimpleNode(), pni6, eachcol(qmat)) seconds=30
+@benchmark grow!(gf, SimpleNode(), pni6, qmatc) seconds=30
 @benchmark grow!(gf, SimpleNode(), pm6, eachcol(qmat)) seconds=30
+@benchmark grow!(gf, SimpleNode(), pm6, qmatc) seconds=30
 #### Interesting test comparison of ks... vs. Vararg{Any, N} where {N}
 # 4x50000: (281.766, 300.994) .- (280.666, 300.635)
 # 20x10000: (324.17, 335.412) .- (251.17, 248.56)
