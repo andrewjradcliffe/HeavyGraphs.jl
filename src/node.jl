@@ -755,224 +755,226 @@ end
 
 ############################################################################################
 #### AbstractPathKey, AbstractPathKeys: p. 447-449, 456-458, 2021-09-15
-# Type hierarchy of functors
-abstract type AbstractPathKey{T} end
-# abstract type AbstractPathKey1{Function} end
+# # Type hierarchy of functors
+# abstract type AbstractPathKey{T} end
+# # abstract type AbstractPathKey1{Function} end
 
-abstract type AbstractIndexedPathKey{T<:Function} <: AbstractPathKey{T} end
+# abstract type AbstractIndexedPathKey{T<:Function} <: AbstractPathKey{T} end
 
-# struct LinearPathKey{T} <: AbstractIndexedPathKey{T}
+# # struct LinearPathKey{T} <: AbstractIndexedPathKey{T}
+# #     f::T
+# #     i::Int
+# #     # LinearPathKey{T, U}(f, i) where {T, U} = new(f, i)
+# # end
+# # # LinearPathKey(f::T, i::U) where {T, U} = LinearPathKey{T, U}(f, i)
+
+# # struct MultipleLinearPathKey{T} <: AbstractIndexedPathKey{T}
+# #     f::T
+# #     i::Vector{Int}
+# # end
+
+# struct IndexedPathKey{T, U} <: AbstractIndexedPathKey{T}
 #     f::T
-#     i::Int
-#     # LinearPathKey{T, U}(f, i) where {T, U} = new(f, i)
+#     i::U
+#     # IndexedPathKey{T, U}(f, i) where {T, U} = new(f, i)
 # end
-# # LinearPathKey(f::T, i::U) where {T, U} = LinearPathKey{T, U}(f, i)
+# # IndexedPathKey(f::T, i::U) where {T, U} = IndexedPathKey{T, U}(f, i)
 
-# struct MultipleLinearPathKey{T} <: AbstractIndexedPathKey{T}
-#     f::T
-#     i::Vector{Int}
-# end
+# #### Outer constructors for IndexedPathKey
+# IndexedPathKey(i::Int) = IndexedPathKey(identity, i)
+# IndexedPathKey(i::Vector{Int}) = IndexedPathKey(identity, i)
 
-struct IndexedPathKey{T, U} <: AbstractIndexedPathKey{T}
-    f::T
-    i::U
-    # IndexedPathKey{T, U}(f, i) where {T, U} = new(f, i)
-end
-# IndexedPathKey(f::T, i::U) where {T, U} = IndexedPathKey{T, U}(f, i)
-
-#### Outer constructors for IndexedPathKey
-IndexedPathKey(i::Int) = IndexedPathKey(identity, i)
-IndexedPathKey(i::Vector{Int}) = IndexedPathKey(identity, i)
-
-#### functor: default behavior for all IndexedPathKey
-function (p::AbstractIndexedPathKey)(A)
-    p.f(getindex(A, p.i))
-end
-
-# ipk1 = IndexedPathKey(identity, 2)
-# ipk2 = IndexedPathKey(x -> "2" .* x, [1, 2])
-# @code_warntype ipk1(a)
-# vi = [ipk1, ipk2]
-# pi = PathKeys(vi, 2)
-# @code_warntype pi(y, a)
-# #### Attempt 1
-# abstract type AbstractIndexedPathKey1{T} <: AbstractPathKey1{T} end
-# struct LinearPathKey1{T} <: AbstractIndexedPathKey1{T}
-#     f::T
-#     i::Int
-# end
-# LinearPathKey1(i::Int) = LinearPathKey1(identity, i)
-# (p::LinearPathKey1)(A) = p.f(getindex(A, p.i))
-# ii1 = LinearPathKey1(identity, 1)
-# ii3 = LinearPathKey1(identity, 3)
-# ii4 = LinearPathKey1(csv, 4)
-# ii2 = LinearPathKey1(x -> 25, 2)
-# ii1 = LinearPathKey1(x -> 1, 2)
-# ii3 = LinearPathKey1(x -> 2, 2)
-# ii4 = LinearPathKey1(x -> 2, 2)
-# @code_warntype ii2(a)
-
-# abstract type AbstractPathKeys4{U<:Tuple{Vararg{T, N} where {T<:AbstractPathKey1}} where {N}} end
-# struct PathKeys4{U} <: AbstractPathKeys4{U}
-#     ftrs::U
-#     N::Int
+# #### functor: default behavior for all IndexedPathKey
+# function (p::AbstractIndexedPathKey)(A)
+#     p.f(getindex(A, p.i))
 # end
 
-# p4 = PathKeys4((ii1, ii3, ii4, ii2), 4)
-# @code_warntype p4(a)
-# @code_warntype p4(y, a)
-# @benchmark p4(y, a)
-# @benchmark ii1(a)
+# # ipk1 = IndexedPathKey(identity, 2)
+# # ipk2 = IndexedPathKey(x -> "2" .* x, [1, 2])
+# # @code_warntype ipk1(a)
+# # vi = [ipk1, ipk2]
+# # pi = PathKeys(vi, 2)
+# # @code_warntype pi(y, a)
+# # #### Attempt 1
+# # abstract type AbstractIndexedPathKey1{T} <: AbstractPathKey1{T} end
+# # struct LinearPathKey1{T} <: AbstractIndexedPathKey1{T}
+# #     f::T
+# #     i::Int
+# # end
+# # LinearPathKey1(i::Int) = LinearPathKey1(identity, i)
+# # (p::LinearPathKey1)(A) = p.f(getindex(A, p.i))
+# # ii1 = LinearPathKey1(identity, 1)
+# # ii3 = LinearPathKey1(identity, 3)
+# # ii4 = LinearPathKey1(csv, 4)
+# # ii2 = LinearPathKey1(x -> 25, 2)
+# # ii1 = LinearPathKey1(x -> 1, 2)
+# # ii3 = LinearPathKey1(x -> 2, 2)
+# # ii4 = LinearPathKey1(x -> 2, 2)
+# # @code_warntype ii2(a)
 
-# #### Attempt 2
-# abstract type AbstractPathKeys7{U<:Vector{T} where {T<:LinearPathKey1}} end
-# struct PathKeys7{U} <: AbstractPathKeys7{U}
-#     ftrs::U
-#     N::Int
-# end
+# # abstract type AbstractPathKeys4{U<:Tuple{Vararg{T, N} where {T<:AbstractPathKey1}} where {N}} end
+# # struct PathKeys4{U} <: AbstractPathKeys4{U}
+# #     ftrs::U
+# #     N::Int
+# # end
 
-# p7 = PathKeys7([ii1, ii3, ii4, ii2], 4)
-# @code_warntype p7(a)
-# @code_warntype p7(y, a)
-# @benchmark p7(y, a)
-# @benchmark ii1(a)
-# @code_warntype ii2(a)
+# # p4 = PathKeys4((ii1, ii3, ii4, ii2), 4)
+# # @code_warntype p4(a)
+# # @code_warntype p4(y, a)
+# # @benchmark p4(y, a)
+# # @benchmark ii1(a)
 
-# abstract type AbstractPathKeys{T<:NTuple{<:M, <:AbstractPathKey}} end
-# abstract type AbstractPathKeys{U<:Tuple{Vararg{T, N} where {T<:AbstractPathKey}} where {N}} end
-# abstract type AbstractPathKeys1{U<:Tuple{Vararg{T, N} where N where {T<:AbstractPathKey}}} end
-# abstract type AbstractPathKeys2{U<:Tuple{Vararg{T, N} where N} where {T<:AbstractPathKey}} end
-# abstract type AbstractPathKeys3{U<:Tuple{Vararg{T, N}} where N where {T<:AbstractPathKey}} end
-# Tuple{Vararg{T, N} where {T<:AbstractArray}} where N
-# Tuple{Vararg{T, N} where N where {T<:AbstractArray}}
-# isconcretetype(ans) # false
-# isabstracttype(ans) # false
-# ans{Vector, Vector}
-# Tuple{Vararg{T, N} where N} where {T<:AbstractArray}
-# ans{Vector{Int}} # Tuple{Vararg{Vector{Int64}}}
-# isconcretetype(ans) # false
-# isabstracttype(ans) # false
-# Tuple{Vararg{T, N}} where N where {T<:AbstractArray}
-# ans{Vector{Int}} # Tuple{Vararg{Vector{Int64}, N}} where N :same as NTuple{N, Vector{Int}} where N
-# ans{Vector{Int}, 2} # Tuple{Vector{Int64}, Vector{Int64}}
-# isconcretetype(ans) # true
-# const U2 = Tuple{Vararg{T, N}} where {N} where {T<:AbstractPathKey}
-# const U3 = Tuple{Vararg{T, N} where {T<:AbstractPathKey, N}}
-# const U4 = Tuple{Vararg{T, N} where {T<:AbstractPathKey}} where {N}
-# const U5 = Tuple{Vararg{T} where {T<:AbstractPathKey}}
-# abstract type AbstractPathKeys3{U<:Tuple{Vararg{T, N} where {T<:AbstractPathKey, N}}} end
-# struct PathKeys3{U} <: AbstractPathKeys3{U}
+# # #### Attempt 2
+# # abstract type AbstractPathKeys7{U<:Vector{T} where {T<:LinearPathKey1}} end
+# # struct PathKeys7{U} <: AbstractPathKeys7{U}
+# #     ftrs::U
+# #     N::Int
+# # end
+
+# # p7 = PathKeys7([ii1, ii3, ii4, ii2], 4)
+# # @code_warntype p7(a)
+# # @code_warntype p7(y, a)
+# # @benchmark p7(y, a)
+# # @benchmark ii1(a)
+# # @code_warntype ii2(a)
+
+# # abstract type AbstractPathKeys{T<:NTuple{<:M, <:AbstractPathKey}} end
+# # abstract type AbstractPathKeys{U<:Tuple{Vararg{T, N} where {T<:AbstractPathKey}} where {N}} end
+# # abstract type AbstractPathKeys1{U<:Tuple{Vararg{T, N} where N where {T<:AbstractPathKey}}} end
+# # abstract type AbstractPathKeys2{U<:Tuple{Vararg{T, N} where N} where {T<:AbstractPathKey}} end
+# # abstract type AbstractPathKeys3{U<:Tuple{Vararg{T, N}} where N where {T<:AbstractPathKey}} end
+# # Tuple{Vararg{T, N} where {T<:AbstractArray}} where N
+# # Tuple{Vararg{T, N} where N where {T<:AbstractArray}}
+# # isconcretetype(ans) # false
+# # isabstracttype(ans) # false
+# # ans{Vector, Vector}
+# # Tuple{Vararg{T, N} where N} where {T<:AbstractArray}
+# # ans{Vector{Int}} # Tuple{Vararg{Vector{Int64}}}
+# # isconcretetype(ans) # false
+# # isabstracttype(ans) # false
+# # Tuple{Vararg{T, N}} where N where {T<:AbstractArray}
+# # ans{Vector{Int}} # Tuple{Vararg{Vector{Int64}, N}} where N :same as NTuple{N, Vector{Int}} where N
+# # ans{Vector{Int}, 2} # Tuple{Vector{Int64}, Vector{Int64}}
+# # isconcretetype(ans) # true
+# # const U2 = Tuple{Vararg{T, N}} where {N} where {T<:AbstractPathKey}
+# # const U3 = Tuple{Vararg{T, N} where {T<:AbstractPathKey, N}}
+# # const U4 = Tuple{Vararg{T, N} where {T<:AbstractPathKey}} where {N}
+# # const U5 = Tuple{Vararg{T} where {T<:AbstractPathKey}}
+# # abstract type AbstractPathKeys3{U<:Tuple{Vararg{T, N} where {T<:AbstractPathKey, N}}} end
+# # struct PathKeys3{U} <: AbstractPathKeys3{U}
+# #     ftrs::U
+# #     N::Int
+# #     # PathKeys{T}(ftrs, N) where {T} = new(ftrs, N)
+# #     # function PathKeys{U}(ftrs, N) where {U}
+# #     #     new(copyto!(similar(ftrs), ftrs), N)
+# #     # end
+# # end
+# # abstract type AbstractStaticPathKeys{U<:SVector{S, T} where {S, T<:AbstractPathKey}} end
+# # struct StaticPathKeys{U} <: AbstractStaticPathKeys{U}
+# #     ftrs::U
+# #     N::Int
+# # end
+
+# # Revised abstract type for AbstractPathKeys
+# abstract type AbstractPathKeys{U<:Vector{T} where {T<:AbstractPathKey}} end
+# struct PathKeys{U} <: AbstractPathKeys{U}
 #     ftrs::U
 #     N::Int
 #     # PathKeys{T}(ftrs, N) where {T} = new(ftrs, N)
 #     # function PathKeys{U}(ftrs, N) where {U}
 #     #     new(copyto!(similar(ftrs), ftrs), N)
 #     # end
+#     # function PathKeys{U}(ftrs, N) where {U}
+#     #     let ftrs = copyto!(similar(ftrs), ftrs), N = N
+#     #         new(ftrs, N)
+#     #     end
+#     # end
 # end
-# abstract type AbstractStaticPathKeys{U<:SVector{S, T} where {S, T<:AbstractPathKey}} end
-# struct StaticPathKeys{U} <: AbstractStaticPathKeys{U}
-#     ftrs::U
-#     N::Int
+# # PathKeys(ftrs::T, N) where {T} = PathKeys{T}(ftrs, N)
+
+
+# #### Interface for AbstractPathKeys
+# Base.length(p::AbstractPathKeys) = p.N
+# Base.size(p::AbstractPathKeys) = (p.N,)
+
+# Base.iterate(p::AbstractPathKeys, state=1) =
+#     state > p.N ? nothing : (p.ftrs[state], state + 1)
+# Base.eltype(p::AbstractPathKeys) = eltype(p.ftrs)
+
+# Base.IndexStyle(::Type{<:AbstractPathKeys}) = IndexLinear()
+# Base.getindex(p::AbstractPathKeys, i::Int) = getindex(p.ftrs, i)
+# Base.getindex(p::AbstractPathKeys, I) = [p[i] for i in I]
+# Base.getindex(p::AbstractPathKeys, ::Colon) = p.ftrs
+# Base.firstindex(p::AbstractPathKeys) = 1
+# Base.lastindex(p::AbstractPathKeys) = p.N
+# Base.setindex!(p::AbstractPathKeys, v, i) = setindex!(p.ftrs, v, i)
+
+# function Base.isequal(p1::AbstractPathKeys, p2::AbstractPathKeys)
+#     p1 === p2 && return true
+#     length(p1) == length(p2) || return false
+#     for n = 1:length(p1)
+#         p1[n] == p2[n] || return false
+#     end
+#     return true
 # end
+# Base.:(==)(p1::AbstractPathKeys, p2::AbstractPathKeys) = isequal(p1, p2)
 
-# Revised abstract type for AbstractPathKeys
-abstract type AbstractPathKeys{U<:Vector{T} where {T<:AbstractPathKey}} end
-struct PathKeys{U} <: AbstractPathKeys{U}
-    ftrs::U
-    N::Int
-    # PathKeys{T}(ftrs, N) where {T} = new(ftrs, N)
-    # function PathKeys{U}(ftrs, N) where {U}
-    #     new(copyto!(similar(ftrs), ftrs), N)
-    # end
-    # function PathKeys{U}(ftrs, N) where {U}
-    #     let ftrs = copyto!(similar(ftrs), ftrs), N = N
-    #         new(ftrs, N)
-    #     end
-    # end
-end
-# PathKeys(ftrs::T, N) where {T} = PathKeys{T}(ftrs, N)
+# #### Outer constructors: PathKeys
+# PathKeys(ftrs) = PathKeys(ftrs, length(ftrs))
 
-
-#### Interface for AbstractPathKeys
-Base.length(p::AbstractPathKeys) = p.N
-Base.size(p::AbstractPathKeys) = (p.N,)
-
-Base.iterate(p::AbstractPathKeys, state=1) =
-    state > p.N ? nothing : (p.ftrs[state], state + 1)
-Base.eltype(p::AbstractPathKeys) = eltype(p.ftrs)
-
-Base.IndexStyle(::Type{<:AbstractPathKeys}) = IndexLinear()
-Base.getindex(p::AbstractPathKeys, i::Int) = getindex(p.ftrs, i)
-Base.getindex(p::AbstractPathKeys, I) = [p[i] for i in I]
-Base.firstindex(p::AbstractPathKeys) = 1
-Base.lastindex(p::AbstractPathKeys) = p.N
-
-function Base.isequal(p1::AbstractPathKeys, p2::AbstractPathKeys)
-    p1 === p2 && return true
-    length(p1) == length(p2) || return false
-    for n = 1:length(p1)
-        p1[n] == p2[n] || return false
-    end
-    return true
-end
-Base.:(==)(p1::AbstractPathKeys, p2::AbstractPathKeys) = isequal(p1, p2)
-
-#### Outer constructors: PathKeys
-PathKeys(ftrs) = PathKeys(ftrs, length(ftrs))
-
-#### functor: PathKeys
-# both internal functions yield no performance gain
-# function _pcall(p::AbstractPathKey, A)
-#     p(A)
-# end
-# function _pfunctor(fs::Vector{T} where {T<:AbstractPathKey}, x, A, N)
+# #### functor: PathKeys
+# # both internal functions yield no performance gain
+# # function _pcall(p::AbstractPathKey, A)
+# #     p(A)
+# # end
+# # function _pfunctor(fs::Vector{T} where {T<:AbstractPathKey}, x, A, N)
+# #     n = 1
+# #     while n ≤ N
+# #         x[n] = fs[n](A)
+# #         n += 1
+# #     end
+# #     return x
+# # end
+# function (p::AbstractPathKeys)(x, A)
 #     n = 1
-#     while n ≤ N
+#     N = p.N
+#     # N = length(p)
+#     fs = p.ftrs
+#     while n ≤ N#p.N
+#         # x[n] = p.ftrs[n](A)
+#         # x[n] = _pcall(p.ftrs[n], A) # still type-unstable
+#         # Realistic options: use local fs, or, access via getindex
 #         x[n] = fs[n](A)
+#         # x[n] = p[n](A)
 #         n += 1
 #     end
 #     return x
+#     # _pfunctor(p.ftrs, x, A, p.N)
+#     # # Same, despite performance annotations
+#     # fs = p.ftrs
+#     # @simd for n = 1:p.N
+#     #     @inbounds x[n] = fs[n](A)
+#     # end
+#     # return x
+#     # Meta 1 -- much slower
+#     # fs = p.ftrs
+#     # N = p.N
+#     # eval(quote
+#     #          Base.Cartesian.@nexprs $N i -> x[i] = fs[i](A)
+#     #      end)
+#     # return x
+#     # Meta 2 -- @generated does not work
+#     # N = p.N
+#     # fs = p.ftrs
+#     # ex = quote
+#     #     Base.Cartesian.@nexprs $N i -> x[i] = fs[i](A)
+#     # end
+#     # return :($ex; x)
 # end
-function (p::AbstractPathKeys)(x, A)
-    n = 1
-    N = p.N
-    # N = length(p)
-    fs = p.ftrs
-    while n ≤ N#p.N
-        # x[n] = p.ftrs[n](A)
-        # x[n] = _pcall(p.ftrs[n], A) # still type-unstable
-        # Realistic options: use local fs, or, access via getindex
-        x[n] = fs[n](A)
-        # x[n] = p[n](A)
-        n += 1
-    end
-    return x
-    # _pfunctor(p.ftrs, x, A, p.N)
-    # # Same, despite performance annotations
-    # fs = p.ftrs
-    # @simd for n = 1:p.N
-    #     @inbounds x[n] = fs[n](A)
-    # end
-    # return x
-    # Meta 1 -- much slower
-    # fs = p.ftrs
-    # N = p.N
-    # eval(quote
-    #          Base.Cartesian.@nexprs $N i -> x[i] = fs[i](A)
-    #      end)
-    # return x
-    # Meta 2 -- @generated does not work
-    # N = p.N
-    # fs = p.ftrs
-    # ex = quote
-    #     Base.Cartesian.@nexprs $N i -> x[i] = fs[i](A)
-    # end
-    # return :($ex; x)
-end
-function (p::AbstractPathKeys)(A)
-    x = Vector{Any}(undef, p.N)
-    p(x, A)
-end
+# function (p::AbstractPathKeys)(A)
+#     x = Vector{Any}(undef, p.N)
+#     p(x, A)
+# end
 
 # struct PathKeysLet{U} <: AbstractPathKeys{U}
 #     ftrs::U
