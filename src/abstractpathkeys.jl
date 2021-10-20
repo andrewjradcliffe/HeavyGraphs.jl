@@ -23,7 +23,7 @@ IndexedPathKey(i::Vector{Int}) = IndexedPathKey(identity, i)
 
 #### functor: default behavior for all IndexedPathKey
 function (p::AbstractIndexedPathKey)(A)
-    p.f(getindex(A, p.i))
+    @inbounds p.f(getindex(A, p.i))
 end
 ################################################################
 # Revised abstract type for AbstractPathKeys3
