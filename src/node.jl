@@ -184,16 +184,33 @@ end
 
 
 
-Base.getindex(x::AbstractNode, key) = getindex(x.link, key)
+# Base.getindex(x::AbstractNode, key) = getindex(x.link, key)
 ## Solves type-instability at cost of 50% more time and 32 bytes allocation
-# function getindex2(x::A, key)::A where {T, U, A<:AbstractNode{T, U}}
-#     getindex(x.link, key)
-# end
+# However, this turns out to be trivial once one considers multi-dimensional algorithms.
+# The improvement below provides massive performance gains, decreasing multi-dimensional
+# indexing from 27μs (non-type-stable) to 1.188μs using the design pattern of
+# multiple dispatch on Vararg loop / Vararg slurp/splat recursion.
+function Base.getindex(x::A, key)::A where {T, U, A<:AbstractNode{T, U}}
+    getindex(x.link, key)
+end
+function Base.getindex(x::A, k1, k2)::A where {T, U, A<:AbstractNode{T, U}}
+    getindex(getindex(x, k1), k2)
+end
+function Base.getindex(x::A, k1, k2, ks::Vararg{Any, N})::A where {N} where {T, U, A<:AbstractNode{T, U}}
+    getindex(getindex(getindex(x, k1), k2), ks...)
+end
+function Base.getindex(x::A, k1, k2, ks::Vararg{S, N})::A where {S, N} where {T, U, A<:AbstractNode{T, U}}
+    tmp = getindex(x, k1, k2)
+    for k in ks
+        tmp = getindex(tmp, k)
+    end
+    tmp
+end
 # function getindex3(x::A, key) where {T, U, A<:AbstractNode{T, U}}
 #     convert(A, getindex(x.link, key))
 # end
-Base.getindex(x::AbstractNode, k1, k2) = getindex(getindex(x, k1), k2)
-Base.getindex(x::AbstractNode, k1, k2, ks...) = getindex(getindex(getindex(x, k1), k2), ks...)
+# Base.getindex(x::AbstractNode, k1, k2) = getindex(getindex(x, k1), k2)
+# Base.getindex(x::AbstractNode, k1, k2, ks::Vararg{Any, N}) where {N} = getindex(getindex(getindex(x, k1), k2), ks...)
 
 Base.setindex!(x::AbstractNode, value, key) = (setindex!(x.link, value, key); x)
 
