@@ -81,6 +81,14 @@ function (p::AbstractPathKeys)(x, A)
         @inbounds x[n] = fs[n](A)
         n += 1
     end
+    # Interesting: the code below is slower, but it revealed an interesting
+    # aspect: if A is a vector rather than a view, the code is non-allocating,
+    # and faster by a factor of 2. This suggests that all iterables passed
+    # to the growth algorithms should actually just be Vector{Vector}.
+    # Consider! for 1.6M columns, the 480bytes per column adds up to 0.768 GB
+    # which could be eliminated. In fact, the Arrow format lends itself to this
+    # as the native form is not a matrix but a vector of vectors.
+    # setindex!.(Ref(x), Ref(A) .|> p.ftrs, 1:p.N)
     return x
 end
 
