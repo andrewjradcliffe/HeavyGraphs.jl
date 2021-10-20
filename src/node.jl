@@ -97,34 +97,34 @@ haspath(t::AbstractNode, p, ps...) = isa(get(_returnnothing, t, p, ps...), Abstr
 Base.get!(x::A where {A<:AbstractNode{T, U}}, key, default) where {T, U} =
     get!(x.link, key, default)
 
-# f must be some function which returns a sub-type of AbstractNode
-Base.get!(f::Function, x::A where {A<:AbstractNode{T, U}}, key) where {T, U} = get!(f, x.link, key)
-Base.get!(f::Function, x::A where {A<:AbstractNode{T, U}}, k1, k2) where {T, U} =
-    get!(f, get!(f, x, k1), k2)
-# An interesting note: in the method signature, replacing ks... with Vararg{Any, N} where {N}
-# results in an approximate 1.177 speedup (15%) and 4% reduction in memory due to
-# specialization.
-Base.get!(f::Function, x::A where {A<:AbstractNode{T, U}}, k1, k2, ks::Vararg{Any, N}) where {N} where {T, U} =
-    get!(f, get!(f, get!(f, x, k1), k2), ks...)
-# An interesting note: get!.(() -> SimpleNode(), Ref(x), [1:100;])
-# does exactly what one would expect.
+# # f must be some function which returns a sub-type of AbstractNode
+# Base.get!(f::Function, x::A where {A<:AbstractNode{T, U}}, key) where {T, U} = get!(f, x.link, key)
+# Base.get!(f::Function, x::A where {A<:AbstractNode{T, U}}, k1, k2) where {T, U} =
+#     get!(f, get!(f, x, k1), k2)
+# # An interesting note: in the method signature, replacing ks... with Vararg{Any, N} where {N}
+# # results in an approximate 1.177 speedup (15%) and 4% reduction in memory due to
+# # specialization.
+# Base.get!(f::Function, x::A where {A<:AbstractNode{T, U}}, k1, k2, ks::Vararg{Any, N}) where {N} where {T, U} =
+#     get!(f, get!(f, get!(f, x, k1), k2), ks...)
+# # An interesting note: get!.(() -> SimpleNode(), Ref(x), [1:100;])
+# # does exactly what one would expect.
 
 ## 2021-10-20: Experiments with type stability
-function get5!(f::Function, x::A, k1)::A where {T, U, A<:AbstractNode{T, U}}
+function Base.get!(f::Function, x::A, k1)::A where {T, U, A<:AbstractNode{T, U}}
     get!(f, x.link, k1)
 end
-function get5!(f::Function, x::A, k1, k2)::A where {T,U,A<:AbstractNode{T,U}}
-    get5!(f, get5!(f, x, k1), k2)
+function Base.get!(f::Function, x::A, k1, k2)::A where {T,U,A<:AbstractNode{T,U}}
+    get!(f, get!(f, x, k1), k2)
 end
-function get5!(f::Function, x::A, k1, k2, ks::Vararg{S, N})::A where {S,N} where {T,U,A<:AbstractNode{T,U}}
-    tmp = get5!(f, x, k1, k2)
+function Base.get!(f::Function, x::A, k1, k2, ks::Vararg{S, N})::A where {S,N} where {T,U,A<:AbstractNode{T,U}}
+    tmp = get!(f, x, k1, k2)
     for k in ks
-        tmp = get5!(f, tmp, k)
+        tmp = get!(f, tmp, k)
     end
     tmp
 end
-function get5!(f::Function, x::A, k1, k2, ks::Vararg{Any, N})::A where {N} where {T,U,A<:AbstractNode{T,U}}
-    get5!(f, get5!(f, get5!(f, x, k1), k2), ks...)
+function Base.get!(f::Function, x::A, k1, k2, ks::Vararg{Any, N})::A where {N} where {T,U,A<:AbstractNode{T,U}}
+    get!(f, get!(f, get!(f, x, k1), k2), ks...)
 end
 
 # Result: Test on 10x20000
