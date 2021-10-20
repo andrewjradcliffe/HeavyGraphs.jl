@@ -117,20 +117,22 @@ total levels counted as `length(levs_ks) + 1 ≡ N`.
 See also: [`multabsentupto`](@ref)
 
 """
-function multabsent(t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
-    Ñ = N - 1
-    C > Ñ && return 0
-    # ν = length(setdiff(levs_ks[C], keys(t)))
-    # much more efficient -- or: setdiffcard(levs_ks[C], keys(t))
-    # ν = length(levs_ks[C]) - length(t) + count(∉(levs_ks[C]), keys(t))
-    ν = length(levs_ks[C]) - count(∈(levs_ks[C]), keys(t)) # |A| - |A ∩ B|
-    C̃ = C + 1
-    while C̃ ≤ Ñ
-        ν *= length(levs_ks[C̃])
-        C̃ += 1
-    end
-    ν
-end
+multabsent(t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}}) =
+    multabsentupto(t, N + 1, C, levs_ks)
+# function multabsent(t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
+#     Ñ = N - 1
+#     C > Ñ && return 0
+#     # ν = length(setdiff(levs_ks[C], keys(t)))
+#     # much more efficient -- or: setdiffcard(levs_ks[C], keys(t))
+#     # ν = length(levs_ks[C]) - length(t) + count(∉(levs_ks[C]), keys(t))
+#     ν = length(levs_ks[C]) - count(∈(levs_ks[C]), keys(t)) # |A| - |A ∩ B|
+#     C̃ = C + 1
+#     while C̃ ≤ Ñ
+#         ν *= length(levs_ks[C̃])
+#         C̃ += 1
+#     end
+#     ν
+# end
 
 """
     multabsent(fs::Vector{Function}, t::AbstractNode, N::Int, C::Int,
@@ -141,18 +143,20 @@ level `C`'s absent branches were instantiated using the subsets produced by appl
 the level-indexed filtering functions `fs`.
 
 """
-function multabsent(fs::Vector{Function}, t::AbstractNode, N::Int, C::Int,
-                    levs_ks::Vector{Vector{Any}})
-    Ñ = N - 1
-    C > Ñ && return 0
-    ν = count(fs[C], setdiff(levs_ks[C], keys(t)))
-    C̃ = C + 1
-    while C̃ ≤ Ñ
-        ν *= count(fs[C̃], levs_ks[C̃])
-        C̃ += 1
-    end
-    ν
-end
+multabsent(fs::Vector{Function}, t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}}) =
+    multabsentupto(fs, t, N + 1, C, levs_ks)
+# function multabsent(fs::Vector{Function}, t::AbstractNode, N::Int, C::Int,
+#                     levs_ks::Vector{Vector{Any}})
+#     Ñ = N - 1
+#     C > Ñ && return 0
+#     ν = count(fs[C], setdiff(levs_ks[C], keys(t)))
+#     C̃ = C + 1
+#     while C̃ ≤ Ñ
+#         ν *= count(fs[C̃], levs_ks[C̃])
+#         C̃ += 1
+#     end
+#     ν
+# end
 
 multabsent(t::AbstractNode, levs_ks::Vector{Vector{Any}}) =
     multabsent(t, length(levs_ks), 1, levs_ks)
@@ -161,15 +165,17 @@ multabsent(fs::Vector{Function}, t::AbstractNode, levs_ks::Vector{Vector{Any}}) 
     multabsent(fs, t, length(levs_ks), 1, levs_ks)
 
 # Optimized option for non-filtering version
-function multabsent(t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Int})
-    Ñ = N - 1
-    C > Ñ && return 0
-    ν = levs_ks[C] - length(t)
-    C̃ = C + 1
-    while C̃ ≤ Ñ
-        ν *= levs_ks[C̃]
-        C̃ += 1
-    end
-    ν
-end
+multabsent(t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Int}) =
+    multabsentupto(t, N + 1, C, levs_ks)
+# function multabsent(t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Int})
+#     Ñ = N - 1
+#     C > Ñ && return 0
+#     ν = levs_ks[C] - length(t)
+#     C̃ = C + 1
+#     while C̃ ≤ Ñ
+#         ν *= levs_ks[C̃]
+#         C̃ += 1
+#     end
+#     ν
+# end
 ####
