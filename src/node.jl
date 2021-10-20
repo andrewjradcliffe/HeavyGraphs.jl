@@ -190,6 +190,10 @@ end
 # The improvement below provides massive performance gains, decreasing multi-dimensional
 # indexing from 27μs (non-type-stable) to 1.188μs using the design pattern of
 # multiple dispatch on Vararg loop / Vararg slurp/splat recursion.
+## Tests -- on 50x4000
+# z = [1:10;];
+# zz = [1:50;];
+# @benchmark tt[zz...]
 function Base.getindex(x::A, key)::A where {T, U, A<:AbstractNode{T, U}}
     getindex(x.link, key)
 end
@@ -205,6 +209,10 @@ function Base.getindex(x::A, k1, k2, ks::Vararg{S, N})::A where {S, N} where {T,
         tmp = getindex(tmp, k)
     end
     tmp
+end
+function Base.getindex(x::A, ::Colon)::Vector{A} where {T, U, A<:AbstractNode{T, U}}
+    # convert(Vector{A}, collect(values(x)))
+    collect(values(x))
 end
 # function getindex3(x::A, key) where {T, U, A<:AbstractNode{T, U}}
 #     convert(A, getindex(x.link, key))
