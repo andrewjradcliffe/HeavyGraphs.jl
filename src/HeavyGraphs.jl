@@ -23,8 +23,14 @@ export foreachat, foreachfilterat, foreach_depthfirst, foreach_breadthfirst,
     findpathsat, findpathsat!, findpathsall, findpathsall!,
     findpathsfrom, findpathsfrom!, findpathsthrough, findpathsthrough!, findpathsupto, findpathsupto!
 
+# abstractpathkeys.jl
+export AbstractPathKey, AbstractIndexedPathKey, IndexedPathKey,
+    AbstractPathKeys, PathKeys
+
 # include("map.jl")
 # include("kmap.jl")
 # include("multipliers.jl")
+# include("iterators.jl")
+# include("abstractpathkeys.jl")
 
 end
