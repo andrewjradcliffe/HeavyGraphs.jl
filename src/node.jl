@@ -299,6 +299,19 @@ function maxbreadth(t::AbstractNode)
     return b
 end
 
+# Most likely rename to `rlength`
+Base.size(tt::AbstractNode) = _size(tt)
+function _size(t::AbstractNode, C::Int=0)
+    C̃ = C + 1
+    isempty(t) && return C̃
+    for p in t
+        C̃ += _size(p.second, 0)
+    end
+    return C̃
+end
+
+
+
 #### comparison operators
 # function Base.isequal(a::A where {A<:AbstractNode{T₁, U₁}},
 #                       b::B where {B<:AbstractNode{T₂, U₂}}) where {T₁, U₁} where {T₂, U₂}
