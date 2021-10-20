@@ -19,7 +19,7 @@
 # Or, given that we know dest to be a Tuple{Vararg{Array{T}} where T}, it might be:
 # f = (dest, ks, ν) -> incrementrows!(g, dest[2], ks, ν)
 ################
-function countabsent!(f::Function, dest::Tuple{Vararg{Array{T}} T},
+function countabsent!(f::Function, dest::Tuple{Vararg{Array{T}} where T},
                       t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
     Ñ = N - 1
     if C == Ñ
@@ -33,7 +33,7 @@ function countabsent!(f::Function, dest::Tuple{Vararg{Array{T}} T},
     dest
 end
 
-function countabsent!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} T},
+function countabsent!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
                       t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
     Ñ = N - 1
     if C == Ñ
