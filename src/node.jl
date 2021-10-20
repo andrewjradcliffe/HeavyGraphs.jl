@@ -109,6 +109,76 @@ Base.get!(f::Function, x::A where {A<:AbstractNode{T, U}}, k1, k2, ks::Vararg{An
 # An interesting note: get!.(() -> SimpleNode(), Ref(x), [1:100;])
 # does exactly what one would expect.
 
+## 2021-10-20: Experiments with type stability
+function get5!(f::Function, x::A, k1)::A where {T, U, A<:AbstractNode{T, U}}
+    get!(f, x.link, k1)
+end
+function get5!(f::Function, x::A, k1, k2)::A where {T,U,A<:AbstractNode{T,U}}
+    get5!(f, get5!(f, x, k1), k2)
+end
+function get5!(f::Function, x::A, k1, k2, ks::Vararg{S, N})::A where {S,N} where {T,U,A<:AbstractNode{T,U}}
+    tmp = get5!(f, x, k1, k2)
+    for k in ks
+        tmp = get5!(f, tmp, k)
+    end
+    tmp
+end
+function get5!(f::Function, x::A, k1, k2, ks::Vararg{Any, N})::A where {N} where {T,U,A<:AbstractNode{T,U}}
+    get5!(f, get5!(f, get5!(f, x, k1), k2), ks...)
+end
+
+# Result: Test on 10x20000
+# 217.104ms for original, 147.63ms for Vararg handled by loop, 148.221ms for
+# Vararg handled by recursion. It is not entirely clear which is better.
+@benchmark grow!(gf, SimpleNode(), pni6, eachcol(qmat)) seconds=30
+@benchmark grow3!(gf, SimpleNode(), pni6, eachcol(qmat)) seconds=30
+@benchmark grow4!(gf, SimpleNode(), pni6, eachcol(qmat)) seconds=30
+# Result: Test on 200x1000
+# 866.170ms for original, 113.30ms for Vararg handled by loop, 725.592ms for
+# Vararg handled by recursion. It is apparent that for deeper trees, loop is superior.
+@benchmark grow!(gf, SimpleNode(), pni6, eachcol(qmat2)) seconds=30
+@benchmark grow3!(gf, SimpleNode(), pni6, eachcol(qmat2)) seconds=30
+@benchmark grow4!(gf, SimpleNode(), pni6, eachcol(qmat2)) seconds=30
+# Result: Test on 20x10000
+# 222.434ms for original, 127.251ms for Vararg handled by loop, 135.743ms for
+# Vararg handled by recursion. At 2x the depth of the original, loop begins to pull away
+@benchmark grow!(gf, SimpleNode(), pni2, eachcol(pmat)) seconds=30
+@benchmark grow3!(gf, SimpleNode(), pni2, eachcol(pmat)) seconds=30
+@benchmark grow4!(gf, SimpleNode(), pni2, eachcol(pmat)) seconds=30
+# Result: Test on 4x50000
+# 254.646ms for original, 198.503ms for Vararg handled by loop, 202.396ms for
+# Vararg handled by recursion. Even at small depths, there is no effective difference.
+@benchmark grow!(gf, SimpleNode(), pni, eachcol(mat)) seconds=30
+@benchmark grow3!(gf, SimpleNode(), pni, eachcol(mat)) seconds=30
+@benchmark grow4!(gf, SimpleNode(), pni, eachcol(mat)) seconds=30
+# Result: Test on 50x4000
+# 310.738 for original, 118.202 for Vararg handled by loop, 192.994 for
+# Vararg handled by recursion. The loop over homogeneous keys shines again.
+@benchmark grow!(gf, SimpleNode(), pni3, eachcol(qmat3)) seconds=30
+@benchmark grow3!(gf, SimpleNode(), pni3, eachcol(qmat3)) seconds=30
+@benchmark grow4!(gf, SimpleNode(), pni3, eachcol(qmat3)) seconds=30
+@benchmark grow5!(gf, SimpleNode(), pni3, eachcol(qmat3)) seconds=30
+# However, for heterogenous ks, the recursion seems to be superior.
+# At depth 10, times are: 225ms, 207ms, 168ms
+# At depth 200, the loop is still better, but it is 4x slower than with homogeneous ks.
+# At depth 20, the slurp/splat recursion is fastest: abs(198.7 - 142.8)/198.7
+# Or, about 30% faster.
+# At depth 4, the recursion is fastest: abs(234 - 222)/234
+##
+# Essentially for most trees of reasonable depth, the slurp/splat recursion
+# will be superior when heterogeneous keys are present. Only at trees of
+# depth 200 is the loop over heterogeneous keys superior.
+# Alas, it is undeniable: with homogeneous keys, the loop really shines.
+## Multiple dispatch to the rescue!
+# Use Vararg{S, N} where {S,N} to loop on homogeneous keys
+# Use Vararg{Any,N} where {S,N} to slurp/splat recursion on heterogeneous keys
+# Significantly, as the slurp/splat recursion chips away at ks,
+# this leaves open the possibility of initiating a loop, since
+# get!(f, get!(f, get!(f, x, k1), k2), ks...) has the chance to dispatch again.
+# ---- true beauty at work.
+
+
+
 Base.getindex(x::AbstractNode, key) = getindex(x.link, key)
 ## Solves type-instability at cost of 50% more time and 32 bytes allocation
 # function getindex2(x::A, key)::A where {T, U, A<:AbstractNode{T, U}}
