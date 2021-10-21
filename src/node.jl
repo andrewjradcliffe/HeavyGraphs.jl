@@ -221,6 +221,11 @@ end
 # Base.getindex(x::AbstractNode, k1, k2, ks::Vararg{Any, N}) where {N} = getindex(getindex(getindex(x, k1), k2), ks...)
 
 Base.setindex!(x::AbstractNode, value, key) = (setindex!(x.link, value, key); x)
+function Base.setindex!(x::AbstractNode, value, k1, ks...)
+    tmp = x[k1, ks[1:end-1]...]
+    tmp[ks[end]] = value
+    x
+end
 
 Base.push!(x::AbstractNode, p::Pair) = setindex!(x, p.second, p.first)
 Base.push!(x::AbstractNode, p::Pair, q::Pair) = push!(push!(x, p), q)
@@ -298,7 +303,7 @@ function Base.merge(a::AbstractSimpleNode, bs::AbstractSimpleNode...)
     for b in bs
         isempty(b.val) || append!(vtmp, deepcopy(b.val))
     end
-    AbstractSimpleNode(ltmp, vtmp)
+    SimpleNode(ltmp, vtmp)
 end
 
 function Base.merge!(a::AbstractSimpleNode, bs::AbstractSimpleNode...)
