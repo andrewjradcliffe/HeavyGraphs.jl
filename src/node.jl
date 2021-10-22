@@ -36,6 +36,12 @@ Base.iterate(x::A where {A<:AbstractNode{T, U}}) where {T, U} = iterate(x.link)
 Base.iterate(x::A where {A<:AbstractNode{T, U}}, state) where {T, U} = iterate(x.link, state)
 # Base.iterate(x::A) where {A<:AbstractNode{T, U}} where {T, U} = iterate(x.link)
 # Base.iterate(x::A, state) where {A<:AbstractNode{T, U}} where {T, U} = iterate(x.link, state)
+# function Base.iterate(t::A)::Union{Nothing, Tuple{Pair{Any, A}, Int}} where {T,U,A<:AbstractNode{T,U}}
+#     iterate(t.link)
+# end
+# function Base.iterate(t::A, state)::Union{Nothing, Tuple{Pair{Any, A}, Int}} where {T,U,A<:AbstractNode{T,U}}
+#     iterate(t.link, state)
+# end
 
 Base.length(x::A where {A<:AbstractNode{T, U}}) where {T, U} = length(x.link)
 
