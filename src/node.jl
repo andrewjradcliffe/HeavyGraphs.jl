@@ -351,16 +351,8 @@ function _size(t::AbstractNode)
     _size!(t, szs)
 end
 
-function Base.size(t::AbstractNode)
-    szs = _size(t)
-    # tuple(1, szs...)
-    # Tuple(szs)
-    tuple(szs...)
-end
-
-function Base.size(t::AbstractNode, d::Int)
-    _size(t)[d]
-end
+Base.size(t::AbstractNode) = tuple(_size(t)...)
+Base.size(t::AbstractNode, d::Int) = _size(t)[d]
 
 # Most likely rename to `rlength`
 function rlength(t::AbstractNode, C::Int=0)
