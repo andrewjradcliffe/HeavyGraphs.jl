@@ -334,13 +334,40 @@ function maxbreadth(t::AbstractNode)
     return b
 end
 
+function _size!(t::AbstractNode, szs::Vector{Int}, C::Int=1)
+    isempty(t) && return szs
+    C̃ = C + 1
+    @inbounds szs[C̃] += length(t)
+    for p in t
+        _size!(p.second, szs, C̃)
+    end
+    return szs
+end
+
+function _size(t::AbstractNode)
+    N = maxdepth(t)
+    szs = zeros(Int, N)
+    @inbounds szs[1] = 1
+    _size!(t, szs)
+end
+
+function Base.size(t::AbstractNode)
+    szs = _size(t)
+    # tuple(1, szs...)
+    # Tuple(szs)
+    tuple(szs...)
+end
+
+function Base.size(t::AbstractNode, d::Int)
+    _size(t)[d]
+end
+
 # Most likely rename to `rlength`
-Base.size(tt::AbstractNode) = _size(tt)
-function _size(t::AbstractNode, C::Int=0)
+function rlength(t::AbstractNode, C::Int=0)
     C̃ = C + 1
     isempty(t) && return C̃
     for p in t
-        C̃ += _size(p.second, 0)
+        C̃ += rlength(p.second, 0)
     end
     return C̃
 end
