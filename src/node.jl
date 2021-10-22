@@ -248,6 +248,9 @@ end
 Base.pop!(x::AbstractNode, key) = pop!(x.link, key)
 Base.pop!(x::AbstractNode, key, default) = pop!(x.link, key, default)
 Base.pop!(x::AbstractNode) = pop!(x.link)
+# function _pop!(x::A)::Pair{Any,A} where {T,U,A<:AbstractNode{T,U}}
+#     pop!(x.link)
+# end
 
 Base.delete!(x::AbstractNode, key) = (delete!(x.link, key); x)
 
