@@ -334,25 +334,112 @@ function maxbreadth(t::AbstractNode)
     return b
 end
 
-function _size!(t::AbstractNode, szs::Vector{Int}, C::Int=1)
-    isempty(t) && return szs
+function _size!(t::AbstractNode, sz::Vector{Int}, C::Int=1)
+    isempty(t) && return sz
     C̃ = C + 1
-    @inbounds szs[C̃] += length(t)
+    @inbounds sz[C̃] += length(t)
     for p in t
-        _size!(p.second, szs, C̃)
+        _size!(p.second, sz, C̃)
     end
-    return szs
+    return sz
 end
 
 function _size(t::AbstractNode)
     N = maxdepth(t)
-    szs = zeros(Int, N)
-    @inbounds szs[1] = 1
-    _size!(t, szs)
+    sz = zeros(Int, N)
+    @inbounds sz[1] = 1
+    _size!(t, sz)
 end
 
 Base.size(t::AbstractNode) = tuple(_size(t)...)
 Base.size(t::AbstractNode, d::Int) = _size(t)[d]
+
+@benchmark size(tw)
+@benchmark size2(tw)
+@benchmark size3(tw)
+# 2021-10-22: size variants
+function _size2!(t::AbstractNode, sz::Vector{Int}, C::Int)
+    sz[C] += 1
+    isempty(t) && return sz
+    C̃ = C + 1
+    for p in t
+        _size2!(p.second, sz, C̃)
+    end
+    return sz
+end
+function size2(t::AbstractNode)
+    N = maxdepth(t)
+    sz = zeros(Int, N)
+    _size2!(t, sz, 1)
+end
+
+# Clearly, size3 is preferable as it eliminates the maxdepth call.
+function _size3!(t::AbstractNode, sz::Vector{Int}, C::Int)
+    length(sz) < C && push!(sz, 0)
+    @inbounds sz[C] += 1
+    isempty(t) && return sz
+    C̃ = C + 1
+    for p in t
+        _size3!(p.second, sz, C̃)
+    end
+    return sz
+end
+
+function size3(t::AbstractNode)
+    _size3!(t, Int[0], 1)
+end
+
+@benchmark sizeat(tb, 11) seconds=30
+@benchmark sizeat2(tb, 11) seconds=30
+@benchmark sizeat3(tb, 11) seconds=30
+# 2021-10-22: sizeat variants
+function _sizeat(t::AbstractNode, s::Int, N::Int, C::Int)
+    C == N && return s + 1
+    isempty(t) && return s
+    C̃ = C + 1
+    for p in t
+        s += _sizeat(p.second, 0, N, C̃)
+    end
+    return s
+end
+sizeat(t::AbstractNode, d::Int) = _sizeat(t, 0, d, 1)
+
+function _sizeat2(t::AbstractNode, N::Int, C::Int)
+    C == N && return 1
+    isempty(t) && return 0
+    C̃ = C + 1
+    s = 0
+    for p in t
+        s += _sizeat2(p.second, N, C̃)
+    end
+    return s
+end
+
+sizeat2(t::AbstractNode, d::Int) = _sizeat2(t, d, 1)
+
+function _sizeat3!(t::AbstractNode, s::Vector{Int}, N::Int, C::Int)
+    C == N && (s[1] += 1; return s)
+    isempty(t) && return s
+    C̃ = C + 1
+    for p in t
+        _sizeat3!(p.second, s, N, C̃)
+    end
+    return s
+    # if C == N
+    #     s[1] += 1
+    #     return s
+    # else
+    #     isempty(t) && return s
+    #     C̃ = C + 1
+    #     for p in t
+    #         _sizeat3!(p.second, s, N, C̃)
+    #     end
+    #     return s
+    # end
+end
+
+sizeat3(t::AbstractNode, N::Int) = _sizeat3!(t, Int[0], N, 1)
+
 
 # Most likely rename to `rlength`
 function rlength(t::AbstractNode, C::Int=0)
