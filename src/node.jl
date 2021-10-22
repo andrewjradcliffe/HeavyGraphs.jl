@@ -210,10 +210,10 @@ function Base.getindex(x::A, k1, k2, ks::Vararg{S, N})::A where {S, N} where {T,
     end
     tmp
 end
-function Base.getindex(x::A, ::Colon)::Vector{A} where {T, U, A<:AbstractNode{T, U}}
-    # convert(Vector{A}, collect(values(x)))
-    collect(values(x))
-end
+# function Base.getindex(x::A, ::Colon)::Vector{A} where {T, U, A<:AbstractNode{T, U}}
+#     # convert(Vector{A}, collect(values(x)))
+#     collect(values(x))
+# end
 # function getindex3(x::A, key) where {T, U, A<:AbstractNode{T, U}}
 #     convert(A, getindex(x.link, key))
 # end
