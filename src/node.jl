@@ -334,30 +334,30 @@ function maxbreadth(t::AbstractNode)
     return b
 end
 
-function _size!(t::AbstractNode, sz::Vector{Int}, C::Int=1)
+#### 2021-10-22: size variants
+@benchmark size(tw)
+@benchmark size2(tw)
+@benchmark size3(tw)
+function _size1!(t::AbstractNode, sz::Vector{Int}, C::Int=1)
     isempty(t) && return sz
     C̃ = C + 1
     @inbounds sz[C̃] += length(t)
     for p in t
-        _size!(p.second, sz, C̃)
+        _size1!(p.second, sz, C̃)
     end
     return sz
 end
 
-function _size(t::AbstractNode)
+function _size1(t::AbstractNode)
     N = maxdepth(t)
     sz = zeros(Int, N)
     @inbounds sz[1] = 1
-    _size!(t, sz)
+    _size1!(t, sz)
 end
 
-Base.size(t::AbstractNode) = tuple(_size(t)...)
-Base.size(t::AbstractNode, d::Int) = _size(t)[d]
+size1(t::AbstractNode) = tuple(_size1(t)...)
+size1(t::AbstractNode, d::Int) = _size1(t)[d]
 
-@benchmark size(tw)
-@benchmark size2(tw)
-@benchmark size3(tw)
-# 2021-10-22: size variants
 function _size2!(t::AbstractNode, sz::Vector{Int}, C::Int)
     sz[C] += 1
     isempty(t) && return sz
@@ -374,20 +374,18 @@ function size2(t::AbstractNode)
 end
 
 # Clearly, size3 is preferable as it eliminates the maxdepth call.
-function _size3!(t::AbstractNode, sz::Vector{Int}, C::Int)
+function _size!(t::AbstractNode, sz::Vector{Int}, C::Int)
     length(sz) < C && push!(sz, 0)
     @inbounds sz[C] += 1
     isempty(t) && return sz
     C̃ = C + 1
     for p in t
-        _size3!(p.second, sz, C̃)
+        _size!(p.second, sz, C̃)
     end
     return sz
 end
 
-function size3(t::AbstractNode)
-    _size3!(t, Int[0], 1)
-end
+Base.size(t::AbstractNode) = tuple(_size!(t, Int[0], 1)...)
 
 @benchmark sizeat(tb, 11) seconds=30
 @benchmark sizeat2(tb, 11) seconds=30
@@ -417,6 +415,7 @@ end
 
 sizeat2(t::AbstractNode, d::Int) = _sizeat2(t, d, 1)
 
+# The mutating version happens to be the best in terms of allocations.
 function _sizeat3!(t::AbstractNode, s::Vector{Int}, N::Int, C::Int)
     C == N && (s[1] += 1; return s)
     isempty(t) && return s
@@ -438,7 +437,31 @@ function _sizeat3!(t::AbstractNode, s::Vector{Int}, N::Int, C::Int)
     # end
 end
 
-sizeat3(t::AbstractNode, N::Int) = _sizeat3!(t, Int[0], N, 1)
+sizeat3(t::AbstractNode, N::Int) = @inbounds getindex(_sizeat3!(t, Int[0], N, 1), 1)
+
+# Best in terms of time
+function _sizeat4(t::AbstractNode, N::Int, C::Int)::Int
+    C̃ = C + 1
+    C̃ == N && return length(t)
+    s = 0
+    for p in t
+        s += _sizeat4(p.second, N, C̃)
+    end
+    return s
+end
+sizeat4(t::AbstractNode, d::Int) = _sizeat4(t, d, 1)
+
+# Trades slightly worse time for fewer allocations
+function _sizeat5!(t::AbstractNode, s::Vector{Int}, N::Int, C::Int)
+    C̃ = C + 1
+    C̃ == N && (s[1] += length(t); return s)
+    for p in t
+        _sizeat5!(p.second, s, N, C̃)
+    end
+    return s
+end
+
+sizeat5(t::AbstractNode, N::Int) = getindex(_sizeat5!(t, Int[0], N, 1), 1)
 
 
 # Most likely rename to `rlength`
