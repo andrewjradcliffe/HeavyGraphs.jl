@@ -55,6 +55,8 @@ a6 = grow!(af, AryNode(), pni6, eachcol(qmat6));
 @benchmark size(a3, 10)
 @benchmark size(t3, 50)
 @benchmark size(a3, 50)
+@benchmark rlength(t3)
+@benchmark rlength(a3)
 z = [1:10;];
 @benchmark t3[z...]
 @benchmark a3[z...]
@@ -62,6 +64,9 @@ z = [1:10;];
 # Result: map, reduce, etc.
 @benchmark countall(isempty, t3)
 @benchmark countall(isempty, a3)
+fl!(dest, x) = (dest[1][1] += length(x); dest)
+@benchmark mapat(fl!, ((5,),), t3, 10)
+@benchmark mapat(fl!, ((5,),), a3, 10)
 
 # Result: growth on heterogeneous keys. SimpleNode is faster
 @benchmark grow!(gf, SimpleNode(), pni7, eachcol(dmat8)) seconds=240
@@ -75,16 +80,53 @@ t10 = valgrow!(gf, SimpleNode(), vi10, pni10, eachcol(dmat10));
 a10 = valgrow!(af, AryNode(), vi10, pni10, eachcol(dmat10));
 
 # Result: traversal tests
-# t7: 4300000 nodes. AryNode is moderately faster
-@benchmark maxdepth(t7)
-@benchmark maxdepth(a7)
-@benchmark maxbreadth(t7)
-@benchmark maxbreadth(a7)
-@benchmark size(t7)
-@benchmark size(a7)
-@benchmark size(t7, 10)
-@benchmark size(a7, 10)
-z7 = pni7(first(eachcol(dmat8)));
+# t7: 4387231 nodes. AryNode is moderately faster
+# t10: 1673512 nodes. AryNode is faster: (290 - 170) / 290, generally by ≈40%
+@benchmark maxdepth(t10)
+@benchmark maxdepth(a10)
+@benchmark maxbreadth(t10)
+@benchmark maxbreadth(a10)
+@benchmark size(t10)
+@benchmark size(a10)
+@benchmark size(t10, 8)
+@benchmark size(a10, 8)
+@benchmark rlength(t10)
+@benchmark rlength(a10)
+z10 = pni10(first(eachcol(dmat8)));
 z10 = pni10(first(eachcol(dmat10)));
-@benchmark t7[z...]
-@benchmark a7[z...]
+@benchmark t10[z10...]
+@benchmark a10[z10...]
+
+# Result: map, reduce, etc.
+@benchmark countall(isempty, t10)
+@benchmark countall(isempty, a10)
+@benchmark mapat(fl!, ((5,),), t7, 10)
+@benchmark mapat(fl!, ((5,),), a7, 10)
+@benchmark mapupto(fl!, ((5,),), t7, 10)
+@benchmark mapupto(fl!, ((5,),), a7, 10)
+
+fs = [x -> true, x -> true, x -> true, x -> x[1] ∈ (1,2,3)]
+@benchmark mapat(fl!, ((5,),), t10, 5)
+@benchmark mapat(fl!, ((5,),), a10, 5)
+@benchmark mapfilterat(fl!, fs, ((5,),), t10, 5)
+@benchmark mapfilterat(fl!, fs, ((5,),), a10, 5)
+####
+n7 = sum(size(t7))
+n10 = sum(size(t10))
+time7 = [753, 508]
+time10 = [123, 57]
+n7 ./ time7
+n10 ./ time10
+mem7 = [48.4 * 2^20, 160]
+mem10 = [6.99 * 2^20, 160]
+mpn7 = mem7 ./ n7
+mpn10 = mem10 ./ n10
+bpernode_max = maximum(maximum, [mpn7, mpn10])
+bpernode_min = minimum(minimum, [mpn7, mpn10])
+filemem = 218 * 2^20
+npm = n10 / filemem
+Nₘ = 26 * 2^30
+Nₜ = Nₘ * npm
+Nₜ * bpernode_max
+Nₜ * bpernode_min
+4000 * 160
