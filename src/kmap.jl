@@ -11,7 +11,7 @@
 Analogy to `mapat!` which tracks Cartesian key-index of iteration, passing
 it as an additional argument to `f`.
 
-Call signature of `f` is: `f(dest, ks, p::Pair)`.
+Call signature of `f` is: `f(dest, ks, t::AbstractNode)`.
 
 See also: [`mapat!`](@ref), [`kmapat`](@ref), [`kmapfilterat`](@ref), [`kmapfilterat!`](@ref)
 
@@ -28,7 +28,7 @@ function kmapat!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
     elseif C̃ == N
         for p in t
             setindex!(ks, p.first, C)
-            f(dest, ks, p)
+            f(dest, ks, p.second)
         end
     end
     dest
@@ -40,7 +40,7 @@ end
 Analogy to `mapat` which tracks Cartesian key-index of iteration, passing
 it as an additional argument to `f`.
 
-Call signature of `f` is: `f(dest, ks, p::Pair)`.
+Call signature of `f` is: `f(dest, ks, t::AbstractNode)`.
 
 See also: [`mapat`](@ref), [`kmapat`](@ref), [`kmapfilterat`](@ref), [`kmapfilterat!`](@ref)
 
@@ -59,7 +59,7 @@ end
 
 Indexing analogy to `mapfilterat!` with filtered traversal.
 
-Call signature of `f` is: `f(dest, ks, p::Pair)`.
+Call signature of `f` is: `f(dest, ks, t::AbstractNode)`.
 Call signature of `fs[C]` is: `fs[C](p::Pair)`.
 
 See also: [`mapfilterat!`](@ref), [`kmapat`](@ref), [`kmapat!`](@ref)
@@ -75,7 +75,7 @@ function kmapfilterat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Arr
         end
     elseif C̃ == N
         for p in t
-            g(p) && (setindex!(ks, p.first, C); f(dest, ks, p))
+            g(p) && (setindex!(ks, p.first, C); f(dest, ks, p.second))
         end
     end
     dest
@@ -87,7 +87,7 @@ end
 
 Indexing analogy to `mapfilterat` with filtered traversal.
 
-Call signature of `f` is: `f(dest, ks, p::Pair)`.
+Call signature of `f` is: `f(dest, ks, t::AbstractNode)`.
 Call signature of `fs[C]` is: `fs[C](p::Pair)`.
 
 See also: [`mapfilterat`](@ref), [`kmapat`](@ref), [`kmapat!`](@ref)
