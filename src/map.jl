@@ -18,7 +18,7 @@ Transform the graph/tree `t` by applying `f` to each element at a given level, `
 Results are stored in `dest`; it is assumed that the number and dimensions of arrays
 are sufficient to store the results of calling `f`.
 
-Call signature of `f` is: `f(dest, p::Pair)`.
+Call signature of `f` is: `f(dest, t::AbstractNode)`.
 
 See also: [`mapat`](@ref), [`mapfilterat`](@ref), [`mapfilterat!`](@ref)
 
@@ -32,7 +32,7 @@ function mapat!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, t::AbstractN
         end
     elseif C̃ == N
         for p in t
-            f(dest, p)
+            f(dest, p.second)
         end
     end
     dest
@@ -45,7 +45,7 @@ Transform the graph/tree `t` by applying `f` to each element at a given level, `
 Results are stored in a tuple of zero-initialized arrays, the number and dimension of which
 are specified by `dims`.
 
-Call signature of `f` is: `f(dest, p::Pair)`.
+Call signature of `f` is: `f(dest, t::AbstractNode)`.
 
 See also: [`mapat!`](@ref), [`mapfilterat`](@ref), [`mapfilterat!`](@ref)
 
@@ -63,7 +63,7 @@ end
 Performs a filtered traversal in which a subset is formed at each level from
 the corresponding element (note: linear indexed) of the filter functions `fs`.
 
-Call signature of `f` is: `f(dest, p::Pair)`.
+Call signature of `f` is: `f(dest, t::AbstractNode)`.
 Call signature of `fs[C]` is: `fs[C](p::Pair)`.
 
 See also: [`mapfilterat`](@ref), [`mapat`](@ref), [`mapat!`](@ref)
@@ -79,7 +79,7 @@ function mapfilterat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Arra
         end
     elseif C̃ == N
         for p in t
-            g(p) && f(dest, p)
+            g(p) && f(dest, p.second)
         end
     end
     dest
@@ -92,7 +92,7 @@ end
 Performs a filtered traversal in which a subset is formed at each level from
 the corresponding element (note: linear indexed) of the filter functions `fs`.
 
-Call signature of `f` is: `f(dest, p::Pair)`.
+Call signature of `f` is: `f(dest, t::AbstractNode)`.
 Call signature of `fs[C]` is: `fs[C](p::Pair)`.
 
 See also: [`mapfilterat!`](@ref), [`mapat`](@ref), [`mapat!`](@ref)
@@ -159,6 +159,150 @@ function tmapfilterat(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTup
     A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
     Threads.@threads for m = 1:M
         A[m] = mapfilterat(f, fs, dims, ts[ranges[m]], L)
+    end
+    return reduce(.+, A)
+end
+
+################################################################
+"""
+    mapat_pairs!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, t::AbstractNode,
+                 N::Int, C::Int)
+
+Analogous to `mapat!`, but call signature of `f` is: `f(dest, p::Pair)`.
+
+See also: [`mapat!`](@ref), [`mapfilterat_pairs!`]
+
+"""
+function mapat_pairs!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, t::AbstractNode,
+                      N::Int, C::Int)
+    isempty(t) && return dest
+    C̃ = C + 1
+    if C̃ < N
+        for p in t
+            mapat_pairs!(f, dest, p.second, N, C̃)
+        end
+    elseif C̃ == N
+        for p in t
+            f(dest, p)
+        end
+    end
+    dest
+end
+
+"""
+    mapat_pairs(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractNode, N::Int)
+
+Analogous to `mapat`, but call signature of `f` is: `f(dest, p::Pair)`.
+
+See also: [`mapat`](@ref), [`mapfilterat_pairs`](@ref)
+
+"""
+function mapat_pairs(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractNode,
+                     N::Int)
+    dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
+    mapat_pairs!(f, dest, t, N, 1)
+end
+
+#### filter
+"""
+    mapfilterat_pairs!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+                       t::AbstractNode, N::Int, C::Int)
+
+Analogous to `mapfilterat!`, but call signature of `f` is: `f(dest, p::Pair)`.
+Call signature of `fs[C]` remains unchanged: `fs[C](p::Pair)`.
+
+See also: [`mapfilterat!`](@ref), [`mapfilterat_pairs`](@ref)
+"""
+function mapfilterat_pairs!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+                            t::AbstractNode, N::Int, C::Int)
+    isempty(t) && return dest
+    C̃ = C + 1
+    g = fs[C]
+    if C̃ < N
+        for p in t
+            g(p) && mapfilterat_pairs!(f, fs, dest, p.second, N, C̃)
+        end
+    elseif C̃ == N
+        for p in t
+            g(p) && f(dest, p)
+        end
+    end
+    dest
+end
+
+"""
+    mapfilterat_pairs(f::Function, fs::Vector{Function},
+                      dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractNode, N::Int)
+
+Analogous to `mapfilterat`, but call signature of `f` is: `f(dest, p::Pair)`.
+Call signature of `fs[C]` remains unchanged: `fs[C](p::Pair)`.
+
+See also: [`mapfilterat`](@ref), [`mapfilterat_pairs!`](@ref)
+"""
+function mapfilterat_pairs(f::Function, fs::Vector{Function},
+                           dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractNode, N::Int)
+    dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
+    mapfilterat_pairs!(f, fs, dest, t, N, 1)
+end
+
+################ reduction of vector of into single dest
+function mapat_pairs!(f::Function, dest::Tuple{Vararg{Array{T}} where T},
+                      ts::Vector{<:AbstractNode}, N::Int, C::Int)
+    for t in ts
+        mapat_pairs!(f, dest, t, N, C)
+    end
+    dest
+end
+
+function mapat_pairs(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+               ts::Vector{<:AbstractNode}, N::Int)
+    dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
+    mapat_pairs!(f, dest, ts, N, 1)
+end
+
+function tmapat_pairs(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                ts::Vector{<:AbstractNode}, L::Int, M::Int=Threads.nthreads())
+    N = length(ts)
+    # M = Threads.threads()
+    ranges = equalranges(N, M)
+    A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
+    Threads.@threads for m = 1:M
+        A[m] = mapat_pairs(f, dims, ts[ranges[m]], L)
+    end
+    # B = ntuple(i -> zeros(Int, dims[i]), length(dims))
+    # for m in eachindex(A)
+    #     for i in eachindex(B)
+    #         sum!(B[i], A[m][i])
+    #     end
+    # end
+    return reduce(.+, A)
+end
+
+#### filter
+function mapfilterat_pairs!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+                            ts::Vector{<:AbstractNode}, N::Int, C::Int)
+    for t in ts
+        mapfilterat_pairs!(f, fs, dest, t, N, C)
+    end
+    dest
+end
+
+function mapfilterat_pairs(f::Function, fs::Vector{Function},
+                           dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                           ts::Vector{<:AbstractNode}, N::Int)
+    dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
+    mapfilterat_pairs!(f, fs, dest, ts, N, 1)
+end
+
+function tmapfilterat_pairs(f::Function, fs::Vector{Function},
+                            dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                            ts::Vector{<:AbstractNode}, L::Int, M::Int=Threads.nthreads())
+    N = length(ts)
+    # M = Threads.threads()
+    ranges = equalranges(N, M)
+    A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
+    Threads.@threads for m = 1:M
+        A[m] = mapfilterat_pairs(f, fs, dims, ts[ranges[m]], L)
     end
     return reduce(.+, A)
 end
