@@ -14,10 +14,10 @@
 # mapupto(ca, dims, t, N)                OR    mapupto(ca, dims, t, N, levs_ks)
 # mapfilterupto(fca, mfs, dims, t, N)    OR    mapfilterupto(fca, mfs, dims, t, N, levs_ks)
 ##
-# The f itself is a closure around some increment!(g, dest, ks, ν) function, e.g.
-# f = (dest, ks, ν) -> incrementrows!(g, dest, ks, ν)
+# The f itself is a closure around some increment!(g, dest, ν, ks) function, e.g.
+# f = (dest, ν, ks) -> incrementrows!(g, dest, ν, ks)
 # Or, given that we know dest to be a Tuple{Vararg{Array{T}} where T}, it might be:
-# f = (dest, ks, ν) -> incrementrows!(g, dest[2], ks, ν)
+# f = (dest, ν, ks) -> incrementrows!(g, dest[2], ν, ks)
 ################
 function countabsent!(f::Function, dest::Tuple{Vararg{Array{T}} where T},
                       t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
@@ -25,10 +25,10 @@ function countabsent!(f::Function, dest::Tuple{Vararg{Array{T}} where T},
     if C == Ñ
         lev_ks = setdiff(levs_ks[C], keys(t))
         ν = 1
-        isempty(lev_ks) || f(dest, lev_ks, ν)
+        isempty(lev_ks) || f(dest, ν, lev_ks)
     elseif C < Ñ
         ν = multabsentupto(t, N, C, levs_ks)
-        iszero(ν) || f(dest, levs_ks[Ñ], ν)
+        iszero(ν) || f(dest, ν, levs_ks[Ñ])
     end
     dest
 end
