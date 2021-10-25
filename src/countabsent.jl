@@ -39,10 +39,36 @@ function countabsent!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Arra
     if C == Ñ
         lev_ks = filter!(fs[C], setdiff(levs_ks[C], keys(t)))
         ν = 1
-        isempty(lev_ks) || f(dest, lev_ks, ν)
+        isempty(lev_ks) || f(dest, ν, lev_ks)
     elseif C < Ñ
         ν = multabsentupto(fs, t, N, C, levs_ks)
-        iszero(ν) || f(dest, filter(fs[Ñ], levs_ks[Ñ]), ν)
+        iszero(ν) || f(dest, ν, filter(fs[Ñ], levs_ks[Ñ]))
     end
     dest
+end
+################################################################
+#### p. 540-545, 2021-10-25
+# levs_ks::Vector{Vector{Any}} ∈ 𝔻²
+# dest::Tuple{Vararg{Array{T}} where T} ∈ 𝔻², with dest[2] ∈ ℕᴵ, dest[1] ∈ ℕᴵˣᴶ
+# f::Function : closure around some increment!(g, dest, ν, ks)
+## e.g. of countabsent!
+# db::Dict{String,Int}
+# g = let db = db
+#     k -> db[k]
+# end
+# f = (dest, ν, ks) -> incrementrows!(g, dest[2], ν, ks)
+## e.g. of countstatus!
+# ds::Dict{String, Int}
+# h = let ds = ds
+#     k -> ds[k]
+# end
+# f = (dest, ν, rk, ck) -> incrementrowcol!(g, h, dest[1], ν, rk, ck)
+################
+function countstatus!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, k, t::AbstractNode)
+    status = t.val[1]
+    f(dest, 1, k, status)
+    dest
+end
+function countstatus!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, p::Pair)
+    countstatus!(f, dest, p.first, p.second)
 end

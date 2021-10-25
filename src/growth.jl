@@ -111,7 +111,7 @@ function tvalgrow!(f::Function, t::AbstractNode, v::AbstractPathKeys, p::Abstrac
         #     Threads.@spawn valgrow!(f, p.second, v, p, itr)
         # end
     end
-    t
+    return t
 end
 
 function specgrow!(f::Function, t::AbstractNode, v::AbstractPathKeys, p::AbstractPathKeys)
