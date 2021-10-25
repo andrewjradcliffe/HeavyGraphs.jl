@@ -283,7 +283,7 @@ Call signature of `f` is: `f(t::AbstractNode)`.
 """
 function countall(f::Function, t::AbstractNode)
     s = 0
-    f(t) && (s +=1)
+    f(t) && (s += 1)
     isempty(t) && return s
     # isempty(t) && return f(t) ? 1 : 0
     for p in t

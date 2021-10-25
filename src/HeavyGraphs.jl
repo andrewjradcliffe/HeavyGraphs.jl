@@ -27,10 +27,14 @@ export foreachat, foreachfilterat, foreach_depthfirst, foreach_breadthfirst,
 export AbstractPathKey, AbstractIndexedPathKey, IndexedPathKey,
     AbstractPathKeys, PathKeys
 
+# countabsent.jl
+export countabsent!, countstatus!
+
 # include("map.jl")
 # include("kmap.jl")
 # include("multipliers.jl")
 # include("iterators.jl")
 # include("abstractpathkeys.jl")
+# include("countabsent.jl")
 
 end
