@@ -65,6 +65,12 @@ z = [1:10;];
 @benchmark countall(isempty, t3)
 @benchmark countall(isempty, a3)
 fl!(dest, x) = (dest[1][1] += length(x); dest)
+fl_v2!(dest, x) = (dest[1][1] = dest[1][1] + length(x))
+fl2!(dest, x) = (dest[1][1] += length(x.val[1]); dest)
+fl3!(dest, x) = (dest[1][1] += length(unique(y -> y.val[1], values(x))))
+fl4!(dest, x) = (dest[1][1] = max(dest[1][1], length(x)))
+fl3_v2!(dest, x) = (dest[1][1] += length(unique(p -> p.second.val[1], x)))
+fl3_v3!(dest, x) = (dest[1][1] += length(unique!([p.second.val[1] for p in x])))
 @benchmark mapat(fl!, ((5,),), t3, 10)
 @benchmark mapat(fl!, ((5,),), a3, 10)
 
@@ -106,8 +112,8 @@ z10 = pni10(first(eachcol(dmat10)));
 @benchmark mapupto(fl!, ((5,),), a7, 10)
 
 fs = [x -> true, x -> true, x -> true, x -> x[1] ∈ (1,2,3)]
-@benchmark mapat(fl!, ((5,),), t10, 5)
-@benchmark mapat(fl!, ((5,),), a10, 5)
+@benchmark mapat(fl3_v3!, ((5,),), t10, 7)
+@benchmark mapat(fl3_v3!, ((5,),), a10, 7)
 @benchmark mapfilterat(fl!, fs, ((5,),), t10, 5)
 @benchmark mapfilterat(fl!, fs, ((5,),), a10, 5)
 ####
@@ -130,3 +136,13 @@ Nₜ = Nₘ * npm
 Nₜ * bpernode_max
 Nₜ * bpernode_min
 4000 * 160
+# eval of unique function on suspects: 875ms, 167.85MiB
+time = 875
+Tₘ = 167.85 * 2^20
+su = 1215165
+sps = su / .875
+mps = Tₘ / su
+filemps = filemem / su
+Tₛᵤ = Nₘ / filemps
+allocunique = Tₛᵤ * mps
+timeunique = Tₛᵤ / sps
