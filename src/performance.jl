@@ -78,6 +78,7 @@ fl3!(dest, x) = (dest[1][1] += length(unique(y -> y.val[1], values(x))))
 fl4!(dest, x) = (dest[1][1] = max(dest[1][1], length(x)))
 fl3_v2!(dest, x) = (dest[1][1] += length(unique(p -> p.second.val[1], x)))
 fl3_v3!(dest, x) = (dest[1][1] += length(unique!([p.second.val[1] for p in x])))
+fl3_v3g!(dest, x) = (dest[1][1] += length(unique!([p.second.data[1] for p in x])))
 @benchmark mapat(fl!, ((5,),), t3, 10)
 @benchmark mapat(fl!, ((5,),), a3, 10)
 @benchmark mapat(fl!, ((5,),), g3, 10)
@@ -118,33 +119,33 @@ g10 = datagrow!(sdg, SimpleDiGraph(), vi10, pni10, eachcol(dmat10));
 # t7: 4387231 nodes. AryNode is moderately faster
 # t10: 1673512 nodes. AryNode is faster: (290 - 170) / 290, generally by ≈40%
 @benchmark maxdepth(t10)
-@benchmark maxdepth(a10)
+@benchmark depth(g10)
 @benchmark maxbreadth(t10)
-@benchmark maxbreadth(a10)
+@benchmark maxbreadth(g10)
 @benchmark size(t10)
-@benchmark size(a10)
+@benchmark size(g10)
 @benchmark size(t10, 8)
-@benchmark size(a10, 8)
+@benchmark size(g10, 8)
 @benchmark rlength(t10)
-@benchmark rlength(a10)
+@benchmark rlength(g10)
 z10 = pni10(first(eachcol(dmat8)));
 z10 = pni10(first(eachcol(dmat10)));
 @benchmark t10[z10...]
-@benchmark a10[z10...]
+@benchmark g10[z10...]
 
 # Result: map, reduce, etc.
 @benchmark countall(isempty, t10)
-@benchmark countall(isempty, a10)
+@benchmark countall(isempty, g10)
 @benchmark mapat(fl!, ((5,),), t7, 10)
-@benchmark mapat(fl!, ((5,),), a7, 10)
+@benchmark mapat(fl!, ((5,),), g7, 10)
 @benchmark mapupto(fl!, ((5,),), t7, 10)
-@benchmark mapupto(fl!, ((5,),), a7, 10)
+@benchmark mapupto(fl!, ((5,),), g7, 10)
 
 fs = [x -> true, x -> true, x -> true, x -> x[1] ∈ (1,2,3)]
 @benchmark mapat(fl3_v3!, ((5,),), t10, 7)
-@benchmark mapat(fl3_v3!, ((5,),), a10, 7)
+@benchmark mapat(fl3_v3g!, ((5,),), g10, 7)
 @benchmark mapfilterat(fl!, fs, ((5,),), t10, 5)
-@benchmark mapfilterat(fl!, fs, ((5,),), a10, 5)
+@benchmark mapfilterat(fl!, fs, ((5,),), g10, 5)
 ####
 n7 = sum(size(t7))
 n10 = sum(size(t10))
