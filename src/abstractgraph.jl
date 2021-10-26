@@ -274,6 +274,9 @@ SimpleGraph(g::AbstractSimpleGraph) = SimpleGraph(g.fadj, g.badj, g.data)
 
 # between Graph types
 SimpleDiGraph(g::AbstractSimpleGraph) = SimpleDiGraph(g.fadj, g.data)
+# identical to:
+# SimpleDiGraph(g::AbstractSimpleGraph) =
+#     SimpleDiGraph(convert(Dict{Any, SimpleDiGraph}, g.fadj), g.data)
 
 ################################################################
 #### Opt-ins: AbstractSimpleGraph
@@ -377,4 +380,92 @@ function get_datapush!(f::Function, g::AbstractGraph, v, k1, k2, ks::Vararg{Any,
     tmp = get!(f, g, k1, k2, ks...)
     push!(tmp.data, v)
     tmp
+end
+
+############################################################################################
+#### Methods of grow_(:field)! : see p. 443-446, 451-455, 2021-09-14/15
+function grow!(f::Function, g::AbstractGraph, p::AbstractPathKeys)
+    for x in p
+        get!(f, g, x...)
+    end
+    return g
+end
+function grow!(f::Function, g::AbstractGraph, p::AbstractPathKeys, itr)
+    x = Vector{Any}(undef, p.N)
+    for item in itr
+        p(x, item)
+        get!(f, g, x...)
+    end
+    return g
+end
+
+# Convenience wrappers, but useful nonetheless
+grow(f::Function, p::AbstractPathKeys) = grow!(f, f(), p)
+grow(f::Function, p::AbstractPathKeys, itr) = grow!(f, f(), p, itr)
+
+function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKeys, p::AbstractPathKeys)
+    for x in p
+        get_datapush!(f, g, v(x), x...)
+    end
+    return g
+end
+function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKeys, p::AbstractPathKeys, itr)
+    x = Vector{Any}(undef, p.N)
+    for item in itr
+        p(x, item)
+        get_datapush!(f, g, v(item), x...)
+    end
+    return g
+end
+function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKey, p::AbstractPathKeys)
+    for x in p
+        get_datapush!(f, g, v(x), x...)
+    end
+    return g
+end
+function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKey, p::AbstractPathKeys, itr)
+    x = Vector{Any}(undef, p.N)
+    for item in itr
+        p(x, item)
+        get_datapush!(f, g, v(item), x...)
+    end
+    return g
+end
+
+# Convenience wrappers, but useful nonetheless
+datagrow(f::Function, v::AbstractPathKeys, p::AbstractPathKeys) = datagrow!(f, f(), v, p)
+datagrow(f::Function, v::AbstractPathKey, p::AbstractPathKeys) = datagrow!(f, f(), v, p)
+datagrow(f::Function, v::AbstractPathKeys, p::AbstractPathKeys, itr) = datagrow!(f, f(), v, p, itr)
+datagrow(f::Function, v::AbstractPathKey, p::AbstractPathKeys, itr) = datagrow!(f, f(), v, p, itr)
+
+# Growth from non-flat sources - p. 475, 2021-09-22
+function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKeys, p::AbstractPathKeys,
+                  vitr, pitr)
+    x = Vector{Any}(undef, p.N)
+    for (a, b) in zip(vitr, pitr)
+        p(x, b)
+        get_datapush!(f, g, v(a), x...)
+    end
+    return g
+end
+function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKey, p::AbstractPathKeys,
+                  vitr, pitr)
+    x = Vector{Any}(undef, p.N)
+    for (a, b) in zip(vitr, pitr)
+        p(x, b)
+        get_datapush!(f, g, v(a), x...)
+    end
+    return g
+end
+# Possible parallel growth method
+function tdatagrow!(f::Function, g::AbstractGraph, v::AbstractPathKeys, p::AbstractPathKeys,
+                   itrsource::AbstractDict)
+    @sync for p in t
+        Threads.@spawn datagrow!(f, p.second, v, p, eachcol(itrsource[p.first]))
+        # Alternative:
+        # let itr = eachcol(itrsource[p.first])
+        #     Threads.@spawn datagrow!(f, p.second, v, p, itr)
+        # end
+    end
+    return g
 end
