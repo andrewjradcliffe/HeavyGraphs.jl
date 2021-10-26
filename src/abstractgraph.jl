@@ -69,7 +69,8 @@ Base.get(g::A, k1, k2, ks...) where {A<:AbstractGraph} = get(_returnnothing, g, 
 
 # See notes in abstractnode.jl on options and incomplete benchmarking
 haspath(g::AbstractGraph, k1) = isa(get(_returnnothing, g, k1), AbstractGraph)
-haspath(g::AbstractGraph, k1, ks...) = isa(get(_returnnothing, g, k1, ks...), AbstractGraph)
+haspath(g::AbstractGraph, k1, k2) = isa(get(_returnnothing, g, k1, k2), AbstractGraph)
+haspath(g::AbstractGraph, k1, k2, ks...) = isa(get(_returnnothing, g, k1, k2, ks...), AbstractGraph)
 
 # Enforcing type-stability on the return value should not be necessary
 function Base.get!(f::Function, g::A, k1) where {A<:AbstractGraph}
@@ -90,16 +91,16 @@ function Base.get!(f::Function, g::A, k1, k2, ks::Vararg{Any, N}) where {N} wher
 end
 
 # Likewise, type-stability enforcement by annotated return type should be unnecessary.
-function Base.getindex(g::A, k1)::A where {A<:AbstractGraph}
+function Base.getindex(g::A, k1) where {A<:AbstractGraph}
     getindex(g.fadj, k1)
 end
-function Base.getindex(g::A, k1, k2)::A where {A<:AbstractGraph}
+function Base.getindex(g::A, k1, k2) where {A<:AbstractGraph}
     getindex(getindex(g, k1), k2)
 end
-function Base.getindex(g::A, k1, k2, ks::Vararg{Any, N})::A where {N} where {A<:AbstractGraph}
+function Base.getindex(g::A, k1, k2, ks::Vararg{Any, N}) where {N} where {A<:AbstractGraph}
     getindex(getindex(getindex(g, k1), k2), ks...)
 end
-function Base.getindex(g::A, k1, k2, ks::Vararg{S, N})::A where {S, N} where {A<:AbstractGraph}
+function Base.getindex(g::A, k1, k2, ks::Vararg{S, N}) where {S, N} where {A<:AbstractGraph}
     tmp = getindex(g, k1, k2)
     for k in ks
         tmp = getindex(tmp, k)
