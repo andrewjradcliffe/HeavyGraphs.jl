@@ -47,8 +47,7 @@ end
 Base.length(p::AbstractPathKeys) = p.N
 Base.size(p::AbstractPathKeys) = (p.N,)
 
-Base.iterate(p::AbstractPathKeys, state=1) =
-    state > p.N ? nothing : (p.ftrs[state], state + 1)
+Base.iterate(p::AbstractPathKeys, state=1) = state > p.N ? nothing : (p.ftrs[state], state + 1)
 Base.eltype(p::AbstractPathKeys) = eltype(p.ftrs)
 
 Base.IndexStyle(::Type{<:AbstractPathKeys}) = IndexLinear()
