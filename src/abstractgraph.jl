@@ -233,6 +233,40 @@ function rlength2(g::AbstractGraph)
     return C̃
 end
 
+"""
+    maxsize(i::Int, D::Int, N::Vector{Int})
+
+Compute the maximum number of vertices for a graph with `D` recursively expanded levels,
+the number of unique edges per which are given by `N`, starting from level `i`.
+
+# Arguments
+- `i::Int`: index of current level. On initial call, the level at which recursion begins.
+- `D::Int`: total levels. On initial call, the total recursive depth.
+
+# Examples
+```julia-repl
+julia> N = [3800, 440, 154];
+julia> maxsize(1, 3, N)
+259163800
+julia> maxsize(2, 3, N)
+68200
+julia> maxsize(1, 2, N)
+1675800
+```
+"""
+function maxsize(i::Int, D::Int, N::Vector{Int})
+    # 1 ≤ i ≤ D - 1 ? begin return N[i] * nodeenum(i + 1, D, N) + N[i] end : begin
+    #     return N[i] end
+    1 ≤ i ≤ D - 1 ? N[i] * maxsize(i + 1, D, N) + N[i] : N[i]
+end
+
+"""
+    maxsize(N::Vector{Int})
+
+Compute the maximun number of vertices for a graph with recursively expanded levels,
+the number of unique edges per which are given by `N`.
+"""
+maxsize(N::Vector{Int}) = maxsize(1, length(N), N)
 ################################################################
 #### comparison operators
 function Base.isequal(a::AbstractGraph, b::AbstractGraph)
