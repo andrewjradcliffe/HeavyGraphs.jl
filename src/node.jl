@@ -499,7 +499,7 @@ Base.size(t::AbstractNode) = tuple(_size!(t, Int[0], 1)...)
 function _sizeat(t::AbstractNode, N::Int, C::Int)::Int
     C̃ = C + 1
     C̃ == N && return length(t)
-    s = 0
+    s::Int = 0
     for p in t
         s += _sizeat(p.second, N, C̃)
     end
