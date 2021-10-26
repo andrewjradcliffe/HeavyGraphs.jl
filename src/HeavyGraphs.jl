@@ -30,11 +30,24 @@ export AbstractPathKey, AbstractIndexedPathKey, IndexedPathKey,
 # countabsent.jl
 export countabsent!, countstatus!
 
+# abstractgraph.jl
+export AbstractGraph, AbstractSimpleDiGraph, AbstractSimpleGraph,
+    SimpleDiGraph, SimpleGraph
+
+export haspath, depth, maxbreadth, rlength, maxsize
+
+export isbidirectional, bget!, bget, hasbipath
+
+export get_datapush!
+
+export grow!, grow, datagrow!, datagrow, tdatagrow!
+
 # include("map.jl")
 # include("kmap.jl")
 # include("multipliers.jl")
 # include("iterators.jl")
 # include("abstractpathkeys.jl")
 # include("countabsent.jl")
+# include("abstractgraph.jl")
 
 end
