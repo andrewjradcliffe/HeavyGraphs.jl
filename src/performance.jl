@@ -27,6 +27,7 @@ pm5 = PathKeys([[IndexedPathKey(i) for i = 1:10]; IndexedPathKey(string, 11); [I
 pni6 = PathKeys([IndexedPathKey(i) for i = 1:10]);
 pm6 = PathKeys([[IndexedPathKey(i) for i = 1:9]; IndexedPathKey(string, 10)]);
 
+gf() = SimpleNode()
 #### SimpleNode vs. AryNode
 # Result: growth. SimpleNode seems to be moderately faster
 @benchmark grow!(gf, SimpleNode(), pni3, eachcol(qmat3)) seconds=30
