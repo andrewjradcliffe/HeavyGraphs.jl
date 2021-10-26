@@ -223,6 +223,16 @@ function rlength(g::AbstractGraph, C::Int=0)
     return C̃
 end
 
+# Sometimes faster
+function rlength2(g::AbstractGraph)
+    C̃ = 1
+    isempty(g) && return C̃
+    for p in g
+        C̃ += rlength2(p.second)
+    end
+    return C̃
+end
+
 ################################################################
 #### comparison operators
 function Base.isequal(a::AbstractGraph, b::AbstractGraph)
@@ -440,7 +450,7 @@ datagrow(f::Function, v::AbstractPathKey, p::AbstractPathKeys, itr) = datagrow!(
 
 # Growth from non-flat sources - p. 475, 2021-09-22
 function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKeys, p::AbstractPathKeys,
-                  vitr, pitr)
+                   vitr, pitr)
     x = Vector{Any}(undef, p.N)
     for (a, b) in zip(vitr, pitr)
         p(x, b)
@@ -449,7 +459,7 @@ function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKeys, p::Abstra
     return g
 end
 function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKey, p::AbstractPathKeys,
-                  vitr, pitr)
+                   vitr, pitr)
     x = Vector{Any}(undef, p.N)
     for (a, b) in zip(vitr, pitr)
         p(x, b)
@@ -459,7 +469,7 @@ function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKey, p::Abstrac
 end
 # Possible parallel growth method
 function tdatagrow!(f::Function, g::AbstractGraph, v::AbstractPathKeys, p::AbstractPathKeys,
-                   itrsource::AbstractDict)
+                    itrsource::AbstractDict)
     @sync for p in t
         Threads.@spawn datagrow!(f, p.second, v, p, eachcol(itrsource[p.first]))
         # Alternative:
