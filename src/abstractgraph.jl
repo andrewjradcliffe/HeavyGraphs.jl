@@ -273,3 +273,107 @@ SimpleGraph(g::AbstractSimpleGraph) = SimpleGraph(g.fadj, g.badj, g.data)
 
 # between Graph types
 SimpleDiGraph(g::AbstractSimpleGraph) = SimpleDiGraph(g.fadj, g.data)
+
+################################################################
+#### Opt-ins: AbstractSimpleGraph
+# bi-directional: p. 460-463, 2021-10-06
+function isbidirectional(V₁::AbstractSimpleGraph, V₂::AbstractSimpleGraph, k)
+    # Original
+    # (k => V₂) ∈ V₁.fadj && (k => V₁) ∈ V₂.badj && return true
+    # (k => V₂) ∈ V₁.badj && (k => V₁) ∈ V₂.fadj && return true
+    # false
+    # More efficient
+    p₁ = (k => V₂)
+    p₂ = (k => V₁)
+    p₁ ∈ V₁.fadj && p₂ ∈ V₂.badj && return true
+    p₁ ∈ V₁.badj && p₂ ∈ V₂.fadj && return true
+    false
+end
+
+# this should actually be forwardget (abbrev. fget), and a backwardget should exist
+function bget!(f::Function, V₁::AbstractSimpleGraph, k)
+    V₂ = get!(f, V₁, k)
+    setindex!(V₂.badj, V₁, k)
+    V₂
+end
+bget!(f::Function, V₁::AbstractSimpleGraph, k1, k2) = bget!(f, bget!(f, V₁, k1), k1)
+bget!(f::Function, V₁::AbstractSimpleGraph, k1, k2, ks::Vararg{Any, N}) where {N} =
+    bget!(bget!(f, bget!(f, V₁, k1), k1), ks...)
+function bget!(f::Function, V₁::AbstractSimpleGraph, k1, k2, ks::Vararg{S, N}) where {S, N}
+    tmp = bget!(f, V₁, k1, k2)
+    for k in ks
+        tmp = get!(f, tmp, k)
+    end
+    tmp
+end
+
+function bget(f::Function, V₁::A, k)::Union{Nothing, A} where {A<:AbstractSimpleGraph}
+    V₂ = get(f, V₁, k)
+    # V₂ === nothing && return nothing
+    # isbidirectional(V₁, V₂, k) || return nothing
+    (V₂ === nothing || !isbidirectional(V₁, V₂, k)) && return nothing
+    V₂
+end
+function bget(f::Function, V₁::A, k1, k2)::Union{Nothing, A} where {A<:AbstractSimpleGraph}
+    V₂ = bget(f, V₁, k1)
+    V₂ === nothing && return nothing
+    V₃ = bget(f, V₂, k2)
+end
+
+function bget(f::Function, V₁::A, k1, k2, ks...)::Union{Nothing, A} where {A<:AbstractSimpleGraph}
+    V₂ = bget(f, V₁, k1)
+    V₂ === nothing && return nothing
+    V₃ = bget(f, V₂, k2)
+    V₃ === nothing && return nothing
+    bget(f, V₃, ks...)
+end
+
+function hasbipath(V₁::AbstractSimpleGraph, k)
+    isa(bget(_returnnothing, V₁, k), AbstractSimpleGraph)
+end
+function hasbipath(V₁::AbstractSimpleGraph, k1, k2)
+    isa(bget(_returnnothing, V₁, k1, k2), AbstractSimpleGraph)
+end
+function hasbipath(V₁::AbstractSimpleGraph, k1, k2, ks...)
+    isa(bget(_returnnothing, V₁, k1, k2, ks...), AbstractSimpleGraph)
+end
+
+############################################################################################
+#### Methods of get_:(:op):(:field)!
+# Code generation to cover the various function definitions.
+# If used, one should then provide function prototypes to make docstrings visible.
+# for op = (:push!, :append!), field = (:data)
+#     fname = Symbol(:get_, field, op)
+#     eval(:(function $fname(f::Function, g::AbstractGraph, v, k1)
+#                tmp = get!(f, g, k1)
+#                $op(tmp.$field, v)
+#                tmp
+#            end))
+#     eval(:(function $fname(f::Function, g::AbstractGraph, v, k1, k2)
+#                tmp = get!(f, g, k1, k2)
+#                $op(tmp.$field, v)
+#                tmp
+#            end))
+#     eval(:(function $fname(f::Function, g::AbstractGraph, v, k1, k2, ks::Vararg{Any, N}) where {N}
+#                tmp = get!(f, g, k1, k2, ks...)
+#                $op(tmp.$field, v)
+#                tmp
+#            end))
+# end
+
+# Direct approach: example of some code which would be generated
+function get_datapush!(f::Function, g::AbstractGraph, v, k1)
+    tmp = get!(f, g, k1)
+    push!(tmp.data, v)
+    tmp
+end
+function get_datapush!(f::Function, g::AbstractGraph, v, k1, k2)
+    tmp = get!(f, g, k1, k2)
+    push!(tmp.data, v)
+    tmp
+end
+function get_datapush!(f::Function, g::AbstractGraph, v, k1, k2, ks::Vararg{Any, N}) where {N}
+    tmp = get!(f, g, k1, k2, ks...)
+    push!(tmp.data, v)
+    tmp
+end
