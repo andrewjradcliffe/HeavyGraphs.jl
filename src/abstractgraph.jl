@@ -67,7 +67,8 @@ Base.get(g::A, k1) where {A<:AbstractGraph} = get(_returnnothing, g, k1)
 Base.get(g::A, k1, k2) where {A<:AbstractGraph} = get(_returnnothing, g, k1, k2)
 Base.get(g::A, k1, k2, ks...) where {A<:AbstractGraph} = get(_returnnothing, g, k1, k2, ks...)
 
-# See notes in abstractnode.jl on options and incomplete benchmarking
+# See notes in abstractnode.jl on options and incomplete benchmarking.
+# Technically, this should be named haswalk
 haspath(g::AbstractGraph, k1) = isa(get(_returnnothing, g, k1), AbstractGraph)
 haspath(g::AbstractGraph, k1, k2) = isa(get(_returnnothing, g, k1, k2), AbstractGraph)
 haspath(g::AbstractGraph, k1, k2, ks...) = isa(get(_returnnothing, g, k1, k2, ks...), AbstractGraph)
