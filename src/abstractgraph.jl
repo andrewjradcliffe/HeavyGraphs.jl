@@ -340,6 +340,18 @@ SimpleDiGraph(g::AbstractSimpleGraph) = SimpleDiGraph(g.fadj, g.data)
 # SimpleDiGraph(g::AbstractSimpleGraph) =
 #     SimpleDiGraph(convert(Dict{Any, SimpleDiGraph}, g.fadj), g.data)
 
+# see p. 553-557
+function SimpleGraph(g::SimpleDiGraph)
+    sg = SimpleGraph(g.data)
+    fadj = sg.fadj
+    badj = sg.badj
+    for p in g
+        fadj[p.first] = SimpleGraph(p.second)
+        fadj[p.first].badj[p.first] = sg
+    end
+    sg
+end
+
 ################################################################
 #### Opt-ins: AbstractSimpleGraph
 # bi-directional: p. 460-463, 2021-10-06
