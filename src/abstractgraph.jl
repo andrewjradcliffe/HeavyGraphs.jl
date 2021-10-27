@@ -310,7 +310,9 @@ Base.convert(::Type{T}, g::T) where {T<:AbstractSimpleGraph} = g
 Base.convert(::Type{T}, g::T) where {T<:AbstractSimpleDiGraph} = g
 
 # SimpleGraph to SimpleDiGraph is the most sensible conversion. From DiGraph to Graph is fuzzy.
+# Actually, they are both well-defined.
 Base.convert(::Type{T}, g::AbstractSimpleGraph) where {T<:AbstractSimpleDiGraph} = T(g)
+Base.convert(::Type{T}, g::AbstractSimpleDiGraph) where {T<:AbstractSimpleGraph} = T(g)
 
 #### Promotion
 # Not currently well-defined, as conversion of a SimpleGraph to SimpleDiGraph is
@@ -319,7 +321,11 @@ Base.convert(::Type{T}, g::AbstractSimpleGraph) where {T<:AbstractSimpleDiGraph}
 # as convert(SimpleGraph, convert(SimpleDiGraph, SimpleGraph)) will not result in the
 # same SimpleGraph one started with.
 # -- promotion becomes more meaningful once one has multiple subtypes under
-# AbstractSimpleDiGraph and AbstractSimpleGraph
+# # AbstractSimpleDiGraph and AbstractSimpleGraph
+# function Base.promote_rule(::Type{T}, ::Type{U}) where {T<:AbstractSimpleGraph} where {U<:AbstractSimpleDiGraph}
+#     T
+# end
+
 
 #### Outer constructors, within Graph types
 SimpleDiGraph(g::AbstractSimpleDiGraph) = SimpleDiGraph(g.fadj, g.data)
