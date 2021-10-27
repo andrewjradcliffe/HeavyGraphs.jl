@@ -282,10 +282,13 @@ function Base.isequal(a::AbstractGraph, b::AbstractGraph)
     a === b && return true
     a.fadj == b.fadj && a.data == b.data
 end
-function Base.isequal(a::AbstractSimpleGraph, b::AbstractSimpleGraph)
-    a === b && return true
-    a.fadj == b.fadj && a.badj == b.badj && a.data == b.data
-end
+# Actually, given the circular definition which results from using both
+# forward and backward adjacency lists, SimpleGraph can be shown to be equal
+# if only the forward adjacency lists are checked.
+# function Base.isequal(a::AbstractSimpleGraph, b::AbstractSimpleGraph)
+#     a === b && return true
+#     a.fadj == b.fadj && a.badj == b.badj && a.data == b.data
+# end
 Base.:(==)(a::AbstractGraph, b::AbstractGraph) = Base.isequal(a, b)
 
 ################################################################
