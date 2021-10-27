@@ -369,18 +369,19 @@ function isbidirectional(V₁::AbstractSimpleGraph, V₂::AbstractSimpleGraph, k
 end
 
 # this should actually be forwardget (abbrev. fget), and a backwardget should exist
+# In fact, providing the dispatch to get! on AbstractSimpleGraph should be enough
 function bget!(f::Function, V₁::AbstractSimpleGraph, k)
     V₂ = get!(f, V₁, k)
     setindex!(V₂.badj, V₁, k)
     V₂
 end
-bget!(f::Function, V₁::AbstractSimpleGraph, k1, k2) = bget!(f, bget!(f, V₁, k1), k1)
+bget!(f::Function, V₁::AbstractSimpleGraph, k1, k2) = bget!(f, bget!(f, V₁, k1), k2)
 bget!(f::Function, V₁::AbstractSimpleGraph, k1, k2, ks::Vararg{Any, N}) where {N} =
-    bget!(bget!(f, bget!(f, V₁, k1), k1), ks...)
+    bget!(bget!(f, bget!(f, V₁, k1), k2), ks...)
 function bget!(f::Function, V₁::AbstractSimpleGraph, k1, k2, ks::Vararg{S, N}) where {S, N}
     tmp = bget!(f, V₁, k1, k2)
     for k in ks
-        tmp = get!(f, tmp, k)
+        tmp = bget!(f, tmp, k)
     end
     tmp
 end
