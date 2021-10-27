@@ -151,7 +151,15 @@ Base.delete!(g::AbstractGraph, key) = (delete!(g.fadj, key); g)
 Base.isempty(g::AbstractGraph) = isempty(g.fadj)
 Base.isempty(g::AbstractSimpleGraph) = isempty(g.fadj) && isempty(g.badj)
 
+function Base.filter(pred, g::A) where {A<:AbstractSimpleDiGraph}
+    A(filter(pred, g.fadj), g.data)
+end
+
 Base.filter!(pred, g::AbstractGraph) = (filter!(pred, g.fadj); g)
+
+# function Base.intersect(a::T, b::T) where {T<:AbstractGraph}
+#     T(Dict(a.fadj ∩ b.fadj), a.data ∩ b.data)
+# end
 
 function Base.merge!(a::AbstractGraph, bs::AbstractGraph...)
     merge!(a.fadj, getproperty.(bs, :fadj)...)
@@ -280,7 +288,9 @@ maxsize(N::Vector{Int}) = maxsize(1, length(N), N)
 #### comparison operators
 function Base.isequal(a::AbstractGraph, b::AbstractGraph)
     a === b && return true
+    # a.data == b.data || return false
     a.fadj == b.fadj && a.data == b.data
+    # isequal(a.fadj, b.fadj) && isequal(a.data, b.data)
 end
 # Actually, given the circular definition which results from using both
 # forward and backward adjacency lists, SimpleGraph can be shown to be equal
@@ -371,7 +381,7 @@ end
 # this should actually be forwardget (abbrev. fget), and a backwardget should exist
 # In fact, providing the dispatch to get! on AbstractSimpleGraph should be enough
 function bget!(f::Function, V₁::AbstractSimpleGraph, k)
-    V₂ = get!(f, V₁, k)
+    V₂ = get!(f, V₁, k) # get!(f, V₁.fadj, k)
     setindex!(V₂.badj, V₁, k)
     V₂
 end
