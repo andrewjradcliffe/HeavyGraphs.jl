@@ -109,14 +109,22 @@ function Base.getindex(g::A, k1, k2, ks::Vararg{S, N}) where {S, N} where {A<:Ab
     tmp
 end
 
+# setindex! is always lowered to (setindex!(A, v, k); v).
+# In the event that these functions are called directly, the signatures below
+# ensure that the correct return values are given in both cases:
+# g[k] = v                     : returns v
+# g[k, ks...] = v              : returns v
+# setindex!(g, v, k)           : returns g
+# setindex!(g, v, k, ks...)    : returns g
 Base.setindex!(g::AbstractGraph, value, k1) = (setindex!(g.fadj, value, k1); g)
 function Base.setindex!(g::AbstractGraph, value, k1, ks...)
     tmp = g[k1, ks[1:end-1]...]
     tmp[ks[end]] = value
+    # value
     g
 end
 
-Base.push!(g::AbstractGraph, p::Pair) = setindex!(g, p.second, p.first)
+Base.push!(g::AbstractGraph, p::Pair) = setindex!(g, p.second, p.first) # push!(g.fadj, p)
 Base.push!(g::AbstractGraph, p::Pair, q::Pair) = push!(push!(g, p), q)
 Base.push!(g::AbstractGraph, p::Pair, q::Pair, r::Pair...) = push!(push!(push!(g, p), q), r...)
 
@@ -385,6 +393,23 @@ function hasbipath(V₁::AbstractSimpleGraph, k1, k2)
 end
 function hasbipath(V₁::AbstractSimpleGraph, k1, k2, ks...)
     isa(bget(_returnnothing, V₁, k1, k2, ks...), AbstractSimpleGraph)
+end
+
+# 2021-10-27, p. 554.
+# See the comment on setindex!(g::AbstractGraph, v, k) -- this maintains ensures
+# that the return value is consistent
+function Base.setindex!(g::AbstractSimpleGraph, v, k)
+    setindex!(g.fadj, v, k)
+    v.badj[k] = g
+    # v
+end
+
+function bgetindex(g::AbstractSimpleGraph, k)
+    g.badj[k]
+end
+function bsetindex!(g::AbstractSimpleGraph, v, k)
+    g.badj[k] = v
+    g
 end
 
 ############################################################################################
