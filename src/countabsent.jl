@@ -20,7 +20,7 @@
 # f = (dest, ν, ks) -> incrementrows!(g, dest[2], ν, ks)
 ################
 function countabsent!(f::Function, dest::Tuple{Vararg{Array{T}} where T},
-                      t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
+                      t::AbstractGraph, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
     Ñ = N - 1
     if C == Ñ
         lev_ks = setdiff(levs_ks[C], keys(t))
@@ -34,7 +34,7 @@ function countabsent!(f::Function, dest::Tuple{Vararg{Array{T}} where T},
 end
 
 function countabsent!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
-                      t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
+                      t::AbstractGraph, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
     Ñ = N - 1
     if C == Ñ
         lev_ks = filter!(fs[C], setdiff(levs_ks[C], keys(t)))
@@ -64,7 +64,7 @@ end
 # end
 # f = (dest, ν, rk, ck) -> incrementrowcol!(g, h, dest[1], ν, rk, ck)
 ################
-function countstatus!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, k, t::AbstractNode)
+function countstatus!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, k, t::AbstractGraph)
     status = t.val[1]
     f(dest, 1, k, status)
     dest

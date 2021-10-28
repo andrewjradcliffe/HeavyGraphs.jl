@@ -37,7 +37,7 @@
 # identities stored at the N-1ᵗʰ index of levs_ks.
 ################
 """
-    multabsentupto(t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
+    multabsentupto(t::AbstractGraph, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
 
 Return the number of `N-1`th level nodes which would be present if the current
 level `C`'s absent branches were instantiated at full density. The fully dense
@@ -48,7 +48,7 @@ total levels counted as `length(levs_ks) + 1 ≡ N`.
 See also: [`multabsent`](@ref)
 
 """
-function multabsentupto(t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
+function multabsentupto(t::AbstractGraph, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
     Ñ = N - 1
     C ≥ Ñ && return 0
     # ν = length(setdiff(levs_ks[C], keys(t)))
@@ -64,7 +64,7 @@ function multabsentupto(t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{
 end
 
 """
-    multabsentupto(fs::Vector{Function}, t::AbstractNode, N::Int, C::Int,
+    multabsentupto(fs::Vector{Function}, t::AbstractGraph, N::Int, C::Int,
                    levs_ks::Vector{Vector{Any}})
 
 Return the number of `N-1`th level nodes which would be present if the current
@@ -72,7 +72,7 @@ level `C`'s absent branches were instantiated using the subsets produced by appl
 the level-indexed filtering functions `fs`.
 
 """
-function multabsentupto(fs::Vector{Function}, t::AbstractNode, N::Int, C::Int,
+function multabsentupto(fs::Vector{Function}, t::AbstractGraph, N::Int, C::Int,
                         levs_ks::Vector{Vector{Any}})
     Ñ = N - 1
     C ≥ Ñ && return 0
@@ -85,14 +85,14 @@ function multabsentupto(fs::Vector{Function}, t::AbstractNode, N::Int, C::Int,
     ν
 end
 
-multabsentupto(t::AbstractNode, levs_ks::Vector{Vector{Any}}) =
+multabsentupto(t::AbstractGraph, levs_ks::Vector{Vector{Any}}) =
     multabsentupto(t, length(levs_ks), 1, levs_ks)
 
-multabsentupto(fs::Vector{Function}, t::AbstractNode, levs_ks::Vector{Vector{Any}}) =
+multabsentupto(fs::Vector{Function}, t::AbstractGraph, levs_ks::Vector{Vector{Any}}) =
     multabsentupto(fs, t, length(levs_ks), 1, levs_ks)
 
 # Optimized option for non-filtering version
-function multabsentupto(t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Int})
+function multabsentupto(t::AbstractGraph, N::Int, C::Int, levs_ks::Vector{Int})
     Ñ = N - 1
     C ≥ Ñ && return 0
     ν = levs_ks[C] - length(t)
@@ -106,7 +106,7 @@ end
 ####
 
 """
-    multabsent(t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
+    multabsent(t::AbstractGraph, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
 
 Return the number of `N`th level nodes which would be present if the current
 level `C`'s absent branches were instantiated at full density. The fully dense
@@ -117,9 +117,9 @@ total levels counted as `length(levs_ks) + 1 ≡ N`.
 See also: [`multabsentupto`](@ref)
 
 """
-multabsent(t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}}) =
+multabsent(t::AbstractGraph, N::Int, C::Int, levs_ks::Vector{Vector{Any}}) =
     multabsentupto(t, N + 1, C, levs_ks)
-# function multabsent(t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
+# function multabsent(t::AbstractGraph, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
 #     Ñ = N - 1
 #     C > Ñ && return 0
 #     # ν = length(setdiff(levs_ks[C], keys(t)))
@@ -135,7 +135,7 @@ multabsent(t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}}) =
 # end
 
 """
-    multabsent(fs::Vector{Function}, t::AbstractNode, N::Int, C::Int,
+    multabsent(fs::Vector{Function}, t::AbstractGraph, N::Int, C::Int,
                levs_ks::Vector{Vector{Any}})
 
 Return the number of `N`th level nodes which would be present if the current
@@ -143,9 +143,9 @@ level `C`'s absent branches were instantiated using the subsets produced by appl
 the level-indexed filtering functions `fs`.
 
 """
-multabsent(fs::Vector{Function}, t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Vector{Any}}) =
+multabsent(fs::Vector{Function}, t::AbstractGraph, N::Int, C::Int, levs_ks::Vector{Vector{Any}}) =
     multabsentupto(fs, t, N + 1, C, levs_ks)
-# function multabsent(fs::Vector{Function}, t::AbstractNode, N::Int, C::Int,
+# function multabsent(fs::Vector{Function}, t::AbstractGraph, N::Int, C::Int,
 #                     levs_ks::Vector{Vector{Any}})
 #     Ñ = N - 1
 #     C > Ñ && return 0
@@ -158,16 +158,16 @@ multabsent(fs::Vector{Function}, t::AbstractNode, N::Int, C::Int, levs_ks::Vecto
 #     ν
 # end
 
-multabsent(t::AbstractNode, levs_ks::Vector{Vector{Any}}) =
+multabsent(t::AbstractGraph, levs_ks::Vector{Vector{Any}}) =
     multabsent(t, length(levs_ks), 1, levs_ks)
 
-multabsent(fs::Vector{Function}, t::AbstractNode, levs_ks::Vector{Vector{Any}}) =
+multabsent(fs::Vector{Function}, t::AbstractGraph, levs_ks::Vector{Vector{Any}}) =
     multabsent(fs, t, length(levs_ks), 1, levs_ks)
 
 # Optimized option for non-filtering version
-multabsent(t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Int}) =
+multabsent(t::AbstractGraph, N::Int, C::Int, levs_ks::Vector{Int}) =
     multabsentupto(t, N + 1, C, levs_ks)
-# function multabsent(t::AbstractNode, N::Int, C::Int, levs_ks::Vector{Int})
+# function multabsent(t::AbstractGraph, N::Int, C::Int, levs_ks::Vector{Int})
 #     Ñ = N - 1
 #     C > Ñ && return 0
 #     ν = levs_ks[C] - length(t)
