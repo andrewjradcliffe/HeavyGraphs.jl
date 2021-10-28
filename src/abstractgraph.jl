@@ -69,9 +69,9 @@ Base.get(g::A, k1, k2, ks...) where {A<:AbstractGraph} = get(_returnnothing, g, 
 
 # See notes in abstractnode.jl on options and incomplete benchmarking.
 # Technically, this should be named haswalk
-haspath(g::AbstractGraph, k1) = isa(get(_returnnothing, g, k1), AbstractGraph)
-haspath(g::AbstractGraph, k1, k2) = isa(get(_returnnothing, g, k1, k2), AbstractGraph)
-haspath(g::AbstractGraph, k1, k2, ks...) = isa(get(_returnnothing, g, k1, k2, ks...), AbstractGraph)
+haspath(g::A, k1) where {A<:AbstractGraph} = isa(get(_returnnothing, g, k1), AbstractGraph)
+haspath(g::A, k1, k2) where {A<:AbstractGraph} = isa(get(_returnnothing, g, k1, k2), AbstractGraph)
+haspath(g::A, k1, k2, ks...) where {A<:AbstractGraph} = isa(get(_returnnothing, g, k1, k2, ks...), AbstractGraph)
 
 # Enforcing type-stability on the return value should not be necessary
 function Base.get!(f::Function, g::A, k1) where {A<:AbstractGraph}
@@ -81,7 +81,7 @@ function Base.get!(f::Function, g::A, k1, k2) where {A<:AbstractGraph}
     get!(f, get!(f, g, k1), k2)
 end
 function Base.get!(f::Function, g::A, k1, k2, ks::Vararg{S, N}) where {S,N} where {A<:AbstractGraph}
-    tmp = get!(f, g, k1, k2)
+    tmp = get!(f, get!(f, g, k1), k2)#get!(f, g, k1, k2)
     for k in ks
         tmp = get!(f, tmp, k)
     end
@@ -102,7 +102,7 @@ function Base.getindex(g::A, k1, k2, ks::Vararg{Any, N}) where {N} where {A<:Abs
     getindex(getindex(getindex(g, k1), k2), ks...)
 end
 function Base.getindex(g::A, k1, k2, ks::Vararg{S, N}) where {S, N} where {A<:AbstractGraph}
-    tmp = getindex(g, k1, k2)
+    tmp = getindex(getindex(g, k1), k2)#getindex(g, k1, k2)
     for k in ks
         tmp = getindex(tmp, k)
     end
@@ -116,52 +116,52 @@ end
 # g[k, ks...] = v              : returns v
 # setindex!(g, v, k)           : returns g
 # setindex!(g, v, k, ks...)    : returns g
-Base.setindex!(g::AbstractGraph, value, k1) = (setindex!(g.fadj, value, k1); g)
-function Base.setindex!(g::AbstractGraph, value, k1, ks...)
+Base.setindex!(g::A, value, k1) where {A<:AbstractGraph} = (setindex!(g.fadj, value, k1); g)
+function Base.setindex!(g::A, value, k1, ks...) where {A<:AbstractGraph}
     tmp = g[k1, ks[1:end-1]...]
     tmp[ks[end]] = value
     # value
     g
 end
 
-Base.push!(g::AbstractGraph, p::Pair) = setindex!(g, p.second, p.first) # push!(g.fadj, p)
-Base.push!(g::AbstractGraph, p::Pair, q::Pair) = push!(push!(g, p), q)
-Base.push!(g::AbstractGraph, p::Pair, q::Pair, r::Pair...) = push!(push!(push!(g, p), q), r...)
+Base.push!(g::A, p::Pair) where {A<:AbstractGraph} = setindex!(g, p.second, p.first) # push!(g.fadj, p)
+Base.push!(g::A, p::Pair, q::Pair) where {A<:AbstractGraph} = push!(push!(g, p), q)
+Base.push!(g::A, p::Pair, q::Pair, r::Pair...) where {A<:AbstractGraph} = push!(push!(push!(g, p), q), r...)
 
-Base.sizehint!(g::AbstractGraph, newsz) = sizehint!(g.fadj, newsz)
+Base.sizehint!(g::A, newsz) where {A<:AbstractGraph} = sizehint!(g.fadj, newsz)
 
-function Base.empty!(g::AbstractGraph)
+function Base.empty!(g::A) where {A<:AbstractGraph}
     empty!(g.fadj)
     empty!(g.data)
     return g
 end
-function Base.empty!(g::AbstractSimpleGraph)
+function Base.empty!(g::A) where {A<:AbstractSimpleGraph}
     empty!(g.fadj)
     empty!(g.badj)
     empty!(g.data)
     return g
 end
 
-Base.pop!(g::AbstractGraph, key) = pop!(g.fadj, key)
-Base.pop!(g::AbstractGraph, key, default) = pop!(g.fadj, key, default)
-Base.pop!(g::AbstractGraph) = pop!(g.fadj)
+Base.pop!(g::A, key) where {A<:AbstractGraph} = pop!(g.fadj, key)
+Base.pop!(g::A, key, default) where {A<:AbstractGraph} = pop!(g.fadj, key, default)
+Base.pop!(g::A) where {A<:AbstractGraph} = pop!(g.fadj)
 
-Base.delete!(g::AbstractGraph, key) = (delete!(g.fadj, key); g)
+Base.delete!(g::A, key) where {A<:AbstractGraph} = (delete!(g.fadj, key); g)
 
-Base.isempty(g::AbstractGraph) = isempty(g.fadj)
-Base.isempty(g::AbstractSimpleGraph) = isempty(g.fadj) && isempty(g.badj)
+Base.isempty(g::A) where {A<:AbstractGraph} = isempty(g.fadj)
+# Base.isempty(g::A) where {A<:AbstractSimpleGraph} = isempty(g.fadj) && isempty(g.badj)
 
 function Base.filter(pred, g::A) where {A<:AbstractSimpleDiGraph}
     A(filter(pred, g.fadj), g.data)
 end
 
-Base.filter!(pred, g::AbstractGraph) = (filter!(pred, g.fadj); g)
+Base.filter!(pred, g::A) where {A<:AbstractGraph} = (filter!(pred, g.fadj); g)
 
 # function Base.intersect(a::T, b::T) where {T<:AbstractGraph}
 #     T(Dict(a.fadj ∩ b.fadj), a.data ∩ b.data)
 # end
 
-function Base.merge!(a::AbstractGraph, bs::AbstractGraph...)
+function Base.merge!(a::A, bs::A...) where {A<:AbstractGraph}
     merge!(a.fadj, getproperty.(bs, :fadj)...)
     for b in bs
         isempty(b.data) || append!(a.data, b.data)
@@ -473,13 +473,18 @@ function get_datapush!(f::Function, g::AbstractGraph, v, k1)
     push!(tmp.data, v)
     tmp
 end
-function get_datapush!(f::Function, g::AbstractGraph, v, k1, k2)
-    tmp = get!(f, g, k1, k2)
-    push!(tmp.data, v)
-    tmp
-end
-function get_datapush!(f::Function, g::AbstractGraph, v, k1, k2, ks::Vararg{Any, N}) where {N}
-    tmp = get!(f, g, k1, k2, ks...)
+# function get_datapush!(f::Function, g::AbstractGraph, v, k1, k2)
+#     tmp = get!(f, g, k1, k2)
+#     push!(tmp.data, v)
+#     tmp
+# end
+# function get_datapush!(f::Function, g::AbstractGraph, v, k1, k2, ks::Vararg{Any, N}) where {N}
+#     tmp = get!(f, g, k1, k2, ks...)
+#     push!(tmp.data, v)
+#     tmp
+# end
+function get_datapush!(f::Function, g::AbstractGraph, v, k1, ks...)
+    tmp = get!(f, g, k1, ks...)
     push!(tmp.data, v)
     tmp
 end
