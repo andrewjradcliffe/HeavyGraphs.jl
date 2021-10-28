@@ -1,5 +1,7 @@
 module HeavyGraphs
 
+using EqualRanges
+using SetDiffCard
 
 # map.jl
 export mapat, mapat!, tmapat,

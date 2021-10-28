@@ -3,6 +3,10 @@ uuid = "5910b1c1-2bb5-462e-b6f0-76ed6983918d"
 authors = ["Andrew Radcliffe <andrew.radcliffe@intel.com> and contributors"]
 version = "0.1.0"
 
+[deps]
+EqualRanges = "ff7c5f4f-a3ba-44b8-a276-2626f44d1d8f"
+SetDiffCard = "c511fd77-d541-457d-9411-ddf3c3b5d0df"
+
 [compat]
 julia = "1"
 
