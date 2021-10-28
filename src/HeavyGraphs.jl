@@ -34,7 +34,7 @@ export countabsent!, countstatus!
 export AbstractGraph, AbstractSimpleDiGraph, AbstractSimpleGraph,
     SimpleDiGraph, SimpleGraph
 
-export haspath, depth, maxbreadth, rlength, maxsize
+export haspath, depth, maxbreadth, rlength, rlength2, maxsize
 
 export isbidirectional, bget!, bget, hasbipath
 
@@ -42,12 +42,12 @@ export get_datapush!
 
 export grow!, grow, datagrow!, datagrow, tdatagrow!
 
-# include("map.jl")
-# include("kmap.jl")
-# include("multipliers.jl")
-# include("iterators.jl")
-# include("abstractpathkeys.jl")
-# include("countabsent.jl")
-# include("abstractgraph.jl")
+include("map.jl")
+include("kmap.jl")
+include("multipliers.jl")
+include("iterators.jl")
+include("abstractpathkeys.jl")
+include("countabsent.jl")
+include("abstractgraph.jl")
 
 end
