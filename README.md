@@ -7,6 +7,6 @@ growth, pruning, etc. at arbitrary depth (depth relative to the node one
 happens to be on).
 See the source code functions `get!`, `getindex` to see the pattern implemented
 in a manner which optimizes over the Varargs types, leading to a
-recursion which dispatches to an SIMD-able loop at the first occurrence
+recursion which dispatches to a fast, type-stable loop at the first occurrence
 of an NTuple, otherwise reverting to a recursion which consumes two elements
 of the Varargs tuple before repeating the cycle.
