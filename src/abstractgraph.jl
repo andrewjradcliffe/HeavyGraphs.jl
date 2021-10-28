@@ -305,7 +305,8 @@ Base.:(==)(a::AbstractGraph, b::AbstractGraph) = Base.isequal(a, b)
 #### Outer constructors: SimpleDiGraph
 SimpleDiGraph(fadj::Dict{Any,SimpleDiGraph}) = SimpleDiGraph(fadj, [])
 SimpleDiGraph(data::Vector{Any}) = SimpleDiGraph(Dict{Any,SimpleDiGraph}(), data)
-SimpleDiGraph() = SimpleDiGraph(Dict{Any,SimpleDiGraph}())
+# SimpleDiGraph() = SimpleDiGraph(Dict{Any,SimpleDiGraph}())
+SimpleDiGraph() = SimpleDiGraph(Dict{Any,SimpleDiGraph}(), [])
 
 #### Outer constructors: SimpleGraph
 SimpleGraph(fadj::Dict{Any,SimpleGraph}, badj::Dict{Any,SimpleGraph}) = SimpleGraph(fadj, badj, [])
@@ -313,7 +314,8 @@ SimpleGraph(fadj::Dict{Any,SimpleGraph}) = SimpleGraph(fadj, Dict{Any,SimpleGrap
 SimpleGraph(data::Vector{Any}) = SimpleGraph(Dict{Any,SimpleGraph}(), Dict{Any,SimpleGraph}(), data)
 SimpleGraph(fadj::Dict{Any,SimpleGraph}, data::Vector{Any}) =
     SimpleGraph(fadj, Dict{Any,SimpleGraph}(), data)
-SimpleGraph() = SimpleGraph(Dict{Any,SimpleGraph}())
+# SimpleGraph() = SimpleGraph(Dict{Any,SimpleGraph}())
+SimpleGraph() = SimpleGraph(Dict{Any,SimpleGraph}(), Dict{Any,SimpleGraph}(), [])
 
 #### Conversion
 # Tentatively defined, but far less complex than in node.jl and abstractnode.jl
