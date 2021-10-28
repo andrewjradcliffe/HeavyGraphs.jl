@@ -38,39 +38,39 @@ sg() = SimpleGraph()
 @benchmark grow!(af, AryNode(), pm3, eachcol(qmat3)) seconds=30
 @benchmark grow!(sdg, SimpleDiGraph(), pni3, eachcol(qmat3)) seconds=30
 
-t0 = grow!(gf, SimpleNode(), pni, eachcol(mat));
-a0 = grow!(af, AryNode(), pni, eachcol(mat));
+# t0 = grow!(gf, SimpleNode(), pni, eachcol(mat));
+# a0 = grow!(af, AryNode(), pni, eachcol(mat));
 g0 = grow!(sdg, SimpleDiGraph(), pni, eachcol(mat));
-t3 = grow!(gf, SimpleNode(), pni3, eachcol(qmat3));
-a3 = grow!(af, AryNode(), pni3, eachcol(qmat3));
+# t3 = grow!(gf, SimpleNode(), pni3, eachcol(qmat3));
+# a3 = grow!(af, AryNode(), pni3, eachcol(qmat3));
 g3 = grow!(sdg, SimpleDiGraph(), pni3, eachcol(qmat3));
-t6 = grow!(gf, SimpleNode(), pni6, eachcol(qmat6));
-a6 = grow!(af, AryNode(), pni6, eachcol(qmat6));
+# t6 = grow!(gf, SimpleNode(), pni6, eachcol(qmat6));
+# a6 = grow!(af, AryNode(), pni6, eachcol(qmat6));
 g6 = grow!(sdg, SimpleDiGraph(), pni6, eachcol(qmat6));
 
 # Result: traversal tests.
 # 4x50000: AryNode is faster overall
 # 50x4000: Other than getindex, SimpleNode is faster
 # 10x20000: Other than getindex, SimpleNode is faster
-@benchmark maxdepth(t3)
-@benchmark maxdepth(a3)
-@benchmark maxbreadth(t3)
-@benchmark maxbreadth(a3)
-@benchmark size(t3)
-@benchmark size(a3)
-@benchmark size(t3, 10)
-@benchmark size(a3, 10)
-@benchmark size(t3, 50)
-@benchmark size(a3, 50)
-@benchmark rlength(t3)
-@benchmark rlength(a3)
+# @benchmark maxdepth(t3)
+@benchmark depth(g3)
+# @benchmark maxbreadth(t3)
+@benchmark maxbreadth(g3)
+# @benchmark size(t3)
+@benchmark size(g3)
+# @benchmark size(t3, 10)
+@benchmark size(g3, 10)
+# @benchmark size(t3, 50)
+@benchmark size(g3, 50)
+# @benchmark rlength(t3)
+@benchmark rlength(g3)
 z = [1:10;];
-@benchmark t3[z...]
-@benchmark a3[z...]
+# @benchmark t3[z...]
+@benchmark g3[z...]
 
 # Result: map, reduce, etc.
 @benchmark countall(isempty, t3)
-@benchmark countall(isempty, a3)
+@benchmark countall(isempty, g3)
 fl!(dest, x) = (dest[1][1] += length(x); dest)
 fl_v2!(dest, x) = (dest[1][1] = dest[1][1] + length(x))
 fl2!(dest, x) = (dest[1][1] += length(x.val[1]); dest)
