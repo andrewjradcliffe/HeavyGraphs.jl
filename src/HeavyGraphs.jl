@@ -11,7 +11,7 @@ export AbstractPathKey, AbstractIndexedPathKey, IndexedPathKey,
 export AbstractGraph, AbstractSimpleDiGraph, AbstractSimpleGraph,
     SimpleDiGraph, SimpleGraph
 
-export haspath, depth, maxbreadth, rlength, rlength2, maxsize
+export haspath, depth, maxbreadth, findmaxbreadth, rlength, rlength2, maxsize
 
 export isbidirectional, bget!, bget, hasbipath
 
