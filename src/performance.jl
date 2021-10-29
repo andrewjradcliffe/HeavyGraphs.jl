@@ -37,6 +37,8 @@ sg() = SimpleGraph()
 @benchmark grow!(af, AryNode(), pni3, eachcol(qmat3)) seconds=30
 @benchmark grow!(af, AryNode(), pm3, eachcol(qmat3)) seconds=30
 @benchmark grow!(sdg, SimpleDiGraph(), pni3, eachcol(qmat3)) seconds=30
+@benchmark grow!(sdg, SimpleDiGraph(), pm3, eachcol(qmat3)) seconds=30
+@benchmark grow(sdg, pni3, eachcol(qmat3)) seconds=30
 
 # t0 = grow!(gf, SimpleNode(), pni, eachcol(mat));
 # a0 = grow!(af, AryNode(), pni, eachcol(mat));
@@ -82,6 +84,7 @@ fl3_v3g!(dest, x) = (dest[1][1] += length(unique!([p.second.data[1] for p in x])
 @benchmark mapat(fl!, ((5,),), t3, 10)
 @benchmark mapat(fl!, ((5,),), a3, 10)
 @benchmark mapat(fl!, ((5,),), g3, 10)
+@benchmark mapupto(fl!, ((5,),), g3, 40)
 
 ################
 prefix = "/nfs/site/home/aradclif/my_cit_scratch1/diagnosis/1276/x76se/gt_g1m/2021-09-15";
@@ -118,33 +121,33 @@ g10 = datagrow!(sdg, SimpleDiGraph(), vi10, pni10, eachcol(dmat10));
 # Result: traversal tests
 # t7: 4387231 nodes. AryNode is moderately faster
 # t10: 1673512 nodes. AryNode is faster: (290 - 170) / 290, generally by ≈40%
-@benchmark maxdepth(t10)
+# @benchmark maxdepth(t10)
 @benchmark depth(g10)
-@benchmark maxbreadth(t10)
+# @benchmark maxbreadth(t10)
 @benchmark maxbreadth(g10)
-@benchmark size(t10)
+# @benchmark size(t10)
 @benchmark size(g10)
-@benchmark size(t10, 8)
+# @benchmark size(t10, 8)
 @benchmark size(g10, 8)
-@benchmark rlength(t10)
+# @benchmark rlength(t10)
 @benchmark rlength(g10)
-z10 = pni10(first(eachcol(dmat8)));
+# z10 = pni10(first(eachcol(dmat8)));
 z10 = pni10(first(eachcol(dmat10)));
-@benchmark t10[z10...]
+# @benchmark t10[z10...]
 @benchmark g10[z10...]
 
 # Result: map, reduce, etc.
-@benchmark countall(isempty, t10)
+# @benchmark countall(isempty, t10)
 @benchmark countall(isempty, g10)
-@benchmark mapat(fl!, ((5,),), t7, 10)
+# @benchmark mapat(fl!, ((5,),), t7, 10)
 @benchmark mapat(fl!, ((5,),), g7, 10)
-@benchmark mapupto(fl!, ((5,),), t7, 10)
+# @benchmark mapupto(fl!, ((5,),), t7, 10)
 @benchmark mapupto(fl!, ((5,),), g7, 10)
 
 fs = [x -> true, x -> true, x -> true, x -> x[1] ∈ (1,2,3)]
-@benchmark mapat(fl3_v3!, ((5,),), t10, 7)
+# @benchmark mapat(fl3_v3!, ((5,),), t10, 7)
 @benchmark mapat(fl3_v3g!, ((5,),), g10, 7)
-@benchmark mapfilterat(fl!, fs, ((5,),), t10, 5)
+# @benchmark mapfilterat(fl!, fs, ((5,),), t10, 5)
 @benchmark mapfilterat(fl!, fs, ((5,),), g10, 5)
 ####
 n7 = sum(size(t7))
