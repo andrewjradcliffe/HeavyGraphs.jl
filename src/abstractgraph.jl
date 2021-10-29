@@ -231,6 +231,18 @@ function maxbreadth(g::AbstractGraph)
     return b
 end
 
+function findmaxbreadth(g::AbstractGraph, C::Int=0)
+    C̃ = C + 1
+    b = length(g)
+    isempty(g) && return (b, C̃)
+    C̃ₘ = C̃
+    for p in g
+        (b̂, Ĉ) = findmaxbreadth(p.second, C̃)
+        (b, C̃ₘ) = b̂ > b ? (b̂, Ĉ) : (b, C̃ₘ)
+    end
+    return (b, C̃ₘ)
+end
+
 function rlength(g::AbstractGraph, C::Int=0)
     C̃ = C + 1
     isempty(g) && return C̃
