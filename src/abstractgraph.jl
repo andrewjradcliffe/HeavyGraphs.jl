@@ -144,7 +144,10 @@ end
 
 Base.pop!(g::A, key) where {A<:AbstractGraph} = pop!(g.fadj, key)
 Base.pop!(g::A, key, default) where {A<:AbstractGraph} = pop!(g.fadj, key, default)
-Base.pop!(g::A) where {A<:AbstractGraph} = pop!(g.fadj)
+function Base.pop!(g::A)::Pair{Any, A} where {A<:AbstractGraph}
+    pop!(g.fadj)
+end
+
 
 Base.delete!(g::A, key) where {A<:AbstractGraph} = (delete!(g.fadj, key); g)
 
