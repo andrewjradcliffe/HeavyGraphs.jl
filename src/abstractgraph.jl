@@ -223,7 +223,7 @@ function depth(g::AbstractGraph, C::Int=0)
 end
 
 function maxbreadth(g::AbstractGraph)
-    b::Int = length(g)
+    b = length(g)
     isempty(g) && return b
     for p in g
         b = max(b, maxbreadth(p.second))
