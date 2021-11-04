@@ -72,3 +72,71 @@ end
 function countstatus!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, p::Pair)
     countstatus!(f, dest, p.first, p.second)
 end
+################
+## e.g. of kcountstatus!
+# db::Dict{String, Int}
+# g = let db = db
+#     (k) -> db[k]
+# end
+# ds::Dict{NTuple{3, String}, Int}
+# h = let ds = ds
+#     (k) -> ds[k]
+# end
+# f = (dest, ν, ks...) -> incrementnd!([g, h], dest[1], ν, ks...)
+function kcountstatus!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
+                       g::AbstractGraph)
+    status = g.val[1]
+    f(dest, 1, ks..., status)
+    dest
+end
+############################################################################################
+#### 2021-11-04: p. 564-571
+# Increment count(s) for the absent vertices, indexing each level to the respective
+# dimension in a multidimensional array. Only the Cᵗʰ level edges are used for iteration,
+# with the higher dimensions treated in a generic fashion. Lower dimensions
+# are ignored by creating a view which includes the current level and all higher dimensions.
+##
+# This version counts on all dimensions.
+function kcountabsent!(fs::Vector{Function}, A::AbstractArray, x::AbstractGraph, ks::Vector{Any},
+                       N::Int, C::Int, levs_ks::Vector{Vector{Any}})
+    # Option 1: single view
+    mks = setdiff(levs_ks[C], keys(x))
+    isempty(mks) && return A
+    idxs = ntuple(i -> fs[i](ks[i]), C - 1)
+    colons = ntuple(i -> :, N - C - 1)
+    for k ∈ mks
+        idx = fs[C](k)
+        Ã = view(A, idxs..., idx, colons...)
+        for i ∈ eachindex(Ã)
+            Ã[i] += 1
+        end
+    end
+    return A
+    # Option 2: multiple view
+    # mks = setdiff(levs_ks[C], keys(x))
+    # isempty(mks) && return A
+    # idxs = ntuple(i -> fs[i](ks[i]), C - 1)
+    # colons = ntuple(i -> :, N - C)
+    # Ã = view(A, idxs..., colons...)
+    # colons₂ = ntuple(i -> :, N - C - 1)
+    # for k ∈ mks
+    #     idx = fs[C](k)
+    #     Ã̃ = view(Ã, idx, colons2...)
+    #     for i ∈ eachindex(Ã̃)
+    #         Ã̃[i] += 1
+    #     end
+    # end
+    # return A
+end
+
+A = reshape([1:24;], 3, 4, 2)
+idxs = (1,)
+colons = (:, :)
+Ã = view(A, idxs..., colons...)
+colons2 = (:,)
+idx = 3
+Ã̃ = view(Ã, idx, colons2...)
+for i ∈ eachindex(Ã̃)
+    Ã̃[i] += 1
+end
+Ã₂ = view(A, idxs..., idx, colons2...)
