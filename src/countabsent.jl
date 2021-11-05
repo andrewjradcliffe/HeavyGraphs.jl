@@ -86,7 +86,7 @@ end
 # h = let ds = ds
 #     (k) -> ds[k]
 # end
-# f = (dest, ν, ks...) -> incrementnd!([d, g, h], dest[1], ν, ks...)
+# f = (dest, ν, ks...) -> ndadd!([d, g, h], dest[1], ν, ks...)
 function kcountstatus!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
                        g::AbstractGraph)
     status = g.data[1]
