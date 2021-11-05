@@ -115,14 +115,14 @@ function kcountabsent!(fs::Vector{Function}, A::AbstractArray, x::AbstractGraph,
     isempty(mks) && return A
     idxs = ntuple(i -> fs[i](ks[i]), C - 1)
     colons = ntuple(i -> :, N - C - 1)
-    for k ∈ mks
-        idx = fs[C](k)
-        Ã = view(A, idxs..., idx, colons...)
-        for i ∈ eachindex(Ã)
-            Ã[i] += 1
-        end
-    end
-    return A
+    # for k ∈ mks
+    #     idx = fs[C](k)
+    #     Ã = view(A, idxs..., idx, colons...)
+    #     for i ∈ eachindex(Ã)
+    #         Ã[i] += 1
+    #     end
+    # end
+    # return A
     # Option 2: multiple view
     # mks = setdiff(levs_ks[C], keys(x))
     # isempty(mks) && return A
@@ -139,7 +139,7 @@ function kcountabsent!(fs::Vector{Function}, A::AbstractArray, x::AbstractGraph,
     # end
     # return A
     # Option 3: dispatching to increment function for type-stability
-    # _vinc!(tf[C], A, mks, idxs, colons, 1)
+    _veladd!(fs[C], A, mks, idxs, colons, 1)
 end
 
 # A = reshape([1:24;], 3, 4, 2)
@@ -220,6 +220,9 @@ end
 # @benchmark dimsmultiplier(diml, 5, 2, levs_ks5)
 
 #### 2021-11-05: p. 572-575
+# Somewhat surprisingly, the ::Vector{Function} code is ≈ 5% faster than
+# the meta-programmed code that manually unrolls the loop. It is also slightly
+# more memory-efficient.
 function kcountabsent!(tfs::Vector{Function}, dims::NTuple{M, Int}, A::Array{T, M},
                        x::AbstractGraph, ks::Vector{Any},
                        N::Int, C::Int, levs_ks::Vector{Vector{Any}}) where {M} where {T<:Number}
@@ -228,15 +231,15 @@ function kcountabsent!(tfs::Vector{Function}, dims::NTuple{M, Int}, A::Array{T, 
     idxs = ntuple(i -> tfs[i](ks[i]), C - 1)
     colons = ntuple(i -> :, N - C - 1)
     ν = dimsmultiplier(dims, N, C, levs_ks)
-    for k ∈ mks
-        idx = tfs[C](k)
-        Ã = view(A, idxs..., idx, colons...)
-        for i ∈ eachindex(Ã)
-            Ã[i] += ν
-        end
-    end
-    return A
-    # _vinc!(tf[C], A, mks, idxs, colons, 1)
+    # for k ∈ mks
+    #     idx = tfs[C](k)
+    #     Ã = view(A, idxs..., idx, colons...)
+    #     for i ∈ eachindex(Ã)
+    #         Ã[i] += ν
+    #     end
+    # end
+    # return A
+    _veladd!(tfs[C], A, mks, idxs, colons, ν)
 end
 #### Usage example
 # fs = [g, h]
@@ -274,13 +277,13 @@ end
 # end
 # _nidxs(fsᵢ, ks_e, Val(2))
 
-function _nidxsplain(tfs::NTuple{N, Function}, ks::Vector{Any}, C::Int) where {N}
-    ntuple(i -> tfs[i](ks[i]), C)
-end
+# function _nidxsplain(tfs::NTuple{N, Function}, ks::Vector{Any}, C::Int) where {N}
+#     ntuple(i -> tfs[i](ks[i]), C)
+# end
 # function _nidxsplain(tfs::Vector{Function}, ks::Vector{Any}, C::Int) where {N}
 #     ntuple(i -> tfs[i](ks[i]), C)
 # end
-@benchmark _nidxsplain(tf, ks_e, 2)
+# @benchmark _nidxsplain(tf, ks_e, 2)
 
 function kcountabsent!(tfs::NTuple{M, Function}, dims::NTuple{M, Int}, A::Array{T, M},
                        x::AbstractGraph, ks::Vector{Any},
@@ -300,10 +303,10 @@ function kcountabsent!(tfs::NTuple{M, Function}, dims::NTuple{M, Int}, A::Array{
     #     end
     # end
     # return A
-    _vinc!(tf[C], A, mks, idxs, colons, ν)
+    _veladd!(tfs[C], A, mks, idxs, colons, ν)
 end
 
-function _vinc!(tf::Function, A::Array{T, N}, mks::Vector{S}, idxs::NTuple{M, Int}, colons::NTuple{H, Colon}, ν::Int) where {T, N} where {S} where {M} where {H}
+function _veladd!(tf::Function, A::Array{T, N}, mks::Vector{S}, idxs::NTuple{M, Int}, colons::NTuple{H, Colon}, ν::Int) where {T, N} where {S} where {M} where {H}
     for k ∈ mks
         idx = tf(k)
         Ã = view(A, idxs..., idx, colons...)
@@ -313,12 +316,31 @@ function _vinc!(tf::Function, A::Array{T, N}, mks::Vector{S}, idxs::NTuple{M, In
     end
     return A
 end
-@code_warntype _vinc!(tf₂[1], Aex, levs_ks[1], (), (:,), 1)
-@benchmark _vinc!(tf₂[1], Aex, levs_ks[1], (), (:,), 1)
-@timev _vinc!(tf₂[1], Aex, levs_ks[1], (), (:,), 1);
+# @code_warntype _veladd!(tf₂[1], Aex, levs_ks[1], (), (:,), 1)
+# @benchmark _veladd!(tf₂[1], Aex, levs_ks[1], (), (:,), 1)
+# @timev _veladd!(tf₂[1], Aex, levs_ks[1], (), (:,), 1);
 
+# tf₂ = (uf, nufₗᵢₙ)
+# Aex = As2₂[1]
+# @code_warntype kcountabsent!(tf₂, (282, 91), Aex, gti, ks_e, 3, 1, levs_ks)
 
+## Not worthwhile.
+# function kcountabsent2!(tfs::Vector{Function}, dims::NTuple{M, Int}, A::Array{T, M},
+#                         x::AbstractGraph, ks::Vector{Any},
+#                         N::Int, C::Int, levs_ks::Vector{Vector{Any}}) where {M} where {T<:Number}
+#     H = N - C - 1
+#     Ĉ = C - 1
+#     _kcountabsent2!(tfs, dims, A, x, ks, N, C, levs_ks, Val(Ĉ), Val(H))
+# end
 
-tf₂ = (uf, nufₗᵢₙ)
-Aex = As2₂[1]
-@code_warntype kcountabsent!(tf₂, (282, 91), Aex, gti, ks_e, 3, 1, levs_ks)
+# function _kcountabsent2!(tfs::Vector{Function}, dims::NTuple{M, Int}, A::Array{T, M},
+#                          x::AbstractGraph, ks::Vector{Any},
+#                          N::Int, C::Int, levs_ks::Vector{Vector{Any}},
+#                          ĉ::Val{Ĉ}, h::Val{H}) where {M} where {T<:Number} where {Ĉ, H}
+#     mks = setdiff(levs_ks[C], keys(x))
+#     isempty(mks) && return A
+#     idxs = ntuple(i -> tfs[i](ks[i]), ĉ)
+#     colons = ntuple(i -> :, h)
+#     ν = dimsmultiplier(dims, N, C, levs_ks)
+#     _veladd!(tfs[C], A, mks, idxs, colons, ν)
+# end
