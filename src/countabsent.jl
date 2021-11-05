@@ -94,8 +94,8 @@ function kcountstatus!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::V
     dest
 end
 #### Usage example
-cs = (dest, ks, g) -> kcountstatus!(f, dest, ks, g)
-mapat(cs, ((282, 47, 7),), g, 3)
+# cs = (dest, ks, g) -> kcountstatus!(f, dest, ks, g)
+# mapat(cs, ((282, 47, 7),), g, 3)
 ############################################################################################
 #### 2021-11-04: p. 564-571
 # Increment count(s) for the absent vertices, indexing each level to the respective
@@ -105,9 +105,9 @@ mapat(cs, ((282, 47, 7),), g, 3)
 ##
 # This version counts on all dimensions.
 #### Usage example
-fs = [g, h]
-ca = (dest, ks, x, N, C, levs_ks) -> kcountabsent!(fs, dest[1], x, ks, N, C, levs_ks)
-mapupto(ca, ((440, 47),), g, 3)
+# fs = [g, h]
+# ca = (dest, ks, x, N, C, levs_ks) -> kcountabsent!(fs, dest[1], x, ks, N, C, levs_ks)
+# mapupto(ca, ((440, 47),), g, 3)
 function kcountabsent!(fs::Vector{Function}, A::AbstractArray, x::AbstractGraph, ks::Vector{Any},
                        N::Int, C::Int, levs_ks::Vector{Vector{Any}})
     # Option 1: single view
@@ -235,6 +235,6 @@ function kcountabsent!(tfs::Vector{Function}, dims::NTuple{M, Int}, A::Array{T, 
     end
 end
 #### Usage example
-fs = [g, h]
-ca = (dest, ks, x, N, C, levs_ks) -> kcountabsent!(fs, (440, 47), dest[1], x, ks, N, C, levs_ks)
-mapupto(ca, ((440, 47),), g, 3)
+# fs = [g, h]
+# ca = (dest, ks, x, N, C, levs_ks) -> kcountabsent!(fs, (440, 47), dest[1], x, ks, N, C, levs_ks)
+# mapupto(ca, ((440, 47),), g, 3)
