@@ -65,7 +65,7 @@ end
 # f = (dest, ν, rk, ck) -> incrementrowcol!(g, h, dest[1], ν, rk, ck)
 ################
 function countstatus!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, k, t::AbstractGraph)
-    status = t.val[1]
+    status = t.data[1]
     f(dest, 1, k, status)
     dest
 end
@@ -74,6 +74,10 @@ function countstatus!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, p::Pai
 end
 ################
 ## e.g. of kcountstatus!
+# dd::Dict{NTuple{2, Int}, Int}
+# d = let dd = dd
+#     (k) -> dd[k]
+# end
 # db::Dict{String, Int}
 # g = let db = db
 #     (k) -> db[k]
@@ -82,13 +86,16 @@ end
 # h = let ds = ds
 #     (k) -> ds[k]
 # end
-# f = (dest, ν, ks...) -> incrementnd!([g, h], dest[1], ν, ks...)
+# f = (dest, ν, ks...) -> incrementnd!([d, g, h], dest[1], ν, ks...)
 function kcountstatus!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
                        g::AbstractGraph)
-    status = g.val[1]
+    status = g.data[1]
     f(dest, 1, ks..., status)
     dest
 end
+#### Usage example
+cs = (dest, ks, g) -> kcountstatus!(f, dest, ks, g)
+mapat(cs, ((282, 47, 7),), g, 3)
 ############################################################################################
 #### 2021-11-04: p. 564-571
 # Increment count(s) for the absent vertices, indexing each level to the respective
@@ -97,6 +104,10 @@ end
 # are ignored by creating a view which includes the current level and all higher dimensions.
 ##
 # This version counts on all dimensions.
+#### Usage example
+fs = [g, h]
+ca = (dest, ks, x, N, C, levs_ks) -> kcountabsent!(fs, dest[1], x, ks, N, C, levs_ks)
+mapupto(ca, ((440, 47),), g, 3)
 function kcountabsent!(fs::Vector{Function}, A::AbstractArray, x::AbstractGraph, ks::Vector{Any},
                        N::Int, C::Int, levs_ks::Vector{Vector{Any}})
     # Option 1: single view
