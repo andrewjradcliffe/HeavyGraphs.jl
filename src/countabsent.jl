@@ -96,6 +96,12 @@ end
 #### Usage example
 # cs = (dest, ks, g) -> kcountstatus!(f, dest, ks, g)
 # mapat(cs, ((282, 47, 7),), g, 3)
+################
+function ndadd!(fs::Vector{Function}, A::Array{T, N}, ν::Number, ks::Vararg{Any, N}) where {N} where {T}
+    idxs::NTuple{N, Int} = ntuple(i -> fs[i](ks[i]), Val(N))
+    A[idxs...] += ν
+    return A
+end
 ############################################################################################
 #### 2021-11-04: p. 564-571
 # Increment count(s) for the absent vertices, indexing each level to the respective
