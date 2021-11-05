@@ -276,7 +276,7 @@ Level index set-respective analogy to `mapupto!`.
 Call signature of `f` is: `f(dest, ks, t::AbstractGraph, N, C, levs_ks)`.
 """
 function kmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
-                   N::Int, C::Int, levs_ks::Vector{Vector{Any}})
+                   t::AbstractGraph, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
     # C̃ = C + 1
     # C̃ < N || return dest
     # f(dest, ks, t, N, C, levs_ks)
@@ -293,7 +293,7 @@ function kmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vecto
     if C̃ < N #|| return dest
         for p in t
             setindex!(ks, p.first, C)
-            kmapupto!(f, dest, p.second, N, C̃)
+            kmapupto!(f, dest, ks, p.second, N, C̃, levs_ks)
         end
     end
     return dest
