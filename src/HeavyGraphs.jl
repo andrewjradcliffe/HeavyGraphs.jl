@@ -42,7 +42,8 @@ export foreachat, foreachfilterat, foreach_depthfirst, foreach_breadthfirst,
 export multabsentupto, multabsent
 
 # countabsent.jl
-export countabsent!, countstatus!
+export countabsent!, countstatus!, kcountstatus!, kcountabsent!,
+    nextnonunit, dimsmultiplier
 
 include("abstractpathkeys.jl")
 include("abstractgraph.jl")
