@@ -138,6 +138,8 @@ function kcountabsent!(fs::Vector{Function}, A::AbstractArray, x::AbstractGraph,
     #     end
     # end
     # return A
+    # Option 3: dispatching to increment function for type-stability
+    # _vinc!(tf[C], A, mks, idxs, colons, 1)
 end
 
 # A = reshape([1:24;], 3, 4, 2)
@@ -233,8 +235,90 @@ function kcountabsent!(tfs::Vector{Function}, dims::NTuple{M, Int}, A::Array{T, 
             Ã[i] += ν
         end
     end
+    return A
+    # _vinc!(tf[C], A, mks, idxs, colons, 1)
 end
 #### Usage example
 # fs = [g, h]
 # ca = (dest, ks, x, N, C, levs_ks) -> kcountabsent!(fs, (440, 47), dest[1], x, ks, N, C, levs_ks)
 # mapupto(ca, ((440, 47),), g, 3)
+@code_warntype kcountabsent!(fsₐ₂, (282, 47), As2₂[1], gti, ks_e, 3, 1, levs_ks)
+
+################################################################
+#### 2021-11-05: metaprogramming experiments
+@generated function _idxs(tfs::NTuple{N, Function}, ks::Vector{Any}) where {N}
+    quote
+        Base.Cartesian.@ntuple $N i -> tfs[i](ks[i])
+    end
+end
+
+ks_e = Any[kk₁..., chainu]
+tf = (uf, nufₗᵢₙ, h)
+
+_idxs(tf, ks_e)
+################
+
+@generated function _nidxs(tfs::NTuple{N, Function}, ks::Vector{Any}, C::Val{M})::NTuple{M, Int} where {N} where {M}
+    quote
+        Base.Cartesian.@ntuple $M i -> tfs[i](ks[i])
+    end
+end
+
+@benchmark _nidxs(tf, ks_e, Val(2))
+
+# # Not type-stable.
+# @generated function _nidxs(tfs::Vector{Function}, ks::Vector{Any}, C::Val{M})::NTuple{M, Int} where {N} where {M}
+#     quote
+#         Base.Cartesian.@ntuple $M i -> tfs[i](ks[i])
+#     end
+# end
+# _nidxs(fsᵢ, ks_e, Val(2))
+
+function _nidxsplain(tfs::NTuple{N, Function}, ks::Vector{Any}, C::Int) where {N}
+    ntuple(i -> tfs[i](ks[i]), C)
+end
+# function _nidxsplain(tfs::Vector{Function}, ks::Vector{Any}, C::Int) where {N}
+#     ntuple(i -> tfs[i](ks[i]), C)
+# end
+@benchmark _nidxsplain(tf, ks_e, 2)
+
+function kcountabsent!(tfs::NTuple{M, Function}, dims::NTuple{M, Int}, A::Array{T, M},
+                       x::AbstractGraph, ks::Vector{Any},
+                       N::Int, C::Int, levs_ks::Vector{Vector{Any}}) where {M} where {T<:Number}
+    mks = setdiff(levs_ks[C], keys(x))
+    isempty(mks) && return A
+    idxs = _nidxs(tfs, ks, Val(C - 1))
+    colons = ntuple(i -> :, N - C - 1)
+    ν = dimsmultiplier(dims, N, C, levs_ks)
+    # tf = tfs[C]
+    # for k ∈ mks
+    #     # idx = tfs[C](k)
+    #     idx::Int = tf(k)
+    #     Ã = view(A, idxs..., idx, colons...)
+    #     for i ∈ eachindex(Ã)
+    #         Ã[i] += ν
+    #     end
+    # end
+    # return A
+    _vinc!(tf[C], A, mks, idxs, colons, ν)
+end
+
+function _vinc!(tf::Function, A::Array{T, N}, mks::Vector{S}, idxs::NTuple{M, Int}, colons::NTuple{H, Colon}, ν::Int) where {T, N} where {S} where {M} where {H}
+    for k ∈ mks
+        idx = tf(k)
+        Ã = view(A, idxs..., idx, colons...)
+        for i ∈ eachindex(Ã)
+            Ã[i] += ν
+        end
+    end
+    return A
+end
+@code_warntype _vinc!(tf₂[1], Aex, levs_ks[1], (), (:,), 1)
+@benchmark _vinc!(tf₂[1], Aex, levs_ks[1], (), (:,), 1)
+@timev _vinc!(tf₂[1], Aex, levs_ks[1], (), (:,), 1);
+
+
+
+tf₂ = (uf, nufₗᵢₙ)
+Aex = As2₂[1]
+@code_warntype kcountabsent!(tf₂, (282, 91), Aex, gti, ks_e, 3, 1, levs_ks)
