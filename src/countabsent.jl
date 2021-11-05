@@ -140,14 +140,101 @@ function kcountabsent!(fs::Vector{Function}, A::AbstractArray, x::AbstractGraph,
     # return A
 end
 
-A = reshape([1:24;], 3, 4, 2)
-idxs = (1,)
-colons = (:, :)
-Ã = view(A, idxs..., colons...)
-colons2 = (:,)
-idx = 3
-Ã̃ = view(Ã, idx, colons2...)
-for i ∈ eachindex(Ã̃)
-    Ã̃[i] += 1
+# A = reshape([1:24;], 3, 4, 2)
+# idxs = (1,)
+# colons = (:, :)
+# Ã = view(A, idxs..., colons...)
+# colons2 = (:,)
+# idx = 3
+# Ã̃ = view(Ã, idx, colons2...)
+# for i ∈ eachindex(Ã̃)
+#     Ã̃[i] += 1
+# end
+# Ã₂ = view(A, idxs..., idx, colons2...)
+
+################ The concept
+# The idea is to specify the indices preceding the dimension corresponding to the
+# current level, then iterate through the current-level-dimension, handling
+# all higher dimensions implicitly (via a view).
+# A ∈ ℝᴵˣᴶˣᴷˣ⋯ → ndims(A) = N - 1
+# indices ∈ 𝔻ᴺ⁻¹
+# ρ = preceding indices    ∈ 𝔻ᶜ⁻¹
+# ξ = current index        ∈ 𝔻¹
+# η = higher indices       ∈ 𝔻ᴺ⁻ᶜ⁻¹, noting: N - 1 = (C - 1) + 1 + H ⇒ H = N - C - 1
+# With E ∈ 𝔻ᴺ⁻¹, under full indexing of the result, the ρ, ξ, η can always be constructed.
+## What if the number of dimensions of A and dimensionality of E do not match?
+# e.g E = edge1-edge2-edge3-edge4-edge5 ∈ 𝔻⁵⁼ᴺ⁻¹, but A ∈ ℝᴵˣᴶˣᴷ,
+# with I => edge1, J => edge4, K => edge5.
+# This is in fact a commonly desired result: indexing of counts to only a subset of
+# the indices. One can deal with this in generic manner by building on the convention
+# outlined above, assigning unit dimensions to each of the collapsed dimensions.
+# In the motivating example, A would become A ∈ ℝᴵˣ¹ˣ¹ˣᴶˣᴷ. This enables the
+# ρ, ξ, η convention to work, given fs that return 1 for the dimensions that are unity.
+# Thus, the ρ can always be formed, and so can ξ and η.
+# Now the increment factor needs to be dynamically computed, as the collapsed
+# dimensions must still be included. In essence, a multiplier should
+# cover the unit dimensions between C and the next non-unit dimension.
+# How to know the next non-unit dimension? It can be deduced from the
+# dimensions of A. Once the index of the next-non-unit (NNU) dimension is known,
+# computing the multiplier which encompasses elements between C and NNU
+# is straightforward, given the levs_ks.
+#### Extensions
+# Apply this concept to handle all multi-indexing cases: kcountstatus!, and so on.
+################
+
+function nextnonunit(dims::NTuple{M, Int}, C::Int) where {M}
+    # dims[C + 1] != 1 ? C + 1 : nextnonunit2(dims, C + 1)
+    C̃ = C + 1
+    dims[C̃] != 1 ? C̃ : nextnonunit(dims, C̃)
 end
-Ã₂ = view(A, idxs..., idx, colons2...)
+
+function dimsmultiplier(dims::NTuple{M, Int}, N::Int, C::Int, levs_ks::Vector{Vector{Any}}) where {M}
+    # Could optimize via rearrangement
+    # nnu = C ≥ N - 1 ? N - 1 : nextnonunit(dims, C)
+    # C̃ = C + 1
+    # ν = 1
+    # # Slightly slower
+    # C̃ = C + 1
+    # ν = 1
+    # C̃ ≥ N && return ν
+    # Slightly faster (≈ 10%)
+    C ≥ N - 1 && return 1
+    C̃ = C + 1
+    ν = 1
+    # Slightly faster, but less than above (≈ 5%)
+    # C̃ = C + 1
+    # C̃ ≥ N && return 1
+    # ν = 1
+    nnu = nextnonunit(dims, C)
+    while C̃ < nnu
+        ν *= length(levs_ks[C̃])
+        C̃ += 1
+    end
+    return ν
+end
+
+# diml = (440, 1, 1, 32, 32)
+# levs_ks5 = Vector{Any}[[1:440;], [1:10;], [1:10;], [1:32;], [1:32;]];
+# @benchmark dimsmultiplier(diml, 5, 2, levs_ks5)
+
+#### 2021-11-05: p. 572-575
+function kcountabsent!(tfs::Vector{Function}, dims::NTuple{M, Int}, A::Array{T, M},
+                       x::AbstractGraph, ks::Vector{Any},
+                       N::Int, C::Int, levs_ks::Vector{Vector{Any}}) where {M} where {T<:Number}
+    mks = setdiff(levs_ks[C], keys(x))
+    isempty(mks) && return A
+    idxs = ntuple(i -> tfs[i](ks[i]), C - 1)
+    colons = ntuple(i -> :, N - C - 1)
+    ν = dimsmultiplier(dims, N, C, levs_ks)
+    for k ∈ mks
+        idx = tfs[C](k)
+        Ã = view(A, idxs..., idx, colons...)
+        for i ∈ eachindex(Ã)
+            Ã[i] += ν
+        end
+    end
+end
+#### Usage example
+fs = [g, h]
+ca = (dest, ks, x, N, C, levs_ks) -> kcountabsent!(fs, (440, 47), dest[1], x, ks, N, C, levs_ks)
+mapupto(ca, ((440, 47),), g, 3)
