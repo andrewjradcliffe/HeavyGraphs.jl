@@ -114,7 +114,7 @@ end
 # fs = [g, h]
 # ca = (dest, ks, x, N, C, levs_ks) -> kcountabsent!(fs, dest[1], x, ks, N, C, levs_ks)
 # mapupto(ca, ((440, 47),), g, 3)
-function kcountabsent!(fs::Vector{Function}, A::AbstractArray, x::AbstractGraph, ks::Vector{Any},
+function kcountabsent!(fs::Vector{Function}, A::AbstractArray, ks::Vector{Any}, x::AbstractGraph,
                        N::Int, C::Int, levs_ks::Vector{Vector{Any}})
     # Option 1: single view
     mks = setdiff(levs_ks[C], keys(x))
@@ -230,7 +230,7 @@ end
 # the meta-programmed code that manually unrolls the loop. It is also slightly
 # more memory-efficient.
 function kcountabsent!(fs::Vector{Function}, dims::NTuple{M, Int}, A::Array{T, M},
-                       x::AbstractGraph, ks::Vector{Any},
+                       ks::Vector{Any}, x::AbstractGraph,
                        N::Int, C::Int, levs_ks::Vector{Vector{Any}}) where {M} where {T<:Number}
     mks = setdiff(levs_ks[C], keys(x))
     isempty(mks) && return A
@@ -249,7 +249,7 @@ function kcountabsent!(fs::Vector{Function}, dims::NTuple{M, Int}, A::Array{T, M
 end
 #### Usage example
 # fs = [g, h]
-# ca = (dest, ks, x, N, C, levs_ks) -> kcountabsent!(fs, (440, 47), dest[1], x, ks, N, C, levs_ks)
+# ca = (dest, ks, x, N, C, levs_ks) -> kcountabsent!(fs, (440, 47), dest[1], ks, x, N, C, levs_ks)
 # mapupto(ca, ((440, 47),), g, 3)
 # @code_warntype kcountabsent!(fsₐ₂, (282, 47), As2₂[1], gti, ks_e, 3, 1, levs_ks)
 
@@ -314,7 +314,7 @@ end
 # @benchmark _nidxsplain(tf, ks_e, 2)
 
 function kcountabsent!(fs::NTuple{M, Function}, dims::NTuple{M, Int}, A::Array{T, M},
-                       x::AbstractGraph, ks::Vector{Any},
+                       ks::Vector{Any}, x::AbstractGraph,
                        N::Int, C::Int, levs_ks::Vector{Vector{Any}}) where {M} where {T<:Number}
     mks = setdiff(levs_ks[C], keys(x))
     isempty(mks) && return A
@@ -344,15 +344,15 @@ end
 
 ## Not worthwhile.
 # function kcountabsent2!(fs::Vector{Function}, dims::NTuple{M, Int}, A::Array{T, M},
-#                         x::AbstractGraph, ks::Vector{Any},
+#                         ks::Vector{Any}, x::AbstractGraph,
 #                         N::Int, C::Int, levs_ks::Vector{Vector{Any}}) where {M} where {T<:Number}
 #     H = N - C - 1
 #     Ĉ = C - 1
-#     _kcountabsent2!(fs, dims, A, x, ks, N, C, levs_ks, Val(Ĉ), Val(H))
+#     _kcountabsent2!(fs, dims, A, ks, x, N, C, levs_ks, Val(Ĉ), Val(H))
 # end
 
 # function _kcountabsent2!(fs::Vector{Function}, dims::NTuple{M, Int}, A::Array{T, M},
-#                          x::AbstractGraph, ks::Vector{Any},
+#                          ks::Vector{Any}, x::AbstractGraph,
 #                          N::Int, C::Int, levs_ks::Vector{Vector{Any}},
 #                          ĉ::Val{Ĉ}, h::Val{H}) where {M} where {T<:Number} where {Ĉ, H}
 #     mks = setdiff(levs_ks[C], keys(x))
