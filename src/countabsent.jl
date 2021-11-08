@@ -96,12 +96,23 @@ end
 #### Usage example
 # cs = (dest, ks, g) -> kcountstatus!(f, dest, ks, g)
 # mapat(cs, ((282, 47, 7),), g, 3)
+######## 2021-11-08: revision of kcountstatus! to conform to kcountabsent! convention
+function kcountstatus!(f::Function, fs::Vector{Function}, A::AbstractArray, ks::Vector{Any},
+                       x::AbstractGraph)
+    status = f(x.val)
+    ndadd!(fs, A, ks..., status)
+    return A
+end
+# Hence, kcountstatus! is used as:
+# (dest, ks, x) -> kcountstatus!(f, fs, dest[1], ks, x)
+# with `f` something such as: x -> getindex(x, 1)
 ################
 function ndadd!(fs::Vector{Function}, A::Array{T, N}, ν::Number, ks::Vararg{Any, N}) where {N} where {T}
     idxs::NTuple{N, Int} = ntuple(i -> fs[i](ks[i]), Val(N))
     A[idxs...] += ν
     return A
 end
+# _ndadd!(A::Array{T, N}, ν::Number, idxs::Vararg{Int, N}) where {T, N} = (A[idxs...] += ν; A)
 ############################################################################################
 #### 2021-11-04: p. 564-571
 # Increment count(s) for the absent vertices, indexing each level to the respective
