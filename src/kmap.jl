@@ -187,7 +187,7 @@ function kmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vecto
     if C̃ < N #|| return dest
         for p in t
             setindex!(ks, p.first, C)
-            kmapupto!(f, dest, p.second, N, C̃)
+            kmapupto!(f, dest, ks, p.second, N, C̃)
         end
     end
     return dest
