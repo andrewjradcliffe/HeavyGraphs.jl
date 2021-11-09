@@ -22,6 +22,8 @@ export grow!, grow, datagrow!, datagrow, tdatagrow!
 # map.jl
 export mapat, mapat!, tmapat,
     mapfilterat, mapfilterat!, tmapfilterat,
+    mapat_pairs, mapat_pairs!, tmapat_pairs,
+    mapfilterat_pairs, mapfilterat_pairs!, tmapfilterat_pairs,
     mapupto, mapupto!, tmapupto,
     mapfilterupto, mapfilterupto!, tmapfilterupto
 
