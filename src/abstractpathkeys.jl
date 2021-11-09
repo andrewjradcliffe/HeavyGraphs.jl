@@ -52,7 +52,7 @@ Base.eltype(p::AbstractPathKeys) = eltype(p.ftrs)
 
 Base.IndexStyle(::Type{<:AbstractPathKeys}) = IndexLinear()
 Base.getindex(p::AbstractPathKeys, i::Int) = getindex(p.ftrs, i)
-Base.getindex(p::AbstractPathKeys, I) = [p[i] for i in I]
+Base.getindex(p::AbstractPathKeys, I) = [p[i] for i ∈ I]
 Base.getindex(p::AbstractPathKeys, ::Colon) = p.ftrs
 Base.firstindex(p::AbstractPathKeys) = 1
 Base.lastindex(p::AbstractPathKeys) = p.N

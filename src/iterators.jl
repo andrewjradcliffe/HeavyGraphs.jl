@@ -36,11 +36,11 @@ function foreachat(f::Function, t::AbstractGraph, N::Int, C::Int)
     isempty(t) && return nothing
     C̃ = C + 1
     if C̃ < N
-        for p in t
+        for p ∈ t
             foreachat(f, p.second, N, C̃)
         end
     else#if C̃ == N
-        for p in t
+        for p ∈ t
             f(p.second)
         end
     end
@@ -57,16 +57,16 @@ foreachat(f::Function, t::AbstractGraph, N::Int) = foreachat(f, t, N, 1)
 # function foreachats!(f::Function, x::AbstractGraph, Ns::NTuple{M, Int}) where {M}
 #     states = C + 1 .== Ns
 #     if any(states) && !isempty(x)
-#         for i in eachindex(states)
+#         for i ∈ eachindex(states)
 #             if states[i]
-#                 for v in values(x)
+#                 for v ∈ values(x)
 #                     f(v)
 #                 end
 #             end
 #         end
 #     else
 #         if !isempty(x)
-#             for v in values(x)
+#             for v ∈ values(x)
 #                 foreachats!(f, v, Ns, C + 1)
 #             end
 #         end
@@ -75,15 +75,15 @@ foreachat(f::Function, t::AbstractGraph, N::Int) = foreachat(f, t, N, 1)
 #     # A terse definition
 #     # isempty(x) && return nothing
 #     # C̃ = C + 1
-#     # for N in Ns
+#     # for N ∈ Ns
 #     #     if C̃ == N
-#     #         for p in x
+#     #         for p ∈ x
 #     #             f(p.second)
 #     #         end
 #     #         # or, foreach(p -> f(p.second), x)
 #     #     end
 #     # end
-#     # for p in x
+#     # for p ∈ x
 #     #     foreachats!(f, p.second, Ns, C̃)
 #     # end
 #     # return nothing
@@ -104,11 +104,11 @@ function foreachfilterat(f::Function, fs::Vector{Function}, t::AbstractGraph, N:
     C̃ = C + 1
     g = fs[C]
     if C̃ < N
-        for p in t
+        for p ∈ t
             g(p) && foreachfilterat(f, fs, p.second, N, C̃)
         end
     else#if C̃ == N
-        for p in t
+        for p ∈ t
             g(p) && f(p.second)
         end
     end
@@ -124,7 +124,7 @@ foreachfilterat(f::Function, fs::Vector{Function}, t::AbstractGraph) =
 ####
 function foreach_depthfirst(f::Function, t::AbstractGraph)
     if !isempty(t)
-        for p in t
+        for p ∈ t
             foreach_depthfirst(f, p.second)
         end
     end
@@ -132,7 +132,7 @@ function foreach_depthfirst(f::Function, t::AbstractGraph)
     return nothing
     # Terse form
     # isempty(t) && (f(t); return nothing)
-    # for p in t
+    # for p ∈ t
     #     foreach_depthfirst!(f, p.second)
     # end
     # f(t)
@@ -142,7 +142,7 @@ end
 function foreach_breadthfirst(f::Function, t::AbstractGraph)
     f(t)
     isempty(t) && return nothing
-    for p in t
+    for p ∈ t
         foreach_breadthfirst(f, p.second)
     end
     return nothing
@@ -159,11 +159,11 @@ function foreachfrom(f::Function, t::AbstractGraph, N::Int, C::Int)
     isempty(t) && return nothing
     C̃ = C + 1
     if C̃ < N
-        for p in t
+        for p ∈ t
             foreachfrom(f, p.second, N, C̃)
         end
     else#if C̃ == N
-        for p in t
+        for p ∈ t
             foreach_breadthfirst(f, p.second)
         end
     end
@@ -190,11 +190,11 @@ function foreachthrough(f::Function, t::AbstractGraph, N::Int, C::Int)
     # isempty(t) && return nothing
     # C̃ = C + 1
     # if C̃ < N
-    #     for p in t
+    #     for p ∈ t
     #         foreachthrough!(f, p.second, N, C̃)
     #     end
     # elseif C̃ == N
-    #     for p in t
+    #     for p ∈ t
     #         f(p.second)
     #     end
     # end
@@ -204,7 +204,7 @@ function foreachthrough(f::Function, t::AbstractGraph, N::Int, C::Int)
     isempty(t) && return nothing
     C̃ = C + 1
     if C̃ ≤ N
-        for p in t
+        for p ∈ t
             foreachthrough(f, p.second, N, C̃)
         end
     end
@@ -251,11 +251,11 @@ function countat(f::Function, t::AbstractGraph, N::Int, C::Int)
     isempty(t) && return s
     C̃ = C + 1
     if C̃ < N
-        for p in t
+        for p ∈ t
             s += countat(f, p.second, N, C̃)
         end
     else#if C̃ == N
-        for p in t
+        for p ∈ t
             f(p.second) && (s += 1)
         end
     end
@@ -286,14 +286,14 @@ function countall(f::Function, t::AbstractGraph)
     f(t) && (s += 1)
     isempty(t) && return s
     # isempty(t) && return f(t) ? 1 : 0
-    for p in t
+    for p ∈ t
         s += countall(f, p.second)
     end
     return s
     # # Alternate phrasing to enforce interface: f(p::Pair{Any,AbstractGraph})
     # s = 0
     # isempty(t) && return s
-    # for p in t
+    # for p ∈ t
     #     f(p) && (s += 1)
     #     s += countall(f, p.second)
     # end
@@ -313,11 +313,11 @@ function countfrom(f::Function, t::AbstractGraph, N::Int, C::Int)
     isempty(t) && return s
     C̃ = C + 1
     if C̃ < N
-        for p in t
+        for p ∈ t
             s += countfrom(f, p.second, N, C̃)
         end
     else#if C̃ == N
-        for p in t
+        for p ∈ t
             s += countall(f, p.second)
         end
     end
@@ -340,7 +340,7 @@ function countthrough(f::Function, t::AbstractGraph, N::Int, C::Int)
     isempty(t) && return s
     C̃ = C + 1
     if C̃ ≤ N
-        for p in t
+        for p ∈ t
             s += countthrough(f, p.second, N, C̃)
         end
     end
@@ -367,7 +367,7 @@ countupto(f::Function, t::AbstractGraph, N::Int, C::Int) = countthrough(f, t, N 
 #     isempty(t) && return s
 #     C̃ = C + 1
 #     if C̃ < N
-#         for p in t
+#         for p ∈ t
 #             s += countupto(f, p.second, N, C̃)
 #         end
 #     end
@@ -375,13 +375,13 @@ countupto(f::Function, t::AbstractGraph, N::Int, C::Int) = countthrough(f, t, N 
 #     # isempty(t) && return s
 #     # C̃ = C + 1
 #     # C̃ < N || return s
-#     # for p in t
+#     # for p ∈ t
 #     #     s += countupto(f, p.second, N, C̃)
 #     # end
 #     # # Variant 3
 #     # C̃ = C + 1
 #     # (C̃ ≥ N || isempty(t)) && return s
-#     # for p in t
+#     # for p ∈ t
 #     #     s += countupto(f, p.second, N, C̃)
 #     # end
 #     return s
@@ -407,12 +407,12 @@ function findpathsat!(f::Function, A::Vector{<:Vector}, ks::Vector, t::AbstractG
     isempty(t) && return A
     C̃ = C + 1
     if C̃ < N
-        for p in t
+        for p ∈ t
             @inbounds setindex!(ks, p.first, C)
             findpathsat!(f, A, ks, p.second, N, C̃)
         end
     elseif C̃ == N
-        for p in t
+        for p ∈ t
             f(p.second) && (setindex!(ks, p.first, C); push!(A, copyto!(similar(ks), ks)))
         end
     end
@@ -446,11 +446,11 @@ function findpathsall!(f::Function, A::Vector{<:Vector}, ks::Vector, t::Abstract
     if !isempty(t)
         push!(ks, nothing)
         C = lastindex(ks)
-        for p in t
+        for p ∈ t
             f(p.second) && (setindex!(ks, p.first, C); push!(A, copyto!(similar(ks), ks)))
         end
         # then proceed recursively
-        for p in t
+        for p ∈ t
             setindex!(ks, p.first, C)
             findpathsall!(f, A, ks, p.second)
         end
@@ -482,11 +482,11 @@ function findpathsfrom!(f::Function, A::Vector{<:Vector}, t::AbstractGraph, N::I
     isempty(t) && return A
     C̃ = C + 1
     if C̃ < N
-        for p in t
+        for p ∈ t
             findpathsfrom!(f, A, p.second, N, C̃)
         end
     else#if C̃ == N
-        for p in t
+        for p ∈ t
             tmp = findpathsall(f, p.second)
             isempty(tmp[1]) || append!(A, tmp)
         end
@@ -516,11 +516,11 @@ function findpathsthrough!(f::Function, A::Vector{<:Vector}, ks::Vector, t::Abst
     if !isempty(t) && length(ks) < N
         push!(ks, nothing)
         C = lastindex(ks)
-        for p in t
+        for p ∈ t
             f(p.second) && (setindex!(ks, p.first, C); push!(A, copyto!(similar(ks), ks)))
         end
         # then proceed recursively
-        for p in t
+        for p ∈ t
             setindex!(ks, p.first, C)
             findpathsthrough!(f, A, ks, p.second)
         end

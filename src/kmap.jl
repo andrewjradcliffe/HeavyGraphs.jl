@@ -21,12 +21,12 @@ function kmapat!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
     isempty(t) && return dest
     C̃ = C + 1
     if C̃ < N
-        for p in t
+        for p ∈ t
             setindex!(ks, p.first, C)
             kmapat!(f, dest, ks, p.second, N, C̃)
         end
     elseif C̃ == N
-        for p in t
+        for p ∈ t
             setindex!(ks, p.first, C)
             f(dest, ks, p.second)
         end
@@ -70,11 +70,11 @@ function kmapfilterat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Arr
     C̃ = C + 1
     g = fs[C]
     if C̃ < N
-        for p in t
+        for p ∈ t
             g(p) && (setindex!(ks, p.first, C); kmapfilterat!(f, fs, dest, p.second, N, C̃))
         end
     elseif C̃ == N
-        for p in t
+        for p ∈ t
             g(p) && (setindex!(ks, p.first, C); f(dest, ks, p.second))
         end
     end
@@ -102,7 +102,7 @@ end
 ################ reduction of vector of into single dest
 function kmapat!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
                  ts::Vector{<:AbstractGraph}, N::Int, C::Int)
-    for t in ts
+    for t ∈ ts
         kmapat!(f, dest, ks, t, N, C)
     end
     dest
@@ -120,7 +120,7 @@ function tkmapat(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
     N = length(ts)
     # M = Threads.threads()
     ranges = equalranges(N, M)
-    A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
+    A = Vector{Tuple{(Array{Int, length(d)} for d ∈ dims)...}}(undef, M)
     Threads.@threads for m = 1:M
         A[m] = kmapat(f, dims, ts[ranges[m]], L)
     end
@@ -130,7 +130,7 @@ end
 #### filter
 function kmapfilterat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
                        ks::Vector, ts::Vector{<:AbstractGraph}, N::Int, C::Int)
-    for t in ts
+    for t ∈ ts
         kmapfilterat!(f, fs, dest, ks, t, N, C)
     end
     dest
@@ -149,7 +149,7 @@ function tkmapfilterat(f::Function, fs::Vector{Function},
     N = length(ts)
     # M = Threads.threads()
     ranges = equalranges(N, M)
-    A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
+    A = Vector{Tuple{(Array{Int, length(d)} for d ∈ dims)...}}(undef, M)
     Threads.@threads for m = 1:M
         A[m] = kmapfilterat(f, fs, dims, ts[ranges[m]], L)
     end
@@ -175,7 +175,7 @@ function kmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vecto
     # C̃ < N || return dest
     # f(dest, ks, t, N, C)
     # isempty(t) && return dest
-    # for p in t
+    # for p ∈ t
     #     setindex!(ks, p.first, C)
     #     kmapupto!(f, dest, ks, p.second, N, C̃)
     # end
@@ -185,7 +185,7 @@ function kmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vecto
     isempty(t) && return dest
     C̃ = C + 1
     if C̃ < N #|| return dest
-        for p in t
+        for p ∈ t
             setindex!(ks, p.first, C)
             kmapupto!(f, dest, ks, p.second, N, C̃)
         end
@@ -229,7 +229,7 @@ function kmapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{A
     # f(dest, ks, t, N, C)
     # isempty(t) && return dest
     # g = fs[C]
-    # for p in t
+    # for p ∈ t
     #     g(p) && (setindex!(ks, p.first, C); kmapfilterupto!(f, fs, dest, ks, p.second, N, C̃))
     # end
     # dest
@@ -239,7 +239,7 @@ function kmapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{A
     C̃ = C + 1
     g = fs[C]
     if C̃ < N #|| return dest
-        for p in t
+        for p ∈ t
             g(p) && (setindex!(ks, p.first, C); kmapfilterupto!(f, fs, dest, ks, p.second, N, C̃))
         end
     end
@@ -281,7 +281,7 @@ function kmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vecto
     # C̃ < N || return dest
     # f(dest, ks, t, N, C, levs_ks)
     # isempty(t) && return dest
-    # for p in t
+    # for p ∈ t
     #     setindex!(ks, p.first, C)
     #     kmapupto!(f, dest, ks, p.second, N, C̃, levs_ks)
     # end
@@ -291,7 +291,7 @@ function kmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vecto
     isempty(t) && return dest
     C̃ = C + 1
     if C̃ < N #|| return dest
-        for p in t
+        for p ∈ t
             setindex!(ks, p.first, C)
             kmapupto!(f, dest, ks, p.second, N, C̃, levs_ks)
         end
@@ -331,7 +331,7 @@ function kmapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{A
     # f(dest, ks, t, N, C, levs_ks)
     # isempty(t) && return dest
     # g = fs[C]
-    # for p in t
+    # for p ∈ t
     #     g(p) && (setindex!(ks, p.first, C); kmapfilterupto!(f, fs, dest, ks, p.second, N, C̃, levs_ks))
     # end
     # dest
@@ -341,7 +341,7 @@ function kmapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{A
     C̃ = C + 1
     g = fs[C]
     if C̃ < N #|| return dest
-        for p in t
+        for p ∈ t
             g(p) && (setindex!(ks, p.first, C); kmapfilterupto!(f, fs, dest, ks, p.second, N, C̃, levs_ks))
         end
     end
@@ -368,7 +368,7 @@ end
 ################ reduction of vector of into single dest
 function kmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
                    ts::Vector{<:AbstractGraph}, N::Int, C::Int)
-    for t in ts
+    for t ∈ ts
         kmapupto!(f, dest, ks, t, N, C)
     end
     dest
@@ -386,7 +386,7 @@ function tkmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
     N = length(ts)
     # M = Threads.threads()
     ranges = equalranges(N, M)
-    A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
+    A = Vector{Tuple{(Array{Int, length(d)} for d ∈ dims)...}}(undef, M)
     Threads.@threads for m = 1:M
         A[m] = kmapupto(f, dims, ts[ranges[m]], L)
     end
@@ -396,7 +396,7 @@ end
 #### filter
 function kmapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
                          ks::Vector, ts::Vector{<:AbstractGraph}, N::Int, C::Int)
-    for t in ts
+    for t ∈ ts
         kmapfilterupto!(f, fs, dest, ks, t, N, C)
     end
     dest
@@ -416,7 +416,7 @@ function tkmapfilterupto(f::Function, fs::Vector{Function},
     N = length(ts)
     # M = Threads.threads()
     ranges = equalranges(N, M)
-    A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
+    A = Vector{Tuple{(Array{Int, length(d)} for d ∈ dims)...}}(undef, M)
     Threads.@threads for m = 1:M
         A[m] = kmapfilterupto(f, fs, dims, ts[ranges[m]], L)
     end
@@ -427,7 +427,7 @@ end
 
 function kmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
                    ts::Vector{<:AbstractGraph}, N::Int, C::Int, levs_kss::Vector{Vector{Vector{Any}}})
-    for i in eachindex(ts)
+    for i ∈ eachindex(ts)
         kmapupto!(f, dest, ks, ts[i], N, C, levs_kss[i])
     end
     dest
@@ -446,7 +446,7 @@ function tkmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
     N = length(ts)
     # M = Threads.threads()
     ranges = equalranges(N, M)
-    A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
+    A = Vector{Tuple{(Array{Int, length(d)} for d ∈ dims)...}}(undef, M)
     Threads.@threads for m = 1:M
         A[m] = kmapupto(f, dims, ts[ranges[m]], L, levs_kss[ranges[m]])
     end
@@ -457,7 +457,7 @@ end
 function kmapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
                          ks::Vector, ts::Vector{<:AbstractGraph}, N::Int, C::Int,
                          levs_kss::Vector{Vector{Vector{Any}}})
-    for i in eachindex(ts)
+    for i ∈ eachindex(ts)
         kmapfilterupto!(f, fs, dest, ks, ts[i], N, C, levs_kss[i])
     end
     dest
@@ -478,7 +478,7 @@ function tkmapfilterupto(f::Function, fs::Vector{Function},
     N = length(ts)
     # M = Threads.threads()
     ranges = equalranges(N, M)
-    A = Vector{Tuple{(Array{Int, length(d)} for d in dims)...}}(undef, M)
+    A = Vector{Tuple{(Array{Int, length(d)} for d ∈ dims)...}}(undef, M)
     Threads.@threads for m = 1:M
         A[m] = kmapfilterupto(f, fs, dims, ts[ranges[m]], L, levs_kss[ranges[m]])
     end

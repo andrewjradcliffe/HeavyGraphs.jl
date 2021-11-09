@@ -82,7 +82,7 @@ function Base.get!(f::Function, g::A, k1, k2) where {A<:AbstractGraph}
 end
 function Base.get!(f::Function, g::A, k1, k2, ks::Vararg{S, N}) where {S,N} where {A<:AbstractGraph}
     tmp = get!(f, get!(f, g, k1), k2)#get!(f, g, k1, k2)
-    for k in ks
+    for k ∈ ks
         tmp = get!(f, tmp, k)
     end
     tmp
@@ -103,7 +103,7 @@ function Base.getindex(g::A, k1, k2, ks::Vararg{Any, N}) where {N} where {A<:Abs
 end
 function Base.getindex(g::A, k1, k2, ks::Vararg{S, N}) where {S, N} where {A<:AbstractGraph}
     tmp = getindex(getindex(g, k1), k2)#getindex(g, k1, k2)
-    for k in ks
+    for k ∈ ks
         tmp = getindex(tmp, k)
     end
     tmp
@@ -166,7 +166,7 @@ Base.filter!(pred, g::A) where {A<:AbstractGraph} = (filter!(pred, g.fadj); g)
 
 function Base.merge!(a::A, bs::A...) where {A<:AbstractGraph}
     merge!(a.fadj, getproperty.(bs, :fadj)...)
-    for b in bs
+    for b ∈ bs
         isempty(b.data) || append!(a.data, b.data)
     end
     a
@@ -175,7 +175,7 @@ end
 function Base.merge!(a::AbstractSimpleGraph, bs::AbstractSimpleGraph...)
     merge!(a.fadj, getproperty.(bs, :fadj)...)
     merge!(a.badj, getproperty.(bs, :badj)...)
-    for b in bs
+    for b ∈ bs
         isempty(b.data) || append!(a.data, b.data)
     end
     a
@@ -193,7 +193,7 @@ function _size!(g::AbstractGraph, sz::Vector{Int}, C::Int)
     @inbounds sz[C] += 1
     isempty(g) && return sz
     C̃ = C + 1
-    for p in g
+    for p ∈ g
         _size!(p.second, sz, C̃)
     end
     return sz
@@ -206,7 +206,7 @@ function _sizeat(g::AbstractGraph, N::Int, C::Int)#::Int
     C̃ = C + 1
     C̃ == N && return length(g)
     s = 0
-    for p in g
+    for p ∈ g
         s += _sizeat(p.second, N, C̃)
     end
     return s
@@ -219,7 +219,7 @@ function depth(g::AbstractGraph, C::Int=0)
     C̃ = C + 1
     isempty(g) && return C̃
     C̃ₘ = C̃
-    for p in g
+    for p ∈ g
         C̃ₘ = max(C̃ₘ, depth(p.second, C̃))
     end
     return C̃ₘ
@@ -228,7 +228,7 @@ end
 function maxbreadth(g::AbstractGraph)
     b = length(g)
     isempty(g) && return b
-    for p in g
+    for p ∈ g
         b = max(b, maxbreadth(p.second))
     end
     return b
@@ -239,7 +239,7 @@ function findmaxbreadth(g::AbstractGraph, C::Int=0)
     b = length(g)
     isempty(g) && return (b, C̃)
     C̃ₘ = C̃
-    for p in g
+    for p ∈ g
         (b̂, Ĉ) = findmaxbreadth(p.second, C̃)
         (b, C̃ₘ) = b̂ > b ? (b̂, Ĉ) : (b, C̃ₘ)
     end
@@ -249,7 +249,7 @@ end
 function rlength(g::AbstractGraph, C::Int=0)
     C̃ = C + 1
     isempty(g) && return C̃
-    for p in g
+    for p ∈ g
         C̃ += rlength(p.second, 0)
     end
     return C̃
@@ -259,7 +259,7 @@ end
 function rlength2(g::AbstractGraph)
     C̃ = 1
     isempty(g) && return C̃
-    for p in g
+    for p ∈ g
         C̃ += rlength2(p.second)
     end
     return C̃
@@ -372,7 +372,7 @@ function SimpleGraph(g::SimpleDiGraph)
     sg = SimpleGraph(g.data)
     fadj = sg.fadj
     badj = sg.badj
-    for p in g
+    for p ∈ g
         fadj[p.first] = SimpleGraph(p.second)
         fadj[p.first].badj[p.first] = sg
     end
@@ -407,7 +407,7 @@ bget!(f::Function, V₁::AbstractSimpleGraph, k1, k2, ks::Vararg{Any, N}) where 
     bget!(bget!(f, bget!(f, V₁, k1), k2), ks...)
 function bget!(f::Function, V₁::AbstractSimpleGraph, k1, k2, ks::Vararg{S, N}) where {S, N}
     tmp = bget!(f, V₁, k1, k2)
-    for k in ks
+    for k ∈ ks
         tmp = bget!(f, tmp, k)
     end
     tmp
@@ -509,14 +509,14 @@ end
 ############################################################################################
 #### Methods of grow_(:field)! : see p. 443-446, 451-455, 2021-09-14/15
 function grow!(f::Function, g::AbstractGraph, p::AbstractPathKeys)
-    for x in p
+    for x ∈ p
         get!(f, g, x...)
     end
     return g
 end
 function grow!(f::Function, g::AbstractGraph, p::AbstractPathKeys, itr)
     x = Vector{Any}(undef, p.N)
-    for item in itr
+    for item ∈ itr
         p(x, item)
         get!(f, g, x...)
     end
@@ -528,28 +528,28 @@ grow(f::Function, p::AbstractPathKeys) = grow!(f, f(), p)
 grow(f::Function, p::AbstractPathKeys, itr) = grow!(f, f(), p, itr)
 
 function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKeys, p::AbstractPathKeys)
-    for x in p
+    for x ∈ p
         get_datapush!(f, g, v(x), x...)
     end
     return g
 end
 function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKeys, p::AbstractPathKeys, itr)
     x = Vector{Any}(undef, p.N)
-    for item in itr
+    for item ∈ itr
         p(x, item)
         get_datapush!(f, g, v(item), x...)
     end
     return g
 end
 function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKey, p::AbstractPathKeys)
-    for x in p
+    for x ∈ p
         get_datapush!(f, g, v(x), x...)
     end
     return g
 end
 function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKey, p::AbstractPathKeys, itr)
     x = Vector{Any}(undef, p.N)
-    for item in itr
+    for item ∈ itr
         p(x, item)
         get_datapush!(f, g, v(item), x...)
     end
@@ -566,7 +566,7 @@ datagrow(f::Function, v::AbstractPathKey, p::AbstractPathKeys, itr) = datagrow!(
 function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKeys, p::AbstractPathKeys,
                    vitr, pitr)
     x = Vector{Any}(undef, p.N)
-    for (a, b) in zip(vitr, pitr)
+    for (a, b) ∈ zip(vitr, pitr)
         p(x, b)
         get_datapush!(f, g, v(a), x...)
     end
@@ -575,7 +575,7 @@ end
 function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKey, p::AbstractPathKeys,
                    vitr, pitr)
     x = Vector{Any}(undef, p.N)
-    for (a, b) in zip(vitr, pitr)
+    for (a, b) ∈ zip(vitr, pitr)
         p(x, b)
         get_datapush!(f, g, v(a), x...)
     end
@@ -584,7 +584,7 @@ end
 # Possible parallel growth method
 function tdatagrow!(f::Function, g::AbstractGraph, v::AbstractPathKeys, p::AbstractPathKeys,
                     itrsource::AbstractDict)
-    @sync for p in t
+    @sync for p ∈ t
         Threads.@spawn datagrow!(f, p.second, v, p, eachcol(itrsource[p.first]))
         # Alternative:
         # let itr = eachcol(itrsource[p.first])
@@ -592,4 +592,24 @@ function tdatagrow!(f::Function, g::AbstractGraph, v::AbstractPathKeys, p::Abstr
         # end
     end
     return g
+end
+
+function mapdatagrow(f::Function, v::AbstractPathKey, p::AbstractPathKeys, itrs::Vector{T}) where {T}
+    gs = Vector{typeof(f())}(undef, length(itrs))
+    @inbounds for n ∈ eachindex(itrs)
+        gs[n] = datagrow(f, v, p, eachcol(itrs[n]))
+    end
+    return gs
+end
+
+function tmapdatagrow(f::Function, v::AbstractPathKey, p::AbstractPathKeys, itrs::Vector{T},
+                      M::Int=Threads.nthreads()) where {T}
+    N = length(itrs)
+    ranges = equalranges(N, M)
+    gs = Vector{Vector{typeof(f())}}(undef, M)
+    # Threads.@threads for m ∈ 1:M #eachindex(ranges)
+    @inbounds @sync for m ∈ eachindex(ranges)
+        Threads.@spawn gs[m] = mapdatagrow(f, v, p, itrs[ranges[m]])
+    end
+    return vcat(gs...)
 end

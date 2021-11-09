@@ -15,14 +15,14 @@
 # grow_sval! -> get_pushsval! has 2 signatures, same as grow_val!
 
 function grow!(f::Function, t::AbstractNode, p::AbstractPathKeys)
-    for x in p
+    for x ∈ p
         get!(f, t, x...)
     end
     return t
 end
 function grow!(f::Function, t::AbstractNode, p::AbstractPathKeys, itr)
     x = Vector{Any}(undef, p.N)
-    for item in itr
+    for item ∈ itr
         p(x, item)
         get!(f, t, x...)
     end
@@ -32,14 +32,14 @@ end
 # Alternately, just remove the type on v
 
 # function _valgrow!(f::Function, t::AbstractNode, v, p::AbstractPathKeys)
-#     for x in p
+#     for x ∈ p
 #         get_valpush!(f, t, v(x), x...)
 #     end
 #     return t
 # end
 # function _valgrow!(f::Function, t::AbstractNode, v, p::AbstractPathKeys, itr)
 #     x = Vector{Any}(undef, p.N)
-#     for item in itr
+#     for item ∈ itr
 #         p(x, item)
 #         get_valpush!(f, t, v(item), x...)
 #     end
@@ -55,28 +55,28 @@ end
 #     _valgrow!(f, t, v, p, itr)
 
 function valgrow!(f::Function, t::AbstractNode, v::AbstractPathKeys, p::AbstractPathKeys)
-    for x in p
+    for x ∈ p
         get_valpush!(f, t, v(x), x...)
     end
     return t
 end
 function valgrow!(f::Function, t::AbstractNode, v::AbstractPathKeys, p::AbstractPathKeys, itr)
     x = Vector{Any}(undef, p.N)
-    for item in itr
+    for item ∈ itr
         p(x, item)
         get_valpush!(f, t, v(item), x...)
     end
     return t
 end
 function valgrow!(f::Function, t::AbstractNode, v::AbstractPathKey, p::AbstractPathKeys)
-    for x in p
+    for x ∈ p
         get_valpush!(f, t, v(x), x...)
     end
     return t
 end
 function valgrow!(f::Function, t::AbstractNode, v::AbstractPathKey, p::AbstractPathKeys, itr)
     x = Vector{Any}(undef, p.N)
-    for item in itr
+    for item ∈ itr
         p(x, item)
         get_valpush!(f, t, v(item), x...)
     end
@@ -86,7 +86,7 @@ end
 function valgrow!(f::Function, t::AbstractNode, v::AbstractPathKeys, p::AbstractPathKeys,
                   vitr, pitr)
     x = Vector{Any}(undef, p.N)
-    for (a, b) in zip(vitr, pitr)
+    for (a, b) ∈ zip(vitr, pitr)
         p(x, b)
         get_valpush!(f, t, v(a), x...)
     end
@@ -95,7 +95,7 @@ end
 function valgrow!(f::Function, t::AbstractNode, v::AbstractPathKey, p::AbstractPathKeys,
                   vitr, pitr)
     x = Vector{Any}(undef, p.N)
-    for (a, b) in zip(vitr, pitr)
+    for (a, b) ∈ zip(vitr, pitr)
         p(x, b)
         get_valpush!(f, t, v(a), x...)
     end
@@ -104,7 +104,7 @@ end
 # Possible parallel growth method
 function tvalgrow!(f::Function, t::AbstractNode, v::AbstractPathKeys, p::AbstractPathKeys,
                    itrsource::AbstractDict)
-    @sync for p in t
+    @sync for p ∈ t
         Threads.@spawn valgrow!(f, p.second, v, p, eachcol(itrsource[p.first]))
         # Alternative:
         # let itr = eachcol(itrsource[p.first])
@@ -115,28 +115,28 @@ function tvalgrow!(f::Function, t::AbstractNode, v::AbstractPathKeys, p::Abstrac
 end
 
 function specgrow!(f::Function, t::AbstractNode, v::AbstractPathKeys, p::AbstractPathKeys)
-    for x in p
+    for x ∈ p
         get_specpush!(f, t, v(x), x...)
     end
     return t
 end
 function specgrow!(f::Function, t::AbstractNode, v::AbstractPathKeys, p::AbstractPathKeys, itr)
     x = Vector{Any}(undef, p.N)
-    for item in itr
+    for item ∈ itr
         p(x, item)
         get_specpush!(f, t, v(item), x...)
     end
     return t
 end
 function specgrow!(f::Function, t::AbstractNode, v::AbstractPathKey, p::AbstractPathKeys)
-    for x in p
+    for x ∈ p
         get_specpush!(f, t, v(x), x...)
     end
     return t
 end
 function specgrow!(f::Function, t::AbstractNode, v::AbstractPathKey, p::AbstractPathKeys, itr)
     x = Vector{Any}(undef, p.N)
-    for item in itr
+    for item ∈ itr
         p(x, item)
         get_specpush!(f, t, v(item), x...)
     end
@@ -144,28 +144,28 @@ function specgrow!(f::Function, t::AbstractNode, v::AbstractPathKey, p::Abstract
 end
 
 function svalgrow!(f::Function, t::AbstractNode, v::AbstractPathKeys, p::AbstractPathKeys)
-    for x in p
+    for x ∈ p
         get_svalpush!(f, t, v(x), x...)
     end
     return t
 end
 function svalgrow!(f::Function, t::AbstractNode, v::AbstractPathKeys, p::AbstractPathKeys, itr)
     x = Vector{Any}(undef, p.N)
-    for item in itr
+    for item ∈ itr
         p(x, item)
         get_svalpush!(f, t, v(item), x...)
     end
     return t
 end
 function svalgrow!(f::Function, t::AbstractNode, v::AbstractPathKey, p::AbstractPathKeys)
-    for x in p
+    for x ∈ p
         get_svalpush!(f, t, v(x), x...)
     end
     return t
 end
 function svalgrow!(f::Function, t::AbstractNode, v::AbstractPathKey, p::AbstractPathKeys, itr)
     x = Vector{Any}(undef, p.N)
-    for item in itr
+    for item ∈ itr
         p(x, item)
         get_svalpush!(f, t, v(item), x...)
     end
