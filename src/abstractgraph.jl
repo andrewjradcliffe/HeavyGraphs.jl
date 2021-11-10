@@ -50,8 +50,10 @@ function Base.get(f::Function, g::A, k1)::Union{Nothing, A} where {A<:AbstractGr
 end
 
 function Base.get(f::Function, g::A, k1, k2)::Union{Nothing, A} where {A<:AbstractGraph}
-    tmp = get(f, g, k1);
+    tmp = get(f, g, k1)
     tmp === nothing ? nothing : get(f, tmp, k2)
+    # tmp === nothing && return nothing
+    # get(f, tmp, k2)
 end
 function Base.get(f::Function, g::A, k1, k2, ks::Vararg{Any, N})::Union{Nothing, A} where {N} where {A<:AbstractGraph}
     tmp = get(f, g, k1)
@@ -59,11 +61,11 @@ function Base.get(f::Function, g::A, k1, k2, ks::Vararg{Any, N})::Union{Nothing,
     tmp === nothing && return nothing
     get(f, tmp, ks...)
     # Alternative 1
-    # tmp = get(f, g, p)
+    # tmp = get(f, g, k1)
     # tmp === nothing && return nothing
-    # tmp = get(f, tmp, q)
+    # tmp = get(f, tmp, k2)
     # tmp === nothing && return nothing
-    # get(f, tmp, ps...)
+    # get(f, tmp, ks...)
 end
 
 # methods that supply () -> nothing; covers dispatches (1), (2) and (3)
@@ -402,6 +404,11 @@ end
 
 # this should actually be forwardget (abbrev. fget), and a backwardget should exist
 # In fact, providing the dispatch to get! on AbstractSimpleGraph should be enough
+# function Base.get!(f::Function, V₁::AbstractSimpleGraph, k)
+#     V₂ = get!(f, V₁.fadj, k)
+#     setindex!(V₂.badj, V₁, k)
+#     V₂
+# end
 function bget!(f::Function, V₁::AbstractSimpleGraph, k)
     V₂ = get!(f, V₁, k) # get!(f, V₁.fadj, k)
     setindex!(V₂.badj, V₁, k)
@@ -418,8 +425,34 @@ function bget!(f::Function, V₁::AbstractSimpleGraph, k1, k2, ks::Vararg{S, N})
     tmp
 end
 
+# get needs to be specialized, but it should be possible to handle it entirely with
+# the dispatch on get for AbstractSimpleGraph. Interestingly,
+# the b- methods are ≈ 1.2x faster than dispatching onto the generic methods.
+# This may be due to the overhead of dispatch itself, but this is a surprising difference.
+# function Base.get(f::Function, V₁::A, k)::Union{Nothing, A} where {A<:AbstractSimpleGraph}
+#     V₂ = get(f, V₁.fadj, k)
+#     # V₂ === nothing && return nothing
+#     # isbidirectional(V₁, V₂, k) || return nothing
+#     (V₂ === nothing || !isbidirectional(V₁, V₂, k)) && return nothing
+#     V₂
+# end
+# function Base.get(f::Function, V₁::A, k1, k2)::Union{Nothing, A} where {A<:AbstractSimpleGraph}
+#     V₂ = get(f, V₁, k1)
+#     V₂ === nothing && return nothing
+#     V₃ = get(f, V₂, k2)
+# end
+
+# function Base.get(f::Function, V₁::A, k1, k2, ks::Vararg{Any, N})::Union{Nothing, A} where {N} where {A<:AbstractSimpleGraph}
+#     V₂ = get(f, V₁, k1)
+#     V₂ === nothing && return nothing
+#     V₃ = get(f, V₂, k2)
+#     V₃ === nothing && return nothing
+#     get(f, V₃, ks...)
+# end
+
 function bget(f::Function, V₁::A, k)::Union{Nothing, A} where {A<:AbstractSimpleGraph}
-    V₂ = get(f, V₁, k)
+    V₂ = get(f, V₁.fadj, k)
+    # V₂ = get(f, V₁, k)
     # V₂ === nothing && return nothing
     # isbidirectional(V₁, V₂, k) || return nothing
     (V₂ === nothing || !isbidirectional(V₁, V₂, k)) && return nothing
@@ -431,7 +464,7 @@ function bget(f::Function, V₁::A, k1, k2)::Union{Nothing, A} where {A<:Abstrac
     V₃ = bget(f, V₂, k2)
 end
 
-function bget(f::Function, V₁::A, k1, k2, ks...)::Union{Nothing, A} where {A<:AbstractSimpleGraph}
+function bget(f::Function, V₁::A, k1, k2, ks::Vararg{Any, N})::Union{Nothing, A} where {N} where {A<:AbstractSimpleGraph}
     V₂ = bget(f, V₁, k1)
     V₂ === nothing && return nothing
     V₃ = bget(f, V₂, k2)
