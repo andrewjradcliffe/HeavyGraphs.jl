@@ -27,7 +27,7 @@ pm5 = PathKeys([[IndexedPathKey(i) for i = 1:10]; IndexedPathKey(string, 11); [I
 pni6 = PathKeys([IndexedPathKey(i) for i = 1:10]);
 pm6 = PathKeys([[IndexedPathKey(i) for i = 1:9]; IndexedPathKey(string, 10)]);
 
-gf() = SimpleNode()
+# gf() = SimpleNode()
 sdg() = SimpleDiGraph()
 sg() = SimpleGraph()
 #### SimpleNode vs. AryNode
@@ -46,7 +46,7 @@ g0 = grow!(sdg, SimpleDiGraph(), pni, eachcol(mat));
 # t3 = grow!(gf, SimpleNode(), pni3, eachcol(qmat3));
 # a3 = grow!(af, AryNode(), pni3, eachcol(qmat3));
 g3 = grow!(sdg, SimpleDiGraph(), pni3, eachcol(qmat3));
-g3 = grow!(sdg, SimpleDiGraph(), pni3, eachcol(qmat3));
+g4 = grow!(sdg, SimpleDiGraph(), pni3, eachcol(qmat3));
 # t6 = grow!(gf, SimpleNode(), pni6, eachcol(qmat6));
 # a6 = grow!(af, AryNode(), pni6, eachcol(qmat6));
 g6 = grow!(sdg, SimpleDiGraph(), pni6, eachcol(qmat6));
@@ -190,5 +190,5 @@ get!(sdg, a1, 1,2,3,4,5)
 sg() = SimpleGraph()
 a2 = sg()
 bget!(sg, a2, 1,2,3,4,5)
-@benchmark get(retnot, a2, 1,2,3,4,5)
+# @benchmark get(retnot, a2, 1,2,3,4,5)
 @benchmark bget(retnot, a2, 1,2,3,4,5)
