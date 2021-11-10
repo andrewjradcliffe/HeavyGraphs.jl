@@ -599,22 +599,114 @@ function tdatagrow!(f::Function, g::AbstractGraph, v::AbstractPathKeys, p::Abstr
     return g
 end
 
-function mapdatagrow(f::Function, v::AbstractPathKey, p::AbstractPathKeys, itrs::Vector{T}) where {T}
-    gs = Vector{typeof(f())}(undef, length(itrs))
-    @inbounds for n ∈ eachindex(itrs)
-        gs[n] = datagrow(f, v, p, eachcol(itrs[n]))
+################
+# 2021-11-10: map constructors for vectors of iterables
+function mapgrow!(f::Function, gs::Vector{A}, p::AbstractPathKeys, itrs::Vector{T}) where {T} where {A<:AbstractGraph}
+    @inbounds for i ∈ eachindex(gs, itrs)
+        grow!(f, gs[i], p, itrs[i])
+    end
+    return gs
+end
+function mapgrow(f::Function, p::AbstractPathKeys, itrs::Vector{T}) where {T}
+    gs = [f() for _ = 1:length(itrs)]
+    mapgrow!(f, gs, p, itrs)
+end
+
+function tmapgrow!(f::Function, gs::Vector{A}, p::AbstractPathKeys, itrs::Vector{T}) where {T} where {A<:AbstractGraph}
+    @sync @inbounds for i ∈ eachindex(gs, itrs)
+        Threads.@spawn grow!(f, gs[i], p, itrs[i])
     end
     return gs
 end
 
-function tmapdatagrow(f::Function, v::AbstractPathKey, p::AbstractPathKeys, itrs::Vector{T},
-                      M::Int=Threads.nthreads()) where {T}
-    N = length(itrs)
-    ranges = equalranges(N, M)
-    gs = Vector{Vector{typeof(f())}}(undef, M)
-    # Threads.@threads for m ∈ 1:M #eachindex(ranges)
-    @inbounds @sync for m ∈ eachindex(ranges)
-        Threads.@spawn gs[m] = mapdatagrow(f, v, p, itrs[ranges[m]])
-    end
-    return vcat(gs...)
+function tmapgrow(f::Function, p::AbstractPathKeys, itrs::Vector{T}) where {T}
+    gs = [f() for _ = 1:length(itrs)]
+    tmapgrow!(f, gs, p, itrs)
 end
+
+function tʳmapgrow!(f::Function, gs::Vector{A}, p::AbstractPathKeys, itrs::Vector{T}, M::Int=Threads.nthreads()) where {T} where {A<:AbstractGraph}
+    ranges = equalranges(length(itrs), M)
+    @sync for r ∈ ranges
+        Threads.@spawn mapgrow!(f, gs[r], p, itrs[r])
+    end
+    return gs
+end
+
+function tʳmapgrow(f::Function, p::AbstractPathKeys, itrs::Vector{T}, M::Int=Threads.nthreads()) where {T}
+    gs = [f() for _ = 1:length(itrs)]
+    tʳmapgrow!(f, gs, p, itrs, M)
+end
+
+####
+function mapdatagrow!(f::Function, gs::Vector{A}, v::AbstractPathKey, p::AbstractPathKeys, itrs::Vector{T}) where {T} where {A<:AbstractGraph}
+    @inbounds for i ∈ eachindex(gs, itrs)
+        datagrow!(f, gs[i], v, p, itrs[i])
+    end
+    return gs
+end
+function mapdatagrow(f::Function, v::AbstractPathKey, p::AbstractPathKeys, itrs::Vector{T}) where {T}
+    gs = [f() for _ = 1:length(itrs)]
+    mapdatagrow!(f, gs, v, p, itrs)
+end
+
+function tmapdatagrow!(f::Function, gs::Vector{A}, v::AbstractPathKey, p::AbstractPathKeys, itrs::Vector{T}) where {T} where {A<:AbstractGraph}
+    @sync @inbounds for i ∈ eachindex(gs, itrs)
+        Threads.@spawn datagrow!(f, gs[i], v, p, itrs[i])
+    end
+    return gs
+end
+
+function tmapdatagrow(f::Function, v::AbstractPathKey, p::AbstractPathKeys, itrs::Vector{T}) where {T}
+    gs = [f() for _ = 1:length(itrs)]
+    tmapdatagrow!(f, gs, v, p, itrs)
+end
+
+function tʳmapdatagrow!(f::Function, gs::Vector{A}, v::AbstractPathKey, p::AbstractPathKeys, itrs::Vector{T}, M::Int=Threads.nthreads()) where {T} where {A<:AbstractGraph}
+    ranges = equalranges(length(itrs), M)
+    @sync for r ∈ ranges
+        Threads.@spawn mapdatagrow!(f, gs[r], v, p, itrs[r])
+    end
+    return gs
+end
+
+function tʳmapdatagrow(f::Function, v::AbstractPathKey, p::AbstractPathKeys, itrs::Vector{T}, M::Int=Threads.nthreads()) where {T}
+    gs = [f() for _ = 1:length(itrs)]
+    tʳmapdatagrow!(f, gs, v, p, itrs, M)
+end
+
+
+# function mapdatagrow!(f::Function, gs::Vector{A}, v::AbstractPathKey, p::AbstractPathKeys, itrs::Vector{T}) where {T} where {A<:AbstractGraph}
+#     for i ∈ eachindex(gs, itrs)
+#         datagrow!(f, gs[i], v, p, itrs[i])
+#     end
+#     return gs
+# end
+# function mapdatagrow(f::Function, v::AbstractPathKey, p::AbstractPathKeys, itrs::Vector{T}) where {T}
+#     gs = Vector{typeof(f())}(undef, length(itrs))
+#     # @inbounds for n ∈ eachindex(itrs)
+#     #     gs[n] = datagrow(f, v, p, eachcol(itrs[n]))
+#     # end
+#     mapdatagrow!(f, gs, v, p, itrs)
+#     return gs
+# end
+
+# function tmapdatagrow!(f::Function, gs::Vector{A}, v::AbstractPathKey, p::AbstractPathKeys, itrs::Vector{T}, M::Int=Threads.nthreads()) where {T} where {A<:AbstractGraph}
+#     N = length(itrs)
+#     ranges = equalranges(N, M)
+#     @inbounds @sync for m ∈ eachindex(ranges)
+#         Threads.@spawn mapdatagrow!(f, gs[ranges[m]], v, p, itrs[ranges[m]])
+#     end
+#     return gs
+# end
+
+# function tmapdatagrow(f::Function, v::AbstractPathKey, p::AbstractPathKeys, itrs::Vector{T},
+#                       M::Int=Threads.nthreads()) where {T}
+#     N = length(itrs)
+#     ranges = equalranges(N, M)
+#     gs = Vector{Vector{typeof(f())}}(undef, M)
+#     # Threads.@threads for m ∈ 1:M #eachindex(ranges)
+#     @inbounds @sync for m ∈ eachindex(ranges)
+#         Threads.@spawn gs[m] = mapdatagrow(f, v, p, itrs[ranges[m]])
+#     end
+#     return vcat(gs...)
+# end
