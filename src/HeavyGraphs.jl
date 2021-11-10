@@ -19,6 +19,9 @@ export get_datapush!
 
 export grow!, grow, datagrow!, datagrow, tdatagrow!
 
+export mapgrow!, mapgrow, tmapgrow!, tmapgrow, tʳmapgrow!, tʳmapgrow,
+    mapdatagrow!, mapdatagrow, tmapdatagrow!, tmapdatagrow, tʳmapdatagrow!, tʳmapdatagrow
+
 # map.jl
 export mapat, mapat!, tmapat,
     mapfilterat, mapfilterat!, tmapfilterat,
