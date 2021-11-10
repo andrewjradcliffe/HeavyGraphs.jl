@@ -99,7 +99,7 @@ end
 ######## 2021-11-08: revision of kcountstatus! to conform to kcountabsent! convention
 function kcountstatus!(f::Function, fs::Vector{Function}, A::AbstractArray, ks::Vector{Any},
                        x::AbstractGraph)
-    status = f(x.val)
+    status = f(x.data)
     ndadd!(fs, A, ks..., status)
     return A
 end
