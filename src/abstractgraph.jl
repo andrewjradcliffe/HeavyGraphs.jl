@@ -32,6 +32,7 @@ Base.eltype(::A) where {A<:AbstractGraph} = Pair{Any, A}
 # Testing reveals that while the return values are type-unstable, this
 # is ≈ 2 times faster than converting to UInt.
 Base.hash(g::AbstractGraph, h::UInt) = hash(g.fadj, hash(g.data, h))
+Base.hash(g::AbstractSimpleGraph, h::UInt) = hash(g.fadj, hash(g.badj, hash(g.data, h)))
 
 #### Opt-ins: AbstractGraph
 # Despite the temptation to re-name keys≡edges and values≡vertices,
