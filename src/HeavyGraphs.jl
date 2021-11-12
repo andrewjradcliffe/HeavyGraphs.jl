@@ -1,7 +1,7 @@
 module HeavyGraphs
 
 using EqualRanges
-# using SetDiffCard
+using SetDiffCard
 
 # abstractpathkeys.jl
 export AbstractPathKey, AbstractIndexedPathKey, IndexedPathKey,
