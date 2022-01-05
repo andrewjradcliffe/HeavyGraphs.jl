@@ -116,6 +116,15 @@ function Base.getindex(g::A, k1, k2, ks::Vararg{S, N}) where {S, N} where {A<:Ab
     tmp
 end
 
+# A useful utility; essentially, firstat
+function Base.first(x::AbstractGraph, N::Int, C::Int=1)
+    if C == N
+        return first(x)
+    else
+        return first(first(x).second, N, C + 1)
+    end
+end
+
 # setindex! is always lowered to (setindex!(A, v, k); v).
 # In the event that these functions are called directly, the signatures below
 # ensure that the correct return values are given in both cases:
