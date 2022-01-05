@@ -560,3 +560,298 @@ Recursion runs over all nodes on all levels up to _but not_ including
 `N` (i.e. up to and including `N - 1`). Call signature of `f` is: `f(t::AbstractGraph)`.
 """
 findpathsupto(f::Function, t::AbstractGraph, N::Int) = findpathsthrough(f, t, N - 1)
+
+################################################################
+#### 2022-01-05: natural extension of extant iterators.
+"""
+    allat(f::Function, t::AbstractGraph, N::Int, C::Int)
+
+Determine whether predicate `f` returns `true` for all elements at the given level `N`,
+starting at the level `C`, returning `false` as soon as the first item in `t`
+for which `f` returns `false` is encountered. Caller is responsible for `C + 1` ≤ `N`.
+
+Call signature of `f` is: `f(t::AbstractGraph)`.
+"""
+function allat(f::Function, t::AbstractGraph, N::Int, C::Int)
+    isempty(t) && return false
+    # s = true
+    C̃ = C + 1
+    if C̃ < N
+        # for p ∈ t
+        #     s &= allat(f, p.second, N, C̃)
+        #     s || break
+        # end
+        for p ∈ t
+            allat(f, p.second, N, C̃) || return false
+        end
+    else#if C̃ == N
+        # for p ∈ t
+        #     s &= f(p.second)
+        #     s || break
+        # end
+        for p ∈ t
+            f(p.second) || return false
+        end
+    end
+    # return s
+    return true
+end
+
+"""
+    allat(f::Function, t::AbstractGraph, N::Int)
+
+Determine whether predicate `f` returns `true` for all elements at the given level `N`,
+starting at the level `C`, returning `false` as soon as the first item in `t`
+for which `f` returns `false` is encountered.
+
+Call signature of `f` is: `f(t::AbstractGraph)`.
+"""
+allat(f::Function, t::AbstractGraph, N::Int) = allat(f, t, N, 1)
+
+"""
+    allall(f::Function, t::AbstractGraph)
+
+Determine whether predicate `f` returns `true` for all elements at all levels,
+returning `false` as soon as the first item in `t` for which `f` returns `false`
+is encountered.
+
+Call signature of `f` is: `f(t::AbstractGraph)`.
+"""
+function allall(f::Function, t::AbstractGraph)
+    f(t) || return false
+    for p ∈ t
+        allall(f, p.second) || return false
+    end
+    return true
+end
+
+"""
+    allfrom(f::Function, t::AbstractGraph, N::Int, C::Int)
+
+Determine whether predicate `f` returns `true` for all elements at all
+levels after and including `N`. That is, proceed to `N - 1`th level,
+begin recursion which acts on all levels, the first of which is `N`.
+Caller is responsible for `C + 1` ≤ `N`.
+
+Call signature of `f` is: `f(t::AbstractGraph)`.
+"""
+function allfrom(f::Function, t::AbstractGraph, N::Int, C::Int)
+    C̃ = C + 1
+    if C̃ < N
+        for p ∈ t
+            allfrom(f, p.second, N, C̃) || return false
+        end
+    else#if C̃ == N
+        for p ∈ t
+            allall(f, p.second) || return false
+        end
+    end
+    return true
+end
+
+allfrom(f::Function, t::AbstractGraph, N::Int) = allfrom(f, t, N, 1)
+
+"""
+    allthrough(f::Function, t::AbstractGraph, N::Int, C::Int)
+
+Determine whether predicate `f` returns `true` for all elements on all levels
+up to and including `N`, returning `false` as soon as the first item in `t`
+for which `f` returns `false` is encountered. Caller is responsible for `C + 1` ≤ `N`.
+
+Call signature of `f` is: `f(t::AbstractGraph)`.
+"""
+function allthrough(f::Function, t::AbstractGraph, N::Int, C::Int)
+    C̃ = C + 1
+    f(t) || return false
+    if C̃ ≤ N
+        for p ∈ t
+            allthrough(f, p.second, N, C̃) || return false
+        end
+    end
+    return true
+end
+
+"""
+    allthrough(f::Function, t::AbstractGraph, N::Int)
+
+Determine whether predicate `f` returns `true` for all elements on all levels
+up to and including `N`, returning `false` as soon as the first item in `t`
+for which `f` returns `false` is encountered.
+
+Call signature of `f` is: `f(t::AbstractGraph)`.
+"""
+allthrough(f::Function, t::AbstractGraph, N::Int) = allthrough(f, t, N, 1)
+
+"""
+    allupto(f::Function, t::AbstractGraph, N::Int, C::Int)
+
+Determine whether predicate `f` returns `true` for all elements on all levels
+up to _but not_ including `N` (i.e. up to and including `N - 1`), returning
+`false` as soon as the first item in `t` for which `f` returns `false` is encountered.
+Caller is responsible for `C + 1` ≤ `N`.
+
+Call signature of `f` is: `f(t::AbstractGraph)`.
+"""
+allupto(f::Function, t::AbstractGraph, N::Int, C::Int) = allthrough(f, t, N - 1, C)
+
+"""
+    allupto(f::Function, t::AbstractGraph, N::Int)
+
+Determine whether predicate `f` returns `true` for all elements on all levels
+up to _but not_ including `N` (i.e. up to and including `N - 1`), returning
+`false` as soon as the first item in `t` for which `f` returns `false` is encountered.
+
+Call signature of `f` is: `f(t::AbstractGraph)`.
+"""
+allupto(f::Function, t::AbstractGraph, N::Int) = allthrough(f, t, N - 1)
+
+# sg() = SimpleDiGraph()
+# a = sg()
+# get!.(sg, Ref(a), [1,2,3,4,5])
+# push!.(getproperty.(getindex.(Ref(a), [1,2,3,4,5]), :data), 1)
+# g = i -> i.data[1] == 1
+# @code_warntype allat(g, a, 2, 1)
+# a[5].data[1] = 1
+# allat(g, a, 2)
+# #
+# push!(a.data, 1)
+# a.data[1] = 1
+# u = i -> i.data[1] == 1
+# @benchmark allthrough(u, a, 2, 1)
+# allupto(u, a, 2)
+# #
+# h = i -> i.data[1] == 2
+# anyat(h, a, 2, 1)
+# @benchmark anyat(h, a, 2, 1)
+
+"""
+    anyat(f::Function, t::AbstractGraph, N::Int, C::Int)
+
+Determine whether predicate `f` returns `true` for any element at the given level `N`,
+starting at the level `C`, returning `true` as soon as the first item in `t`
+for which `f` returns `true` is encountered. Caller is responsible for `C + 1` ≤ `N`.
+
+Call signature of `f` is: `f(t::AbstractGraph)`.
+"""
+function anyat(f::Function, t::AbstractGraph, N::Int, C::Int)
+    isempty(t) && return false
+    C̃ = C + 1
+    if C̃ < N
+        for p ∈ t
+            anyat(f, p.second, N, C̃) && return true
+        end
+    else#if C̃ == N
+        for p ∈ t
+            f(p.second) && return true
+        end
+    end
+    return false
+end
+
+"""
+    anyat(f::Function, t::AbstractGraph, N::Int)
+
+Determine whether predicate `f` returns `true` for any element at the given level `N`,
+starting at the level `C`, returning `true` as soon as the first item in `t`
+for which `f` returns `true` is encountered.
+
+Call signature of `f` is: `f(t::AbstractGraph)`.
+"""
+anyat(f::Function, t::AbstractGraph, N::Int) = anyat(f, t, N, 1)
+
+"""
+    anyall(f::Function, t::AbstractGraph)
+
+Determine whether predicate `f` returns `true` for any element at any level,
+returning `true` as soon as the first item in `t` for which `f` returns `true`
+is encountered.
+
+Call signature of `f` is: `f(t::AbstractGraph)`.
+"""
+function anyall(f::Function, t::AbstractGraph)
+    f(t) && return true
+    for p ∈ t
+        anyall(f, p.second) || return true
+    end
+    return false
+end
+
+"""
+    anyfrom(f::Function, t::AbstractGraph, N::Int, C::Int)
+
+Determine whether predicate `f` returns `true` for any element at any
+level after and including `N`. That is, proceed to `N - 1`th level,
+begin recursion which acts on all levels, the first of which is `N`.
+Caller is responsible for `C + 1` ≤ `N`.
+
+Call signature of `f` is: `f(t::AbstractGraph)`.
+"""
+function anyfrom(f::Function, t::AbstractGraph, N::Int, C::Int)
+    C̃ = C + 1
+    if C̃ < N
+        for p ∈ t
+            anyfrom(f, p.second, N, C̃) || return false
+        end
+    else#if C̃ == N
+        for p ∈ t
+            anyall(f, p.second) || return false
+        end
+    end
+    return true
+end
+
+anyfrom(f::Function, t::AbstractGraph, N::Int) = anyfrom(f, t, N, 1)
+
+"""
+    anythrough(f::Function, t::AbstractGraph, N::Int, C::Int)
+
+Determine whether predicate `f` returns `true` for any elements on any levels
+up to and including `N`, returning `true` as soon as the first item in `t`
+for which `f` returns `true` is encountered. Canyer is responsible for `C + 1` ≤ `N`.
+
+Cany signature of `f` is: `f(t::AbstractGraph)`.
+"""
+function anythrough(f::Function, t::AbstractGraph, N::Int, C::Int)
+    C̃ = C + 1
+    f(t) && return true
+    if C̃ ≤ N
+        for p ∈ t
+            anythrough(f, p.second, N, C̃) && return true
+        end
+    end
+    return false
+end
+
+"""
+    anythrough(f::Function, t::AbstractGraph, N::Int)
+
+Determine whether predicate `f` returns `true` for any elements on any levels
+up to and including `N`, returning `true` as soon as the first item in `t`
+for which `f` returns `true` is encountered.
+
+Cany signature of `f` is: `f(t::AbstractGraph)`.
+"""
+anythrough(f::Function, t::AbstractGraph, N::Int) = anythrough(f, t, N, 1)
+
+"""
+    anyupto(f::Function, t::AbstractGraph, N::Int, C::Int)
+
+Determine whether predicate `f` returns `true` for any elements on any levels
+up to _but not_ including `N` (i.e. up to and including `N - 1`), returning
+`true` as soon as the first item in `t` for which `f` returns `true` is encountered.
+Canyer is responsible for `C + 1` ≤ `N`.
+
+Cany signature of `f` is: `f(t::AbstractGraph)`.
+"""
+anyupto(f::Function, t::AbstractGraph, N::Int, C::Int) = anythrough(f, t, N - 1, C)
+
+"""
+    anyupto(f::Function, t::AbstractGraph, N::Int)
+
+Determine whether predicate `f` returns `true` for any elements on any levels
+up to _but not_ including `N` (i.e. up to and including `N - 1`), returning
+`true` as soon as the first item in `t` for which `f` returns `true` is encountered.
+
+Cany signature of `f` is: `f(t::AbstractGraph)`.
+"""
+anyupto(f::Function, t::AbstractGraph, N::Int) = anythrough(f, t, N - 1)
