@@ -41,7 +41,9 @@ export foreachat, foreachfilterat, foreach_depthfirst, foreach_breadthfirst,
     foreachfrom, foreachthrough, foreachupto,
     countat, countall, countfrom, countthrough, countupto,
     findpathsat, findpathsat!, findpathsall, findpathsall!,
-    findpathsfrom, findpathsfrom!, findpathsthrough, findpathsthrough!, findpathsupto, findpathsupto!
+    findpathsfrom, findpathsfrom!, findpathsthrough, findpathsthrough!, findpathsupto, findpathsupto!,
+    allat, allall, allfrom, allthrough,
+    anyat, anyany, anyfrom, anythrough
 
 # multipliers.jl
 export multabsentupto, multabsent
