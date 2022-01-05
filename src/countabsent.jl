@@ -113,6 +113,43 @@ function ndadd!(fs::Vector{Function}, A::Array{T, N}, ν::Number, ks::Vararg{Any
     return A
 end
 # _ndadd!(A::Array{T, N}, ν::Number, idxs::Vararg{Int, N}) where {T, N} = (A[idxs...] += ν; A)
+
+################
+#### 2022-01-05: other options for ndadd!. The original is seemingly the best balance
+# of speed which minimizes allocation.
+# @generated function ndadd2!(A::Array{T, N}, ν::Number, idxs::Vector{Int}) where {N} where {T}
+#     quote
+#         Base.Cartesian.@nextract $N i idxs
+#         e = Base.Cartesian.@nref $N A i
+#         $e += ν
+#         return A
+#     end
+# end
+# function ndadd2!(fs::Vector{Function}, A::Array{T, N}, ν::Number, ks::Vararg{Any, N}) where {N} where {T}
+#     # ndadd2!(A, ν, ntuple(i -> fs[i](ks[i]), Val(N)))
+#     idxs = Vector{Int}(undef, N);
+#     for i ∈ eachindex(fs, idxs)
+#         idxs[i] = fs[i](ks[i])
+#     end
+#     ndadd2!(A, ν, idxs)
+# end
+
+# A = zeros(Int, 3,3,3); idxs=[3,3,3]; fs=fill(x -> 3, 3); ids=tuple(idxs...);
+# @benchmark ndadd!($fs, $A, 1, $ids...)
+# @benchmark ndadd2!($fs, $A, 1, $ids...)
+# @benchmark ndadd2!(A, 1, idxs)
+# @benchmark ndadd3!(fs, A, 1, ids...)
+
+# @generated function ndadd3!(fs::Vector{Function}, A::Array{T, N},
+#                             ν::Number, ks::Vararg{S, N}) where {N} where {T} where {S}
+#     quote
+#         idxs::NTuple{N, Int} = Base.Cartesian.@ntuple $N i -> fs[i](ks[i])
+#         Base.Cartesian.@nextract $N i idxs
+#         e = Base.Cartesian.@nref $N A i
+#         $e += ν
+#         return A
+#     end
+# end
 ############################################################################################
 #### 2021-11-04: p. 564-571
 # Increment count(s) for the absent vertices, indexing each level to the respective
