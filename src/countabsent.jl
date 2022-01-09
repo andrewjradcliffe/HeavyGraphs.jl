@@ -361,26 +361,26 @@ end
 # end
 # @benchmark _nidxsplain(tf, ks_e, 2)
 
-function kcountabsent!(fs::NTuple{M, Function}, dims::NTuple{M, Int}, A::Array{T, M},
-                       ks::Vector{Any}, x::AbstractGraph,
-                       N::Int, C::Int, levs_ks::Vector{Vector{Any}}) where {M} where {T<:Number}
-    mks = setdiff(levs_ks[C], keys(x))
-    isempty(mks) && return A
-    idxs = _nidxs(fs, ks, Val(C - 1))
-    colons = ntuple(i -> :, N - C - 1)
-    ν = dimsmultiplier(dims, N, C, levs_ks)
-    # tf = fs[C]
-    # for k ∈ mks
-    #     # idx = fs[C](k)
-    #     idx::Int = tf(k)
-    #     Ã = view(A, idxs..., idx, colons...)
-    #     for i ∈ eachindex(Ã)
-    #         Ã[i] += ν
-    #     end
-    # end
-    # return A
-    _veladd!(fs[C], A, mks, idxs, colons, ν)
-end
+# function kcountabsent!(fs::NTuple{M, Function}, dims::NTuple{M, Int}, A::Array{T, M},
+#                        ks::Vector{Any}, x::AbstractGraph,
+#                        N::Int, C::Int, levs_ks::Vector{Vector{Any}}) where {M} where {T<:Number}
+#     mks = setdiff(levs_ks[C], keys(x))
+#     isempty(mks) && return A
+#     idxs = _nidxs(fs, ks, Val(C - 1))
+#     colons = ntuple(i -> :, N - C - 1)
+#     ν = dimsmultiplier(dims, N, C, levs_ks)
+#     # tf = fs[C]
+#     # for k ∈ mks
+#     #     # idx = fs[C](k)
+#     #     idx::Int = tf(k)
+#     #     Ã = view(A, idxs..., idx, colons...)
+#     #     for i ∈ eachindex(Ã)
+#     #         Ã[i] += ν
+#     #     end
+#     # end
+#     # return A
+#     _veladd!(fs[C], A, mks, idxs, colons, ν)
+# end
 
 # @code_warntype _veladd!(tf₂[1], Aex, levs_ks[1], (), (:,), 1)
 # @benchmark _veladd!(tf₂[1], Aex, levs_ks[1], (), (:,), 1)
