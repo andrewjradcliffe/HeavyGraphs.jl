@@ -602,12 +602,22 @@ function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKey, p::Abstrac
     end
     return g
 end
+# 2022-01-10: multi-step growth
+function datagrow!(f::Function, x::AbstractGraph, vs::Vector{<:AbstractPathKey},
+                   ps::Vector{<:AbstractPathKeys}, itrs::Vector)
+    for i ∈ eachindex(vs, ps, itrs)
+        datagrow!(f, x, vs[i], ps[i], itrs[i])
+    end
+    return x
+end
 
 # Convenience wrappers, but useful nonetheless
 datagrow(f::Function, v::AbstractPathKeys, p::AbstractPathKeys) = datagrow!(f, f(), v, p)
 datagrow(f::Function, v::AbstractPathKey, p::AbstractPathKeys) = datagrow!(f, f(), v, p)
 datagrow(f::Function, v::AbstractPathKeys, p::AbstractPathKeys, itr) = datagrow!(f, f(), v, p, itr)
 datagrow(f::Function, v::AbstractPathKey, p::AbstractPathKeys, itr) = datagrow!(f, f(), v, p, itr)
+datagrow(f::Function, vs::Vector{<:AbstractPathKey}, ps::Vector{<:AbstractPathKeys}, itrs::Vector) =
+    datagrow!(f, f(), vs, ps, itrs)
 
 # Growth from non-flat sources - p. 475, 2021-09-22
 function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKeys, p::AbstractPathKeys,
