@@ -90,7 +90,7 @@ end
 function kcountstatus!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
                        g::AbstractGraph)
     status = g.data[1]
-    f(dest, 1, ks..., status)
+    f(dest, ks..., status)
     dest
 end
 #### Usage example
@@ -100,7 +100,7 @@ end
 function kcountstatus!(f::Function, fs::Vector{Function}, A::AbstractArray, ks::Vector{Any},
                        x::AbstractGraph)
     status = f(x.data)
-    ndadd!(fs, A, ks..., status)
+    ndadd!(fs, A, 1, ks..., status)
     return A
 end
 # Hence, kcountstatus! is used as:
