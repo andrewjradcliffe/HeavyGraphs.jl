@@ -197,3 +197,29 @@ a2 = sg()
 bget!(sg, a2, 1,2,3,4,5)
 # @benchmark get(retnot, a2, 1,2,3,4,5)
 @benchmark bget(retnot, a2, 1,2,3,4,5)
+
+############################################################################################
+#### 2022-01-11: Add performance tests of meta-unrolling
+p4 = PathKeys(Tuple(IndexedPathKey(i) for i = 1:9))
+v4 = IndexedPathKey(10)
+
+# @timev datagrow(sdg, v4, p4, eachcol(m_dg));
+
+
+p1 = PathKeys([IndexedPathKey(i) for i = 1:9])
+v1 = IndexedPathKey(10)
+@timev datagrow(sdg, v1, p1, eachcol(m_dg));
+@timev datagrow3(sdg, v1, p1, eachcol(m_dg));
+
+L = 500
+rmat = rand(Int, L, 2730);
+
+p4_l = PathKeys(Tuple(IndexedPathKey(i) for i = 1:L-1));
+v4_l = IndexedPathKey(L);
+
+@timev datagrow3(sdg, v4_l, p4_l, eachcol(rmat));
+
+p1_l = PathKeys([IndexedPathKey(i) for i = 1:L-1]);
+v1_l = IndexedPathKey(L);
+@timev datagrow(sdg, v1_l, p1_l, eachcol(rmat));
+@timev datagrow3(sdg, v1_l, p1_l, eachcol(rmat));
