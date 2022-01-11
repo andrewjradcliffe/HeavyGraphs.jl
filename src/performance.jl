@@ -102,6 +102,8 @@ file10 = joinpath(prefix10, suffix10);
 dmat10 = permutedims(hcat([convert(Vector{Any}, copy(col)) for col in Arrow.Table(file10)]...));
 pni10 = PathKeys([IndexedPathKey(x -> Tuple(x), [1, 2]); [IndexedPathKey(i) for i = 3:8]])
 vi10 = IndexedPathKey(cellinst, [10, 9])
+pni10_4 = PathKeys4((IndexedPathKey(x -> Tuple(x), [1, 2]), (IndexedPathKey(i) for i = 3:8)...))
+vi10_4 = IndexedPathKey(cellinst, [10, 9])
 ####
 
 # Result: growth on heterogeneous keys. SimpleNode is faster
@@ -117,7 +119,10 @@ a7 = grow!(af, AryNode(), pni7, eachcol(dmat8));
 g7 = grow!(sdg, SimpleDiGraph(), pni7, eachcol(dmat8));
 t10 = valgrow!(gf, SimpleNode(), vi10, pni10, eachcol(dmat10));
 a10 = valgrow!(af, AryNode(), vi10, pni10, eachcol(dmat10));
-g10 = datagrow!(sdg, SimpleDiGraph(), vi10, pni10, eachcol(dmat10));
+@timev datagrow!(sdg, SimpleDiGraph(), vi10, pni10, eachcol(dmat10));
+@timev datagrow!(sdg, SimpleDiGraph(), vi10_4, pni10_4, eachcol(dmat10));
+@timev datagrow(sdg, vi10, pni10, eachcol(dmat10));
+@timev datagrow(sdg, vi10_4, pni10_4, eachcol(dmat10));
 
 # Result: traversal tests
 # t7: 4387231 nodes. AryNode is moderately faster
