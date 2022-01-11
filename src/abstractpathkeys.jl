@@ -20,6 +20,7 @@ end
 #### Outer constructors for IndexedPathKey
 IndexedPathKey(i::Int) = IndexedPathKey(identity, i)
 IndexedPathKey(i::Vector{Int}) = IndexedPathKey(identity, i)
+IndexedPathKey(i::UnitRange{Int}) = IndexedPathKey(identity, i)
 
 #### functor: default behavior for all IndexedPathKey
 function (p::AbstractIndexedPathKey)(A)
