@@ -81,39 +81,79 @@ haspath(g::A, k1, k2) where {A<:AbstractGraph} = isa(get(_returnnothing, g, k1, 
 haspath(g::A, k1, k2, ks...) where {A<:AbstractGraph} = isa(get(_returnnothing, g, k1, k2, ks...), AbstractGraph)
 
 # Enforcing type-stability on the return value should not be necessary
-function Base.get!(f::Function, g::A, k1) where {A<:AbstractGraph}
-    get!(f, g.fadj, k1)
+# function Base.get!(f::Function, g::A, k1) where {A<:AbstractGraph}
+#     get!(f, g.fadj, k1)
+# end
+# function Base.get!(f::Function, g::A, k1, k2) where {A<:AbstractGraph}
+#     get!(f, get!(f, g, k1), k2)
+# end
+# function Base.get!(f::Function, g::A, k1, k2, ks::Vararg{S, N}) where {S, N} where {A<:AbstractGraph}
+#     tmp = get!(f, get!(f, g, k1), k2)#get!(f, g, k1, k2)
+#     for k ∈ ks
+#         tmp = get!(f, tmp, k)
+#     end
+#     tmp
+# end
+# function Base.get!(f::Function, g::A, k1, k2, ks::Vararg{Any, N}) where {N} where {A<:AbstractGraph}
+#     get!(f, get!(f, get!(f, g, k1), k2), ks...)
+# end
+
+# Simplified methods, eliminating unnecessary 2-arg with Vararg version
+@inline function Base.get!(f::Function, x::A, k₁) where {A<:AbstractGraph}
+    get!(f, x.fadj, k₁)
 end
-function Base.get!(f::Function, g::A, k1, k2) where {A<:AbstractGraph}
-    get!(f, get!(f, g, k1), k2)
-end
-function Base.get!(f::Function, g::A, k1, k2, ks::Vararg{S, N}) where {S, N} where {A<:AbstractGraph}
-    tmp = get!(f, get!(f, g, k1), k2)#get!(f, g, k1, k2)
-    for k ∈ ks
-        tmp = get!(f, tmp, k)
+@generated function Base.get!(f::Function, x::A, k₁,
+                              ks::Vararg{T, N}) where {T, N} where {A<:AbstractGraph}
+    quote
+        tmp = get!(f, x, k₁)
+        Base.Cartesian.@nexprs $N i -> tmp = get!(f, tmp, ks[i])
+        return tmp
     end
-    tmp
 end
-function Base.get!(f::Function, g::A, k1, k2, ks::Vararg{Any, N}) where {N} where {A<:AbstractGraph}
-    get!(f, get!(f, get!(f, g, k1), k2), ks...)
+@generated function Base.get!(f::Function, x::A, k₁,
+                              ks::Vararg{Any, N}) where {N} where {A<:AbstractGraph}
+    quote
+        tmp = get!(f, x, k₁)
+        Base.Cartesian.@nexprs $N i -> tmp = get!(f, tmp, ks[i])
+        return tmp
+    end
 end
 
+
 # Likewise, type-stability enforcement by annotated return type should be unnecessary.
-function Base.getindex(g::A, k1) where {A<:AbstractGraph}
-    getindex(g.fadj, k1)
+# function Base.getindex(g::A, k1) where {A<:AbstractGraph}
+#     getindex(g.fadj, k1)
+# end
+# function Base.getindex(g::A, k1, k2) where {A<:AbstractGraph}
+#     getindex(getindex(g, k1), k2)
+# end
+# function Base.getindex(g::A, k1, k2, ks::Vararg{Any, N}) where {N} where {A<:AbstractGraph}
+#     getindex(getindex(getindex(g, k1), k2), ks...)
+# end
+# function Base.getindex(g::A, k1, k2, ks::Vararg{S, N}) where {S, N} where {A<:AbstractGraph}
+#     tmp = getindex(getindex(g, k1), k2)#getindex(g, k1, k2)
+#     for k ∈ ks
+#         tmp = getindex(tmp, k)
+#     end
+#     tmp
+# end
+
+@inline function Base.getindex(x::A, k₁) where {A<:AbstractGraph}
+    getindex(x.fadj, k₁)
 end
-function Base.getindex(g::A, k1, k2) where {A<:AbstractGraph}
-    getindex(getindex(g, k1), k2)
-end
-function Base.getindex(g::A, k1, k2, ks::Vararg{Any, N}) where {N} where {A<:AbstractGraph}
-    getindex(getindex(getindex(g, k1), k2), ks...)
-end
-function Base.getindex(g::A, k1, k2, ks::Vararg{S, N}) where {S, N} where {A<:AbstractGraph}
-    tmp = getindex(getindex(g, k1), k2)#getindex(g, k1, k2)
-    for k ∈ ks
-        tmp = getindex(tmp, k)
+@generated function Base.getindex(x::A, k₁, ks::Vararg{T, N}) where {T, N} where {A<:AbstractGraph}
+    quote
+        tmp = getindex(x, k₁)
+        Base.Cartesian.@nexprs $N i -> tmp = getindex(tmp, ks[i])
+        return tmp
     end
-    tmp
+end
+@generated function Base.getindex(x::A, k₁, ks::Vararg{Any, N}) where {N} where {A<:AbstractGraph}
+    quote
+        tmp = getindex(x, k₁)
+        Base.Cartesian.@nexprs $N i -> tmp = getindex(tmp, ks[i])
+        return tmp
+    end
 end
 
 # A useful utility; essentially, firstat
@@ -561,12 +601,28 @@ function grow!(f::Function, g::AbstractGraph, p::AbstractPathKeys)
     end
     return g
 end
-function grow!(f::Function, g::AbstractGraph, p::AbstractPathKeys, itr)
-    x = Vector{Any}(undef, p.N)
-    for item ∈ itr
-        p(x, item)
-        get!(f, g, x...)
+# function grow!(f::Function, g::AbstractGraph, p::AbstractPathKeys, itr)
+#     x = Vector{Any}(undef, p.N)
+#     for item ∈ itr
+#         p(x, item)
+#         get!(f, g, x...)
+#     end
+#     return g
+# end
+
+# Replaces splatting method
+@generated function grow!(f::Function, g::AbstractGraph, p::AbstractPathKeys,
+                          itr, ::Val{N}) where {N}
+    quote
+        for item ∈ itr
+            tmp = g
+            Base.Cartesian.@nexprs $N i -> tmp = get!(f, tmp, p[i](item))
+        end
+        return g
     end
+end
+function grow!(f::Function, g::AbstractGraph, p::AbstractPathKeys, itr)
+    grow!(f, g, p, itr, Val(p.N))
     return g
 end
 
@@ -580,28 +636,31 @@ function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKeys, p::Abstra
     end
     return g
 end
-function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKeys, p::AbstractPathKeys, itr)
-    x = Vector{Any}(undef, p.N)
-    for item ∈ itr
-        p(x, item)
-        get_datapush!(f, g, v(item), x...)
-    end
-    return g
-end
+# function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKeys, p::AbstractPathKeys, itr)
+#     x = Vector{Any}(undef, p.N)
+#     for item ∈ itr
+#         p(x, item)
+#         get_datapush!(f, g, v(item), x...)
+#     end
+#     return g
+# end
 function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKey, p::AbstractPathKeys)
     for x ∈ p
         get_datapush!(f, g, v(x), x...)
     end
     return g
 end
-function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKey, p::AbstractPathKeys, itr)
-    x = Vector{Any}(undef, p.N)
-    for item ∈ itr
-        p(x, item)
-        get_datapush!(f, g, v(item), x...)
-    end
-    return g
-end
+# function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKey, p::AbstractPathKeys, itr)
+#     x = Vector{Any}(undef, p.N)
+#     for item ∈ itr
+#         p(x, item)
+#         get_datapush!(f, g, v(item), x...)
+#     end
+#     return g
+# end
+
+
+
 # 2022-01-10: multi-step growth
 function datagrow!(f::Function, x::AbstractGraph, vs::Vector{<:AbstractPathKey},
                    ps::Vector{<:AbstractPathKeys}, itrs::Vector)
@@ -658,6 +717,19 @@ function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKey, p::Abstrac
 end
 datagrow(f::Function, v::AbstractPathKey, p::AbstractPathKeys, itr) =
     datagrow!(f, f(), v, p, itr)
+
+# Cover the second dispatch
+@generated function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKeys,
+                              p::AbstractPathKeys, itr, ::Val{N}) where {N}
+    quote
+        for item ∈ itr
+            tmp = g
+            Base.Cartesian.@nexprs $N i -> tmp = get!(f, tmp, p[i](item))
+            push!(tmp.data, v(item))
+        end
+        return g
+    end
+end
 
 # Convenience wrappers, but useful nonetheless
 datagrow(f::Function, v::AbstractPathKeys, p::AbstractPathKeys) = datagrow!(f, f(), v, p)
