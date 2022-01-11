@@ -87,7 +87,7 @@ end
 function Base.get!(f::Function, g::A, k1, k2) where {A<:AbstractGraph}
     get!(f, get!(f, g, k1), k2)
 end
-function Base.get!(f::Function, g::A, k1, k2, ks::Vararg{S, N}) where {S,N} where {A<:AbstractGraph}
+function Base.get!(f::Function, g::A, k1, k2, ks::Vararg{S, N}) where {S, N} where {A<:AbstractGraph}
     tmp = get!(f, get!(f, g, k1), k2)#get!(f, g, k1, k2)
     for k ∈ ks
         tmp = get!(f, tmp, k)
@@ -619,6 +619,46 @@ end
     end
 end
 
+# # Looped datagrow!, just to test speed. It is a substantial gain vs. splatting.
+# # Save for posterity.
+# function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKey, p::AbstractPathKeys, itr)
+#     N = p.N
+#     for item ∈ itr
+#         tmp = g
+#         for n = 1:N
+#             tmp = get!(f, tmp, p[n](item))
+#         end
+#         push!(tmp.data, v(item))
+#     end
+#     return g
+# end
+
+# Alternative meta using AbstractPathKeys4.
+# Testing reveals that this is in fact the preferable way to enact datagrow!,
+# in particular when it can be combined with PathKeys4.
+# For depth up to L=500, the manually-unrolled code beats the loop. Notably,
+# if L is 500, one should _seriously_ consider something besides HeavyGraphs
+# for whatever the purpose. That would be a potentially massive graph, and
+# direct methods such as this are likely ill-suited.
+@generated function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKey,
+                              p::AbstractPathKeys, itr, ::Val{N}) where {N}
+    quote
+        for item ∈ itr
+            tmp = g
+            Base.Cartesian.@nexprs $N i -> tmp = get!(f, tmp, p[i](item))
+            push!(tmp.data, v(item))
+        end
+        return g
+    end
+end
+
+function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKey, p::AbstractPathKeys, itr)
+    datagrow!(f, g, v, p, itr, Val(p.N))
+    return g
+end
+datagrow(f::Function, v::AbstractPathKey, p::AbstractPathKeys, itr) =
+    datagrow!(f, f(), v, p, itr)
+
 # Convenience wrappers, but useful nonetheless
 datagrow(f::Function, v::AbstractPathKeys, p::AbstractPathKeys) = datagrow!(f, f(), v, p)
 datagrow(f::Function, v::AbstractPathKey, p::AbstractPathKeys) = datagrow!(f, f(), v, p)
@@ -632,6 +672,7 @@ function datagrow(f::Function,
     datagrow!(f, f(), vs, ps, itrs)
 end
 
+################################
 # Growth from non-flat sources - p. 475, 2021-09-22
 function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKeys, p::AbstractPathKeys,
                    vitr, pitr)
