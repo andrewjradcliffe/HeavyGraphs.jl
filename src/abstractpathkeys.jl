@@ -109,10 +109,10 @@ end
 # for an N=4 AbstractPathKeys are: ≈15% speed, ≈20-25% memory.
 # The only change that needs to occur is that setindex! must be forbidden
 abstract type AbstractPathKeys4{U<:Tuple{Vararg{T, N} where {T<:AbstractPathKey}} where {N}} end
-abstract type AbstractPathKeys10{U<:Tuple{Vararg{T, N} where {T<:AbstractPathKey}} where {N}, N} end
-struct PathKeys10{U, N} <: AbstractPathKeys10{U, N}
-    ftrs::U
-end
+# abstract type AbstractPathKeys10{U<:Tuple{Vararg{T, N} where {T<:AbstractPathKey}} where {N}, N} end
+# struct PathKeys10{U, N} <: AbstractPathKeys10{U, N}
+#     ftrs::U
+# end
 # PathKeys9(ftrs::Tuple{Vararg{U, N}}) where {U<:AbstractPathKey, N} = PathKeys9{U, N}(ftrs, N)
 # PathKeys10(ftrs::Tuple{Vararg{U, N}}) where {N} where {U<:AbstractPathKey} =
 #     PathKeys10{typeof(ftrs), N}(ftrs)
