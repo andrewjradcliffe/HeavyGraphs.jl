@@ -610,6 +610,14 @@ function datagrow!(f::Function, x::AbstractGraph, vs::Vector{<:AbstractPathKey},
     end
     return x
 end
+# alternative meta
+@generated function datagrow!(f::Function, x::AbstractGraph,
+                              vs::Tuple{Vararg{T, N} where {T<:AbstractPathKey}},
+                              ps::Tuple{Vararg{S, N} where {S<:AbstractPathKeys}}, itrs) where {N}
+    quote
+        Base.Cartesian.@nexprs $N i -> datagrow!(f, x, vs[i], ps[i], itrs[i])
+    end
+end
 
 # Convenience wrappers, but useful nonetheless
 datagrow(f::Function, v::AbstractPathKeys, p::AbstractPathKeys) = datagrow!(f, f(), v, p)
@@ -618,6 +626,11 @@ datagrow(f::Function, v::AbstractPathKeys, p::AbstractPathKeys, itr) = datagrow!
 datagrow(f::Function, v::AbstractPathKey, p::AbstractPathKeys, itr) = datagrow!(f, f(), v, p, itr)
 datagrow(f::Function, vs::Vector{<:AbstractPathKey}, ps::Vector{<:AbstractPathKeys}, itrs::Vector) =
     datagrow!(f, f(), vs, ps, itrs)
+function datagrow(f::Function,
+                  vs::Tuple{Vararg{T, N} where {T<:AbstractPathKey}},
+                  ps::Tuple{Vararg{S, N} where {S<:AbstractPathKeys}}, itrs) where {N}
+    datagrow!(f, f(), vs, ps, itrs)
+end
 
 # Growth from non-flat sources - p. 475, 2021-09-22
 function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKeys, p::AbstractPathKeys,
