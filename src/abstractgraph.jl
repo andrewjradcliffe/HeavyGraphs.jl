@@ -659,25 +659,6 @@ end
 #     return g
 # end
 
-
-
-# 2022-01-10: multi-step growth
-function datagrow!(f::Function, x::AbstractGraph, vs::Vector{<:AbstractPathKey},
-                   ps::Vector{<:AbstractPathKeys}, itrs::Vector)
-    for i ∈ eachindex(vs, ps, itrs)
-        datagrow!(f, x, vs[i], ps[i], itrs[i])
-    end
-    return x
-end
-# alternative meta
-@generated function datagrow!(f::Function, x::AbstractGraph,
-                              vs::Tuple{Vararg{T, N} where {T<:AbstractPathKey}},
-                              ps::Tuple{Vararg{S, N} where {S<:AbstractPathKeys}}, itrs) where {N}
-    quote
-        Base.Cartesian.@nexprs $N i -> datagrow!(f, x, vs[i], ps[i], itrs[i])
-    end
-end
-
 # # Looped datagrow!, just to test speed. It is a substantial gain vs. splatting.
 # # Save for posterity.
 # function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKey, p::AbstractPathKeys, itr)
@@ -715,8 +696,6 @@ function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKey, p::Abstrac
     datagrow!(f, g, v, p, itr, Val(p.N))
     return g
 end
-datagrow(f::Function, v::AbstractPathKey, p::AbstractPathKeys, itr) =
-    datagrow!(f, f(), v, p, itr)
 
 # Cover the second dispatch
 @generated function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKeys,
@@ -730,14 +709,37 @@ datagrow(f::Function, v::AbstractPathKey, p::AbstractPathKeys, itr) =
         return g
     end
 end
+function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKeys, p::AbstractPathKeys, itr)
+    datagrow!(f, g, v, p, itr, Val(p.N))
+    return g
+end
 
 # Convenience wrappers, but useful nonetheless
 datagrow(f::Function, v::AbstractPathKeys, p::AbstractPathKeys) = datagrow!(f, f(), v, p)
 datagrow(f::Function, v::AbstractPathKey, p::AbstractPathKeys) = datagrow!(f, f(), v, p)
-datagrow(f::Function, v::AbstractPathKeys, p::AbstractPathKeys, itr) = datagrow!(f, f(), v, p, itr)
 datagrow(f::Function, v::AbstractPathKey, p::AbstractPathKeys, itr) = datagrow!(f, f(), v, p, itr)
+datagrow(f::Function, v::AbstractPathKeys, p::AbstractPathKeys, itr) = datagrow!(f, f(), v, p, itr)
+
+# 2022-01-10: multi-step growth
+function datagrow!(f::Function, x::AbstractGraph, vs::Vector{<:AbstractPathKey},
+                   ps::Vector{<:AbstractPathKeys}, itrs::Vector)
+    for i ∈ eachindex(vs, ps, itrs)
+        datagrow!(f, x, vs[i], ps[i], itrs[i])
+    end
+    return x
+end
 datagrow(f::Function, vs::Vector{<:AbstractPathKey}, ps::Vector{<:AbstractPathKeys}, itrs::Vector) =
     datagrow!(f, f(), vs, ps, itrs)
+
+# 2022-01-11: alternative meta
+@generated function datagrow!(f::Function, x::AbstractGraph,
+                              vs::Tuple{Vararg{T, N} where {T<:AbstractPathKey}},
+                              ps::Tuple{Vararg{S, N} where {S<:AbstractPathKeys}}, itrs) where {N}
+    quote
+        Base.Cartesian.@nexprs $N i -> datagrow!(f, x, vs[i], ps[i], itrs[i])
+    end
+end
+# Convenience wrapper
 function datagrow(f::Function,
                   vs::Tuple{Vararg{T, N} where {T<:AbstractPathKey}},
                   ps::Tuple{Vararg{S, N} where {S<:AbstractPathKeys}}, itrs) where {N}
