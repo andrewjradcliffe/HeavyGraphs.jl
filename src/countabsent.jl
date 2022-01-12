@@ -145,8 +145,31 @@ end
 #     quote
 #         idxs::NTuple{N, Int} = Base.Cartesian.@ntuple $N i -> fs[i](ks[i])
 #         Base.Cartesian.@nextract $N i idxs
-#         e = Base.Cartesian.@nref $N A i
-#         $e += ν
+#         (Base.Cartesian.@nref $N A i) += ν # e
+#         # $e += ν
+#         return A
+#     end
+# end
+# @generated function ndadd3!(fs::Vector{Function}, A::Array{T, N},
+#                             ν::Number, ks::Vararg{Any, N}) where {N} where {T}
+#     quote
+#         # idxs::NTuple{N, Int} = Base.Cartesian.@ntuple $N i -> fs[i](ks[i])
+#         idxs = Base.Cartesian.@ntuple $N i -> fs[i](ks[i])
+#         Base.Cartesian.@nextract $N i idxs
+#         (Base.Cartesian.@nref $N A i) += ν # e
+#         # $e += ν
+#         return A
+#     end
+# end
+
+# @generated function ndadd4!(fs::Tuple{Vararg{S, M₁} where {S<:Function}}, A::Array{T, M₂},
+#                             ν::Number, ks::Vararg{Any, N}) where {M₁, M₂} where {N} where {T}
+#     quote
+#         # idxs::NTuple{N, Int} = Base.Cartesian.@ntuple $N i -> fs[i](ks[i])
+#         idxs = Base.Cartesian.@ntuple $N i -> fs[i](ks[i])
+#         Base.Cartesian.@nextract $N i idxs
+#         (Base.Cartesian.@nref $N A i) += ν # e
+#         # $e += ν
 #         return A
 #     end
 # end
@@ -304,7 +327,7 @@ end
 ################################################################
 #### 2021-11-05: far more efficient add method
 function _veladd!(f::Function, A::Array{T, N}, mks::Vector{S}, idxs::NTuple{M, Int}, colons::NTuple{H, Colon}, ν::Int) where {T, N} where {S} where {M} where {H}
-    for k ∈ mks
+    @inbounds for k ∈ mks
         idx = f(k)
         Ã = view(A, idxs..., idx, colons...)
         @inbounds for i ∈ eachindex(Ã)
@@ -337,9 +360,11 @@ end
 # _idxs(tf, ks_e)
 ################
 
-@generated function _nidxs(fs::NTuple{N, Function}, ks::Vector{Any}, C::Val{M})::NTuple{M, Int} where {N} where {M}
+@generated function _nidxs(fs::Tuple{Vararg{S, M} where {S<:Function}},
+                           ks::Vector{Any}, ::Val{C}) where {C} where {M}
     quote
-        Base.Cartesian.@ntuple $M i -> fs[i](ks[i])
+        # Base.Cartesian.@ntuple $M i -> fs[i](ks[i])
+        Base.Cartesian.@ntuple $C i -> fs[i](ks[i])
     end
 end
 
@@ -361,12 +386,12 @@ end
 # end
 # @benchmark _nidxsplain(tf, ks_e, 2)
 
-# function kcountabsent!(fs::NTuple{M, Function}, dims::NTuple{M, Int}, A::Array{T, M},
-#                        ks::Vector{Any}, x::AbstractGraph,
+# function kcountabsent!(fs::Tuple{Vararg{S, M} where {S<:Function}},
+#                        dims::NTuple{M, Int}, A::Array{T, M}, ks::Vector{Any}, x::AbstractGraph,
 #                        N::Int, C::Int, levs_ks::Vector{Vector{Any}}) where {M} where {T<:Number}
 #     mks = setdiff(levs_ks[C], keys(x))
 #     isempty(mks) && return A
-#     idxs = _nidxs(fs, ks, Val(C - 1))
+#     idxs = ntuple(i -> fs[i](ks[i]), C - 1)#_nidxs(fs, ks, Val(C - 1))
 #     colons = ntuple(i -> :, N - C - 1)
 #     ν = dimsmultiplier(dims, N, C, levs_ks)
 #     # tf = fs[C]
