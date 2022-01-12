@@ -25,7 +25,7 @@ function kmapat!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
             setindex!(ks, p.first, C)
             kmapat!(f, dest, ks, p.second, N, C̃)
         end
-    elseif C̃ == N
+    else#if C̃ == N
         for p ∈ t
             setindex!(ks, p.first, C)
             f(dest, ks, p.second)
@@ -73,7 +73,7 @@ function kmapfilterat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Arr
         for p ∈ t
             g(p) && (setindex!(ks, p.first, C); kmapfilterat!(f, fs, dest, p.second, N, C̃))
         end
-    elseif C̃ == N
+    else#if C̃ == N
         for p ∈ t
             g(p) && (setindex!(ks, p.first, C); f(dest, ks, p.second))
         end
