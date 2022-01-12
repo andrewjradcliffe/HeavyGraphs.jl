@@ -211,13 +211,14 @@ v1 = IndexedPathKey(10)
 @timev datagrow(sdg, v1, p1, eachcol(m_dg));
 @timev datagrow3(sdg, v1, p1, eachcol(m_dg));
 
-L = 500
-rmat = rand(Int, L, 2730);
+L = 100
+rmat = rand(Int, L, 2000);
 
 p4_l = PathKeys(Tuple(IndexedPathKey(i) for i = 1:L-1));
 v4_l = IndexedPathKey(L);
 
-@timev datagrow3(sdg, v4_l, p4_l, eachcol(rmat));
+@timev datagrow(sdg, v4_l, p4_l, eachcol(rmat));
+@code_warntype datagrow!(sdg, sdg(), v4_l, p4_l, eachcol(rmat), Val(100))
 
 p1_l = PathKeys([IndexedPathKey(i) for i = 1:L-1]);
 v1_l = IndexedPathKey(L);
