@@ -348,11 +348,11 @@ end
 # end
 ################################
 #### 2021-11-05: metaprogramming experiments
-@generated function _idxs(fs::NTuple{N, Function}, ks::Vector{Any}) where {N}
-    quote
-        Base.Cartesian.@ntuple $N i -> fs[i](ks[i])
-    end
-end
+# @generated function _idxs(fs::NTuple{N, Function}, ks::Vector{Any}) where {N}
+#     quote
+#         Base.Cartesian.@ntuple $N i -> fs[i](ks[i])
+#     end
+# end
 
 # ks_e = Any[kk₁..., chainu]
 # tf = (uf, nufₗᵢₙ, h)
@@ -360,13 +360,13 @@ end
 # _idxs(tf, ks_e)
 ################
 
-@generated function _nidxs(fs::Tuple{Vararg{S, M} where {S<:Function}},
-                           ks::Vector{Any}, ::Val{C}) where {C} where {M}
-    quote
-        # Base.Cartesian.@ntuple $M i -> fs[i](ks[i])
-        Base.Cartesian.@ntuple $C i -> fs[i](ks[i])
-    end
-end
+# @generated function _nidxs(fs::Tuple{Vararg{S, M} where {S<:Function}},
+#                            ks::Vector{Any}, ::Val{C}) where {C} where {M}
+#     quote
+#         # Base.Cartesian.@ntuple $M i -> fs[i](ks[i])
+#         Base.Cartesian.@ntuple $C i -> fs[i](ks[i])
+#     end
+# end
 
 # @benchmark _nidxs(tf, ks_e, Val(2))
 
