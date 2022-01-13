@@ -22,6 +22,9 @@ export grow!, grow, datagrow!, datagrow, tdatagrow!
 export mapgrow!, mapgrow, tmapgrow!, tmapgrow, tʳmapgrow!, tʳmapgrow,
     mapdatagrow!, mapdatagrow, tmapdatagrow!, tmapdatagrow, tʳmapdatagrow!, tʳmapdatagrow
 
+# ndops.jl
+export ndadd!, ndadd1!, ndpush!
+
 # map.jl
 export mapat, mapat!, tmapat,
     mapfilterat, mapfilterat!, tmapfilterat,
@@ -50,10 +53,12 @@ export multabsentupto, multabsent
 
 # countabsent.jl
 export countabsent!, countstatus!, kcountstatus!, kcountabsent!,
-    nextnonunit, dimsmultiplier, ndadd!, ndadd1!
+    nextnonunit, dimsmultiplier
 
 include("abstractpathkeys.jl")
 include("abstractgraph.jl")
+
+include("ndops.jl")
 
 include("map.jl")
 include("kmap.jl")
