@@ -97,10 +97,10 @@ end
 # cs = (dest, ks, g) -> kcountstatus!(f, dest, ks, g)
 # mapat(cs, ((282, 47, 7),), g, 3)
 ######## 2021-11-08: revision of kcountstatus! to conform to kcountabsent! convention
-function kcountstatus!(f::Function, fs::Vector{Function}, A::AbstractArray, ks::Vector{Any},
+function kcountstatus!(f::Function, fs::Vector{Function}, A::AbstractArray, ks::Vector,
                        x::AbstractGraph)
     status = f(x.data)
-    ndadd!(fs, A, 1, ks..., status)
+    ndadd1!(fs, A, ks..., status)
     return A
 end
 # Hence, kcountstatus! is used as:
@@ -224,7 +224,7 @@ end
 # fs = [g, h]
 # ca = (dest, ks, x, N, C, levs_ks) -> kcountabsent!(fs, dest[1], x, ks, N, C, levs_ks)
 # mapupto(ca, ((440, 47),), g, 3)
-function kcountabsent!(fs::Vector{Function}, A::AbstractArray, ks::Vector{Any}, x::AbstractGraph,
+function kcountabsent!(fs::Vector{Function}, A::AbstractArray, ks::Vector, x::AbstractGraph,
                        N::Int, C::Int, levs_ks::Vector{Vector{Any}})
     # Option 1: single view
     mks = setdiff(levs_ks[C], keys(x))
@@ -340,7 +340,7 @@ end
 # the meta-programmed code that manually unrolls the loop. It is also slightly
 # more memory-efficient.
 function kcountabsent!(fs::Vector{Function}, dims::NTuple{M, Int}, A::Array{T, M},
-                       ks::Vector{Any}, x::AbstractGraph,
+                       ks::Vector, x::AbstractGraph,
                        N::Int, C::Int, levs_ks::Vector{Vector{Any}}) where {M} where {T<:Number}
     mks = setdiff(levs_ks[C], keys(x))
     isempty(mks) && return A
@@ -387,7 +387,7 @@ end
 # end
 ################################
 #### 2021-11-05: metaprogramming experiments
-# @generated function _idxs(fs::NTuple{N, Function}, ks::Vector{Any}) where {N}
+# @generated function _idxs(fs::NTuple{N, Function}, ks::Vector) where {N}
 #     quote
 #         Base.Cartesian.@ntuple $N i -> fs[i](ks[i])
 #     end
@@ -400,7 +400,7 @@ end
 ################
 
 # @generated function _nidxs(fs::Tuple{Vararg{S, M} where {S<:Function}},
-#                            ks::Vector{Any}, ::Val{C}) where {C} where {M}
+#                            ks::Vector, ::Val{C}) where {C} where {M}
 #     quote
 #         # Base.Cartesian.@ntuple $M i -> fs[i](ks[i])
 #         Base.Cartesian.@ntuple $C i -> fs[i](ks[i])
@@ -410,23 +410,23 @@ end
 # @benchmark _nidxs(tf, ks_e, Val(2))
 
 # # Not type-stable.
-# @generated function _nidxs(fs::Vector{Function}, ks::Vector{Any}, C::Val{M})::NTuple{M, Int} where {N} where {M}
+# @generated function _nidxs(fs::Vector{Function}, ks::Vector, C::Val{M})::NTuple{M, Int} where {N} where {M}
 #     quote
 #         Base.Cartesian.@ntuple $M i -> fs[i](ks[i])
 #     end
 # end
 # _nidxs(fsᵢ, ks_e, Val(2))
 
-# function _nidxsplain(fs::NTuple{N, Function}, ks::Vector{Any}, C::Int) where {N}
+# function _nidxsplain(fs::NTuple{N, Function}, ks::Vector, C::Int) where {N}
 #     ntuple(i -> fs[i](ks[i]), C)
 # end
-# function _nidxsplain(fs::Vector{Function}, ks::Vector{Any}, C::Int) where {N}
+# function _nidxsplain(fs::Vector{Function}, ks::Vector, C::Int) where {N}
 #     ntuple(i -> fs[i](ks[i]), C)
 # end
 # @benchmark _nidxsplain(tf, ks_e, 2)
 
 # function kcountabsent!(fs::Tuple{Vararg{S, M} where {S<:Function}},
-#                        dims::NTuple{M, Int}, A::Array{T, M}, ks::Vector{Any}, x::AbstractGraph,
+#                        dims::NTuple{M, Int}, A::Array{T, M}, ks::Vector, x::AbstractGraph,
 #                        N::Int, C::Int, levs_ks::Vector{Vector{Any}}) where {M} where {T<:Number}
 #     mks = setdiff(levs_ks[C], keys(x))
 #     isempty(mks) && return A
@@ -456,7 +456,7 @@ end
 
 ## Not worthwhile.
 # function kcountabsent2!(fs::Vector{Function}, dims::NTuple{M, Int}, A::Array{T, M},
-#                         ks::Vector{Any}, x::AbstractGraph,
+#                         ks::Vector, x::AbstractGraph,
 #                         N::Int, C::Int, levs_ks::Vector{Vector{Any}}) where {M} where {T<:Number}
 #     H = N - C - 1
 #     Ĉ = C - 1
@@ -464,7 +464,7 @@ end
 # end
 
 # function _kcountabsent2!(fs::Vector{Function}, dims::NTuple{M, Int}, A::Array{T, M},
-#                          ks::Vector{Any}, x::AbstractGraph,
+#                          ks::Vector, x::AbstractGraph,
 #                          N::Int, C::Int, levs_ks::Vector{Vector{Any}},
 #                          ĉ::Val{Ĉ}, h::Val{H}) where {M} where {T<:Number} where {Ĉ, H}
 #     mks = setdiff(levs_ks[C], keys(x))
