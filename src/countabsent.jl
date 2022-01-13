@@ -114,6 +114,11 @@ function ndadd!(fs::Vector{Function}, A::Array{T, N}, ν::Number, ks::Vararg{Any
 end
 # _ndadd!(A::Array{T, N}, ν::Number, idxs::Vararg{Int, N}) where {T, N} = (A[idxs...] += ν; A)
 
+function ndadd1!(fs::Vector{Function}, A::Array{T, N}, ks::Vararg{Any, N}) where {N} where {T}
+    idxs::NTuple{N, Int} = ntuple(i -> fs[i](ks[i]), Val(N))
+    A[idxs...] += one(T)
+    return A
+end
 ################
 #### 2022-01-05: other options for ndadd!. The original is seemingly the best balance
 # of speed which minimizes allocation.

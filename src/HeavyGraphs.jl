@@ -50,7 +50,7 @@ export multabsentupto, multabsent
 
 # countabsent.jl
 export countabsent!, countstatus!, kcountstatus!, kcountabsent!,
-    nextnonunit, dimsmultiplier, ndadd!
+    nextnonunit, dimsmultiplier, ndadd!, ndadd1!
 
 include("abstractpathkeys.jl")
 include("abstractgraph.jl")
