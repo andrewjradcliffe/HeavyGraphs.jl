@@ -107,18 +107,52 @@ end
 # (dest, ks, x) -> kcountstatus!(f, fs, dest[1], ks, x)
 # with `f` something such as: x -> getindex(x, 1)
 ################
-function ndadd!(fs::Vector{Function}, A::Array{T, N}, ν::Number, ks::Vararg{Any, N}) where {N} where {T}
-    idxs::NTuple{N, Int} = ntuple(i -> fs[i](ks[i]), Val(N))
-    A[idxs...] += ν
+function ndadd!(fs::Vector{Function}, A::Array{T, N}, v::T, ks::Vararg{Any, N}) where {N} where {T}
+    # idxs::NTuple{N, Int} = ntuple(i -> fs[i](ks[i]), Val(N))
+    # A[idxs...] += v
+    idxs = ntuple(i -> fs[i](ks[i]), N)
+    ndadd!(A, v, idxs)
     return A
 end
-# _ndadd!(A::Array{T, N}, ν::Number, idxs::Vararg{Int, N}) where {T, N} = (A[idxs...] += ν; A)
+function ndadd!(fs::Vector{Function}, A::Array{T, N}, v::T, ks::Vector) where {N} where {T}
+    idxs = ntuple(i -> fs[i](ks[i]), N)
+    ndadd!(A, v, idxs)
+    return A
+end
 
 function ndadd1!(fs::Vector{Function}, A::Array{T, N}, ks::Vararg{Any, N}) where {N} where {T}
-    idxs::NTuple{N, Int} = ntuple(i -> fs[i](ks[i]), Val(N))
-    A[idxs...] += one(T)
+    idxs = ntuple(i -> fs[i](ks[i]), N)
+    ndadd1!(A, idxs)
     return A
 end
+function ndadd1!(fs::Vector{Function}, A::Array{T, N}, ks::Vector) where {N} where {T}
+    idxs = ntuple(i -> fs[i](ks[i]), N)
+    ndadd1!(A, idxs)
+    return A
+end
+
+@generated function ndadd!(A::Array{T, N}, v::T, idxs::NTuple{N, Int}) where {N} where {T}
+    quote
+        Base.Cartesian.@nextract $N i d -> idxs[d]
+        (Base.Cartesian.@nref $N A i) += v
+        return A
+    end
+end
+function ndadd!(A::Array{T, N}, v::T, idxs::Vararg{S, N}) where {N} where {T} where {S<:Integer}
+    ndadd!(A, v, idxs)
+end
+
+@generated function ndadd1!(A::Array{T, N}, idxs::NTuple{N, Int}) where {N} where {T}
+    quote
+        Base.Cartesian.@nextract $N i d -> idxs[d]
+        (Base.Cartesian.@nref $N A i) += one(T)
+        return A
+    end
+end
+function ndadd1!(A::Array{T, N}, idxs::Vararg{S, N}) where {N} where {T} where {S<:Integer}
+    ndadd1!(A, idxs)
+end
+
 ################
 #### 2022-01-05: other options for ndadd!. The original is seemingly the best balance
 # of speed which minimizes allocation.
