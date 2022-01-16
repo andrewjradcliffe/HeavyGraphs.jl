@@ -320,9 +320,9 @@ end
 
 ################################################################
 #### 2021-11-05: far more efficient add method
-function _veladd!(f::Function, A::Array{T, N}, mks::Vector{S}, idxs::NTuple{M, Int}, colons::NTuple{H, Colon}, ν::Int) where {T, N} where {S} where {M} where {H}
-    @inbounds for k ∈ mks
-        idx = f(k)
+function _veladd1!(f::Function, A::Array{T, N}, mks::Vector{S}, idxs::NTuple{M, Int}, colons::NTuple{H, Colon}, ν::Int) where {T, N} where {S} where {M} where {H}
+    @inbounds for i ∈ eachindex(mks)#for k ∈ mks
+        idx = f(mks[i])#f(k)
         Ã = view(A, idxs..., idx, colons...)
         @inbounds for i ∈ eachindex(Ã)
             Ã[i] += ν
@@ -340,6 +340,50 @@ end
 #     end
 #     return A
 # end
+
+# # Alas, no possibility of avoiding the allocation due to the views.
+# @generated function _veladd2!(f::Function, A::Array{T, N}, mks::Vector{S}, idxs::NTuple{M, Int}, colons::NTuple{H, Colon}, ν::Int) where {T, N} where {S} where {M} where {H}
+#     im1 = Symbol(:i_, M + 1)
+#     quote
+#         # Base.Cartesian.@nextract $M i d -> idxs[d]
+#         Base.Cartesian.@nexprs $M d -> i_d = idxs[d]
+#         Base.Cartesian.@nexprs $H d -> i_{d+1+$M} = colons[d]
+#         @inbounds for i ∈ eachindex(mks)#k ∈ mks
+#             # i_$(M + 1) = f(k)
+#             $im1 = f(mks[i])#f(k)
+#             Ã = Base.Cartesian.@ncall $N view A i -> i_i
+#             @inbounds for i ∈ eachindex(Ã)
+#                 Ã[i] += ν
+#             end
+#         end
+#         return A
+#     end
+# end
+
+# # Breaks _veladd2! into two functions, but same result in the end.
+# @generated function _veladd3!(f::Function, A::Array{T, N}, mks::Vector{S}, idxs::NTuple{M, Int}, colons::NTuple{H, Colon}, ν::Int) where {T, N} where {S} where {M} where {H}
+#     quote
+#         # Base.Cartesian.@nexprs $M d -> i_d = idxs[d]
+#         for i ∈ eachindex(mks) #k ∈ mks
+#             idx = f(mks[i])
+#             _veladd3!(A, (idxs..., idx), colons, ν) # (Base.Cartesian.@nref $M idxs i)
+#         end
+#         return A
+#     end
+# end
+
+# @generated function _veladd3!(A::Array{T, N}, idxs::NTuple{M, Int}, colons::NTuple{H, Colon}, ν::Int) where {T, N} where {M} where {H}
+#     quote
+#         Base.Cartesian.@nexprs $M d -> i_d = idxs[d]
+#         Base.Cartesian.@nexprs $H d -> i_{d+1+$M} = colons[d]
+#         Ã = Base.Cartesian.@ncall $N view A i -> i_i
+#         @inbounds for i ∈ eachindex(Ã)
+#             Ã[i] += ν
+#         end
+#         return A
+#     end
+# end
+
 ################################
 #### 2021-11-05: metaprogramming experiments
 # @generated function _idxs(fs::NTuple{N, Function}, ks::Vector) where {N}
