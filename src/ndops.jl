@@ -120,16 +120,16 @@ function ndpush!(A::Array{Vector{Vector{T}}, N}, v::Vector{T},
     ndpush!(A, v, idxs)
 end
 
-vv = [1,2,3]
-@code_warntype ndpush!(𝓃𝓂idxs, vv, (1, 2))
-fs = [x -> parse(Int, x), x -> 2]
-ks = ["1", 3]
-@code_warntype ndpush!(fs, 𝓃𝓂idxs, vv, ks...)
-@benchmark ndpush!(fs, 𝓃𝓂idxs, vv, ks)
+# vv = [1,2,3]
+# @code_warntype ndpush!(𝓃𝓂idxs, vv, (1, 2))
+# fs = [x -> parse(Int, x), x -> 2]
+# ks = ["1", 3]
+# @code_warntype ndpush!(fs, 𝓃𝓂idxs, vv, ks...)
+# @benchmark ndpush!(fs, 𝓃𝓂idxs, vv, ks)
 
-A = zeros(Int, 2, 2);
-@benchmark ndadd1!(fs, A, ks)
+# A = zeros(Int, 2, 2);
+# @benchmark ndadd1!(fs, A, ks)
 
-@benchmark ndadd1!(A, (1, 2))
+# @benchmark ndadd1!(A, (1, 2))
 
-@benchmark ndadd1_v2!(fs, A, ks)
+# @benchmark ndadd1_v2!(fs, A, ks)
