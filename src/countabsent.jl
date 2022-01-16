@@ -320,7 +320,7 @@ end
 
 ################################################################
 #### 2021-11-05: far more efficient add method
-function _veladd1!(f::Function, A::Array{T, N}, mks::Vector{S}, idxs::NTuple{M, Int}, colons::NTuple{H, Colon}, ν::Int) where {T, N} where {S} where {M} where {H}
+function _veladd!(f::Function, A::Array{T, N}, mks::Vector{S}, idxs::NTuple{M, Int}, colons::NTuple{H, Colon}, ν::Int) where {T, N} where {S} where {M} where {H}
     @inbounds for i ∈ eachindex(mks)#for k ∈ mks
         idx = f(mks[i])#f(k)
         Ã = view(A, idxs..., idx, colons...)
