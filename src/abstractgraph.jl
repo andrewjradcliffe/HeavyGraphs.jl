@@ -435,6 +435,10 @@ function SimpleGraph(g::SimpleDiGraph)
     sg
 end
 
+#### Convenience shorthand constructors
+sdg() = SimpleDiGraph()
+sg() = SimpleGraph()
+
 ################################################################
 #### Opt-ins: AbstractSimpleGraph
 # bi-directional: p. 460-463, 2021-10-06

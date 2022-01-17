@@ -9,7 +9,7 @@ export AbstractPathKey, AbstractIndexedPathKey, IndexedPathKey,
 
 # abstractgraph.jl
 export AbstractGraph, AbstractSimpleDiGraph, AbstractSimpleGraph,
-    SimpleDiGraph, SimpleGraph
+    SimpleDiGraph, SimpleGraph, sdg, sg
 
 export haspath, depth, maxbreadth, findmaxbreadth, rlength, rlength2, maxsize
 
