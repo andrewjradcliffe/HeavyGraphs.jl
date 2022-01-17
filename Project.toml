@@ -1,7 +1,7 @@
 name = "HeavyGraphs"
 uuid = "5910b1c1-2bb5-462e-b6f0-76ed6983918d"
 authors = ["Andrew Radcliffe <andrew.radcliffe@intel.com> and contributors"]
-version = "0.1.3"
+version = "0.1.4"
 
 [deps]
 EqualRanges = "ff7c5f4f-a3ba-44b8-a276-2626f44d1d8f"
