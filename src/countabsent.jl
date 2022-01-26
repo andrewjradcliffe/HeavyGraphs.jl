@@ -329,6 +329,8 @@ function _veladd!(f::Function, A::Array{T, N}, mks::Vector{S}, idxs::NTuple{M, I
         end
     end
     return A
+    # ρ = CartesianIndex(idxs)
+    # h = CartesianIndices()
 end
 # function _veladd!(f::Function, A::Array{T, N}, mks::Vector{S}, idxs::NTuple{M, Int}, colons::NTuple{H, Colon}) where {T, N} where {S} where {M} where {H}
 #     for k ∈ mks
