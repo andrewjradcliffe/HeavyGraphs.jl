@@ -855,3 +855,166 @@ up to _but not_ including `N` (i.e. up to and including `N - 1`), returning
 Cany signature of `f` is: `f(t::AbstractGraph)`.
 """
 anyupto(f::Function, t::AbstractGraph, N::Int) = anythrough(f, t, N - 1)
+
+############################################################################################
+#### 2022-03-28: simpler mapat, mapall
+"""
+    mapat!(f::Function, A::Vector, t::AbstractGraph, N::Int, C::Int)
+
+`push!` into `A` the value returned by applying `f` to each element at the given level `N`,
+starting at the level `C`. Call signature of `f` is: `f(t::AbstractGraph)`.
+
+"""
+function mapat!(f::Function, A::Vector, t::AbstractGraph, N::Int, C::Int)
+    isempty(t) && return A
+    C̃ = C + 1
+    if C̃ < N
+        for p ∈ t
+            mapat!(f, A, p.second, N, C̃)
+        end
+    elseif C̃ == N
+        for p ∈ t
+            push!(A, f(p.second))
+        end
+    end
+    return A
+end
+
+"""
+    mapat(f::Function, t::AbstractGraph, N::Int)
+
+Transform each element at the given level `N`, returning a `Vector` of the transformed
+values. Call signature of `f` is: `f(t::AbstractGraph)`.
+
+See also: [`mapat!`](@ref)
+"""
+function mapat(f::Function, t::AbstractGraph, N::Int)
+    T = typeof(f(t))
+    mapat!(f, Vector{T}(), t, N, 1)
+end
+
+# An equivalent way to enact it
+# function mapat3(f::Function, t::AbstractGraph, N::Int)
+#     T = typeof(f(t))
+#     g = (dest, x) -> push!(dest[1], f(x))
+#     A = Vector{T}()
+#     mapat!(g, (A,), t, N, 1)
+#     return A
+# end
+
+
+####
+"""
+    mapall!(f::Function, A::Vector, t::AbstractGraph)
+
+`push!` into `A` the value returned by applying `f` to each element.
+Recursion runs over all nodes on all levels. Call signature of `f` is: `f(t::AbstractGraph)`.
+
+See also: [`mapall`](@ref), [`mapat!`](@ref), [`mapfrom!`](@ref),
+[`mapthrough!`](@ref), [`mapupto!`](@ref)
+"""
+function mapall!(f::Function, A::Vector, t::AbstractGraph)
+    push!(A, f(t))
+    isempty(t) && return A
+    for p ∈ t
+        mapall!(f, A, p.second)
+    end
+    return A
+end
+
+"""
+    mapall(f::Function, t::AbstractGraph)
+
+Transform each element, return a `Vector` of the transformed values.
+Recursion runs over all nodes on all levels. Call signature of `f` is: `f(t::AbstractGraph)`.
+
+See also: [`mapall!`](@ref)
+"""
+function mapall(f::Function, t::AbstractGraph)
+    T = typeof(f(t))
+    mapall!(f, Vector{T}(), t)
+end
+
+"""
+    mapfrom!(f::Function, A::Vector, t::AbstractGraph, N::Int, C::Int)
+
+`push!` into `A` the value returned by applying `f` to each element.
+Proceed to `N - 1`th level, begin recursion which acts on all levels, the first of which is `N`.
+Call signature of `f` is: `f(t::AbstractGraph)`.
+"""
+function mapfrom!(f::Function, A::Vector, t::AbstractGraph, N::Int, C::Int)
+    isempty(t) && return A
+    C̃ = C + 1
+    if C̃ < N
+        for p ∈ t
+            mapfrom!(f, A, p.second, N, C̃)
+        end
+    else
+        for p ∈ t
+            push!(A, f(p.second))
+        end
+    end
+    return A
+end
+
+"""
+    mapfrom(f::Function, t::AbstractGraph, N::Int)
+
+Transform each element at the given level `N`, returning a `Vector` of the transformed values.
+Proceed to `N - 1`th level, begin recursion which acts on all levels, the first of which is `N`.
+Call signature of `f` is: `f(t::AbstractGraph)`.
+"""
+function mapfrom(f::Function, t::AbstractGraph, N::Int)
+    T = typeof(f(t))
+    mapfrom!(f, Vector{T}(), t, N, 1)
+end
+
+"""
+    mapthrough!(f::Function, A::Vector, t::AbstractGraph, N::Int)
+
+`push!` into `A` the value returned by applying `f` to each element.
+Recursion runs over all nodes on all levels up to and including `N`.
+Call signature of `f` is: `f(t::AbstractGraph)`.
+"""
+function mapthrough!(f::Function, A::Vector, t::AbstractGraph, N::Int, C::Int)
+    push!(A, f(t))
+    isempty(t) && return A
+    C̃ = C + 1
+    if C̃ ≤ N
+        for p ∈ t
+            mapthrough!(f, A, p.second, N, C)
+        end
+    end
+    return A
+end
+
+"""
+    mapthrough(f::Function, t::AbstractGraph, N::Int)
+
+Transform each element, return a `Vector` of the transformed values.
+Recursion runs over all nodes on all levels up to and including `N`.
+Call signature of `f` is: `f(t::AbstractGraph)`.
+"""
+function mapthrough(f::Function, t::AbstractGraph, N::Int)
+    T = typeof(f(t))
+    mapthrough!(f, Vector{T}(), t, N, 1)
+end
+
+"""
+    mapupto!(f::Function, A::Vector, t::AbstractGraph, N::Int)
+
+`push!` into `A` the value returned by applying `f` to each element.
+Recursion runs over all nodes on all levels up to _but not_
+including `N` (i.e. up to and including `N - 1`). Call signature of `f` is: `f(t::AbstractGraph)`.
+"""
+mapupto!(f::Function, A::Vector, t::AbstractGraph, N::Int) =
+    mapthrough!(f, A, t, N - 1, 1)
+
+"""
+    mapupto(f::Function, t::AbstractGraph, N::Int)
+
+Transform each element, return a `Vector` of the transformed values.
+Recursion runs over all nodes on all levels up to _but not_ including
+`N` (i.e. up to and including `N - 1`). Call signature of `f` is: `f(t::AbstractGraph)`.
+"""
+mapupto(f::Function, t::AbstractGraph, N::Int) = mapthrough(f, t, N - 1)
