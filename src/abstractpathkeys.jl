@@ -214,3 +214,70 @@ end
 #         Base.Cartesian.@nexprs $N i -> x[i] = ftrs[i](A)
 #     end
 # end
+
+############################################################################################
+#### 2022-03-28: a revision to make N known at compile time
+# As it happens, this makes effectively no difference in terms of performance based
+# on tests of the relevant functor methods. Perhaps it would make a difference
+# in other generated functions that resort to ::Val(p.N), but,
+# testing reveals that performance is essentially the same.
+
+# abstract type AbstractPathKeys2{U, N} end
+# struct PathKeys2{U<:Tuple{Vararg{T, N} where {T<:AbstractPathKey}} where {N}, N} <: AbstractPathKeys2{U, N}
+#     ftrs::U
+# end
+# PathKeys2(ftrs::U) where {U<:Tuple{Vararg{T, N} where {T<:AbstractPathKey}}} where {N} =
+#     PathKeys2{U,N}(ftrs)
+
+# Base.length(p::AbstractPathKeys2{U, N}) where {U, N} = N
+
+# Base.iterate(p::AbstractPathKeys2{U, N}, state=1) where {U, N} = state > N ? nothing : (p.ftrs[state], state + 1)
+# Base.eltype(p::AbstractPathKeys2) = eltype(p.ftrs)
+
+# Base.IndexStyle(::Type{<:AbstractPathKeys2}) = IndexLinear()
+# Base.getindex(p::AbstractPathKeys2, i::Int) = getindex(p.ftrs, i)
+# Base.getindex(p::AbstractPathKeys2, I) = Tuple(p[i] for i ∈ I)#[p[i] for i ∈ I]
+# Base.getindex(p::AbstractPathKeys2, ::Colon) = p.ftrs
+# Base.firstindex(p::AbstractPathKeys2) = 1
+# Base.lastindex(p::AbstractPathKeys2{U, N}) where {U, N} = N
+# # Base.setindex!(p::AbstractPathKeys2, v, i) = setindex!(p.ftrs, v, i)
+
+# function Base.isequal(p₁::AbstractPathKeys2, p₂::AbstractPathKeys2)
+#     p₁ === p₂ && return true
+#     length(p₁) == length(p₂) || return false
+#     for n = 1:length(p₁)
+#         p₁[n] == p₂[n] || return false
+#     end
+#     return true
+# end
+# Base.:(==)(p₁::AbstractPathKeys2, p₂::AbstractPathKeys2) = isequal(p₁, p₂)
+
+# #### Outer constructors: PathKeys2
+# PathKeys2(gen::T) where {T<:Base.Generator} = PathKeys2(Tuple(gen))
+
+# #### functor: PathKeys
+# @generated function (p::AbstractPathKeys2{U, N})(x, A) where {U, N}
+#     quote
+#         Base.Cartesian.@nexprs $N i -> x[i] = p[i](A)
+#         return x
+#     end
+# end
+
+# function (p::AbstractPathKeys2{U, N})(A) where {U, N}
+#     x = Vector{Any}(undef, N)
+#     p(x, A)
+# end
+
+# #### respective datagrow variants
+# @generated function datagrow2!(f::F, g::AbstractGraph, v::AbstractPathKey, p::AbstractPathKeys2{U, N}, itr) where {F, U, N}
+#     quote
+#         for item ∈ itr
+#             tmp = g
+#             Base.Cartesian.@nexprs $N i -> tmp = get!(f, tmp, p[i](item))
+#             push!(tmp.data, v(item))
+#         end
+#         return g
+#     end
+# end
+# datagrow2(f::Function, v::AbstractPathKey, p::AbstractPathKeys2) = datagrow2!(f, f(), v, p)
+# datagrow2(f::Function, v::AbstractPathKey, p::AbstractPathKeys2, itr) = datagrow2!(f, f(), v, p, itr)
