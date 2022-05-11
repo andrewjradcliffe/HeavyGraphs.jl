@@ -4,8 +4,8 @@ using EqualRanges
 # using SetDiffCard
 
 # abstractpathkeys.jl
-export AbstractPathKey, AbstractIndexedPathKey, IndexedPathKey,
-    AbstractPathKeys, PathKeys
+export AbstractEdge, AbstractIndexedEdge, IndexedEdge,
+    AbstractEdges, Edges
 
 # abstractgraph.jl
 export AbstractGraph, AbstractSimpleDiGraph, AbstractSimpleGraph,
@@ -56,7 +56,7 @@ export multabsentupto, multabsent
 export countabsent!, countstatus!, kcountstatus!, kcountabsent!,
     nextnonunit, dimsmultiplier
 
-include("abstractpathkeys.jl")
+include("abstractedges.jl")
 include("abstractgraph.jl")
 
 include("ndops.jl")

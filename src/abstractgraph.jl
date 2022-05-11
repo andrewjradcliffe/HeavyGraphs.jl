@@ -599,13 +599,13 @@ end
 
 ############################################################################################
 #### Methods of grow_(:field)! : see p. 443-446, 451-455, 2021-09-14/15
-function grow!(f::Function, g::AbstractGraph, p::AbstractPathKeys)
+function grow!(f::Function, g::AbstractGraph, p::AbstractEdges)
     for x ∈ p
         get!(f, g, x...)
     end
     return g
 end
-# function grow!(f::Function, g::AbstractGraph, p::AbstractPathKeys, itr)
+# function grow!(f::Function, g::AbstractGraph, p::AbstractEdges, itr)
 #     x = Vector{Any}(undef, p.N)
 #     for item ∈ itr
 #         p(x, item)
@@ -615,7 +615,7 @@ end
 # end
 
 # Replaces splatting method
-@generated function grow!(f::Function, g::AbstractGraph, p::AbstractPathKeys,
+@generated function grow!(f::Function, g::AbstractGraph, p::AbstractEdges,
                           itr, ::Val{N}) where {N}
     quote
         for item ∈ itr
@@ -625,22 +625,22 @@ end
         return g
     end
 end
-function grow!(f::Function, g::AbstractGraph, p::AbstractPathKeys, itr)
+function grow!(f::Function, g::AbstractGraph, p::AbstractEdges, itr)
     grow!(f, g, p, itr, Val(p.N))
     return g
 end
 
 # Convenience wrappers, but useful nonetheless
-grow(f::Function, p::AbstractPathKeys) = grow!(f, f(), p)
-grow(f::Function, p::AbstractPathKeys, itr) = grow!(f, f(), p, itr)
+grow(f::Function, p::AbstractEdges) = grow!(f, f(), p)
+grow(f::Function, p::AbstractEdges, itr) = grow!(f, f(), p, itr)
 
-function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKeys, p::AbstractPathKeys)
+function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdges, p::AbstractEdges)
     for x ∈ p
         get_datapush!(f, g, v(x), x...)
     end
     return g
 end
-# function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKeys, p::AbstractPathKeys, itr)
+# function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdges, p::AbstractEdges, itr)
 #     x = Vector{Any}(undef, p.N)
 #     for item ∈ itr
 #         p(x, item)
@@ -648,13 +648,13 @@ end
 #     end
 #     return g
 # end
-function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKey, p::AbstractPathKeys)
+function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdge, p::AbstractEdges)
     for x ∈ p
         get_datapush!(f, g, v(x), x...)
     end
     return g
 end
-# function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKey, p::AbstractPathKeys, itr)
+# function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdge, p::AbstractEdges, itr)
 #     x = Vector{Any}(undef, p.N)
 #     for item ∈ itr
 #         p(x, item)
@@ -665,7 +665,7 @@ end
 
 # # Looped datagrow!, just to test speed. It is a substantial gain vs. splatting.
 # # Save for posterity.
-# function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKey, p::AbstractPathKeys, itr)
+# function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdge, p::AbstractEdges, itr)
 #     N = p.N
 #     for item ∈ itr
 #         tmp = g
@@ -677,15 +677,15 @@ end
 #     return g
 # end
 
-# Alternative meta using AbstractPathKeys4.
+# Alternative meta using AbstractEdges4.
 # Testing reveals that this is in fact the preferable way to enact datagrow!,
-# in particular when it can be combined with PathKeys4.
+# in particular when it can be combined with Edges4.
 # For depth up to L=500, the manually-unrolled code beats the loop. Notably,
 # if L is 500, one should _seriously_ consider something besides HeavyGraphs
 # for whatever the purpose. That would be a potentially massive graph, and
 # direct methods such as this are likely ill-suited.
-@generated function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKey,
-                              p::AbstractPathKeys, itr, ::Val{N}) where {N}
+@generated function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdge,
+                              p::AbstractEdges, itr, ::Val{N}) where {N}
     quote
         for item ∈ itr
             tmp = g
@@ -696,14 +696,14 @@ end
     end
 end
 
-function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKey, p::AbstractPathKeys, itr)
+function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdge, p::AbstractEdges, itr)
     datagrow!(f, g, v, p, itr, Val(p.N))
     return g
 end
 
 # Cover the second dispatch
-@generated function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKeys,
-                              p::AbstractPathKeys, itr, ::Val{N}) where {N}
+@generated function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdges,
+                              p::AbstractEdges, itr, ::Val{N}) where {N}
     quote
         for item ∈ itr
             tmp = g
@@ -713,46 +713,46 @@ end
         return g
     end
 end
-function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKeys, p::AbstractPathKeys, itr)
+function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdges, p::AbstractEdges, itr)
     datagrow!(f, g, v, p, itr, Val(p.N))
     return g
 end
 
 # Convenience wrappers, but useful nonetheless
-datagrow(f::Function, v::AbstractPathKeys, p::AbstractPathKeys) = datagrow!(f, f(), v, p)
-datagrow(f::Function, v::AbstractPathKey, p::AbstractPathKeys) = datagrow!(f, f(), v, p)
-datagrow(f::Function, v::AbstractPathKey, p::AbstractPathKeys, itr) = datagrow!(f, f(), v, p, itr)
-datagrow(f::Function, v::AbstractPathKeys, p::AbstractPathKeys, itr) = datagrow!(f, f(), v, p, itr)
+datagrow(f::Function, v::AbstractEdges, p::AbstractEdges) = datagrow!(f, f(), v, p)
+datagrow(f::Function, v::AbstractEdge, p::AbstractEdges) = datagrow!(f, f(), v, p)
+datagrow(f::Function, v::AbstractEdge, p::AbstractEdges, itr) = datagrow!(f, f(), v, p, itr)
+datagrow(f::Function, v::AbstractEdges, p::AbstractEdges, itr) = datagrow!(f, f(), v, p, itr)
 
 # 2022-01-10: multi-step growth
-function datagrow!(f::Function, x::AbstractGraph, vs::Vector{<:AbstractPathKey},
-                   ps::Vector{<:AbstractPathKeys}, itrs::Vector)
+function datagrow!(f::Function, x::AbstractGraph, vs::Vector{<:AbstractEdge},
+                   ps::Vector{<:AbstractEdges}, itrs::Vector)
     for i ∈ eachindex(vs, ps, itrs)
         datagrow!(f, x, vs[i], ps[i], itrs[i])
     end
     return x
 end
-datagrow(f::Function, vs::Vector{<:AbstractPathKey}, ps::Vector{<:AbstractPathKeys}, itrs::Vector) =
+datagrow(f::Function, vs::Vector{<:AbstractEdge}, ps::Vector{<:AbstractEdges}, itrs::Vector) =
     datagrow!(f, f(), vs, ps, itrs)
 
 # 2022-01-11: alternative meta
 @generated function datagrow!(f::Function, x::AbstractGraph,
-                              vs::Tuple{Vararg{T, N} where {T<:AbstractPathKey}},
-                              ps::Tuple{Vararg{S, N} where {S<:AbstractPathKeys}}, itrs) where {N}
+                              vs::Tuple{Vararg{T, N} where {T<:AbstractEdge}},
+                              ps::Tuple{Vararg{S, N} where {S<:AbstractEdges}}, itrs) where {N}
     quote
         Base.Cartesian.@nexprs $N i -> datagrow!(f, x, vs[i], ps[i], itrs[i])
     end
 end
 # Convenience wrapper
 function datagrow(f::Function,
-                  vs::Tuple{Vararg{T, N} where {T<:AbstractPathKey}},
-                  ps::Tuple{Vararg{S, N} where {S<:AbstractPathKeys}}, itrs) where {N}
+                  vs::Tuple{Vararg{T, N} where {T<:AbstractEdge}},
+                  ps::Tuple{Vararg{S, N} where {S<:AbstractEdges}}, itrs) where {N}
     datagrow!(f, f(), vs, ps, itrs)
 end
 
 ################################
 # Growth from non-flat sources - p. 475, 2021-09-22
-function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKeys, p::AbstractPathKeys,
+function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdges, p::AbstractEdges,
                    vitr, pitr)
     x = Vector{Any}(undef, p.N)
     for (a, b) ∈ zip(vitr, pitr)
@@ -761,7 +761,7 @@ function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKeys, p::Abstra
     end
     return g
 end
-function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKey, p::AbstractPathKeys,
+function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdge, p::AbstractEdges,
                    vitr, pitr)
     x = Vector{Any}(undef, p.N)
     for (a, b) ∈ zip(vitr, pitr)
@@ -771,7 +771,7 @@ function datagrow!(f::Function, g::AbstractGraph, v::AbstractPathKey, p::Abstrac
     return g
 end
 # Possible parallel growth method
-function tdatagrow!(f::Function, g::AbstractGraph, v::AbstractPathKeys, p::AbstractPathKeys,
+function tdatagrow!(f::Function, g::AbstractGraph, v::AbstractEdges, p::AbstractEdges,
                     itrsource::AbstractDict)
     @sync for p ∈ t
         Threads.@spawn datagrow!(f, p.second, v, p, eachcol(itrsource[p.first]))
@@ -785,30 +785,30 @@ end
 
 ################
 # 2021-11-10: map constructors for vectors of iterables
-function mapgrow!(f::Function, gs::Vector{A}, p::AbstractPathKeys, itrs::Vector{T}) where {T} where {A<:AbstractGraph}
+function mapgrow!(f::Function, gs::Vector{A}, p::AbstractEdges, itrs::Vector{T}) where {T} where {A<:AbstractGraph}
     @inbounds for i ∈ eachindex(gs, itrs)
         grow!(f, gs[i], p, itrs[i])
     end
     return gs
 end
-function mapgrow(f::Function, p::AbstractPathKeys, itrs::Vector{T}) where {T}
+function mapgrow(f::Function, p::AbstractEdges, itrs::Vector{T}) where {T}
     gs = [f() for _ = 1:length(itrs)]
     mapgrow!(f, gs, p, itrs)
 end
 
-function tmapgrow!(f::Function, gs::Vector{A}, p::AbstractPathKeys, itrs::Vector{T}) where {T} where {A<:AbstractGraph}
+function tmapgrow!(f::Function, gs::Vector{A}, p::AbstractEdges, itrs::Vector{T}) where {T} where {A<:AbstractGraph}
     @sync @inbounds for i ∈ eachindex(gs, itrs)
         Threads.@spawn grow!(f, gs[i], p, itrs[i])
     end
     return gs
 end
 
-function tmapgrow(f::Function, p::AbstractPathKeys, itrs::Vector{T}) where {T}
+function tmapgrow(f::Function, p::AbstractEdges, itrs::Vector{T}) where {T}
     gs = [f() for _ = 1:length(itrs)]
     tmapgrow!(f, gs, p, itrs)
 end
 
-function tʳmapgrow!(f::Function, gs::Vector{A}, p::AbstractPathKeys, itrs::Vector{T}, M::Int=Threads.nthreads()) where {T} where {A<:AbstractGraph}
+function tʳmapgrow!(f::Function, gs::Vector{A}, p::AbstractEdges, itrs::Vector{T}, M::Int=Threads.nthreads()) where {T} where {A<:AbstractGraph}
     ranges = equalranges(length(itrs), M)
     @sync for r ∈ ranges
         Threads.@spawn mapgrow!(f, gs[r], p, itrs[r])
@@ -816,36 +816,36 @@ function tʳmapgrow!(f::Function, gs::Vector{A}, p::AbstractPathKeys, itrs::Vect
     return gs
 end
 
-function tʳmapgrow(f::Function, p::AbstractPathKeys, itrs::Vector{T}, M::Int=Threads.nthreads()) where {T}
+function tʳmapgrow(f::Function, p::AbstractEdges, itrs::Vector{T}, M::Int=Threads.nthreads()) where {T}
     gs = [f() for _ = 1:length(itrs)]
     tʳmapgrow!(f, gs, p, itrs, M)
 end
 
 ####
-function mapdatagrow!(f::Function, gs::Vector{A}, v::AbstractPathKey, p::AbstractPathKeys, itrs::Vector{T}) where {T} where {A<:AbstractGraph}
+function mapdatagrow!(f::Function, gs::Vector{A}, v::AbstractEdge, p::AbstractEdges, itrs::Vector{T}) where {T} where {A<:AbstractGraph}
     @inbounds for i ∈ eachindex(gs, itrs)
         datagrow!(f, gs[i], v, p, itrs[i])
     end
     return gs
 end
-function mapdatagrow(f::Function, v::AbstractPathKey, p::AbstractPathKeys, itrs::Vector{T}) where {T}
+function mapdatagrow(f::Function, v::AbstractEdge, p::AbstractEdges, itrs::Vector{T}) where {T}
     gs = [f() for _ = 1:length(itrs)]
     mapdatagrow!(f, gs, v, p, itrs)
 end
 
-function tmapdatagrow!(f::Function, gs::Vector{A}, v::AbstractPathKey, p::AbstractPathKeys, itrs::Vector{T}) where {T} where {A<:AbstractGraph}
+function tmapdatagrow!(f::Function, gs::Vector{A}, v::AbstractEdge, p::AbstractEdges, itrs::Vector{T}) where {T} where {A<:AbstractGraph}
     @sync @inbounds for i ∈ eachindex(gs, itrs)
         Threads.@spawn datagrow!(f, gs[i], v, p, itrs[i])
     end
     return gs
 end
 
-function tmapdatagrow(f::Function, v::AbstractPathKey, p::AbstractPathKeys, itrs::Vector{T}) where {T}
+function tmapdatagrow(f::Function, v::AbstractEdge, p::AbstractEdges, itrs::Vector{T}) where {T}
     gs = [f() for _ = 1:length(itrs)]
     tmapdatagrow!(f, gs, v, p, itrs)
 end
 
-function tʳmapdatagrow!(f::Function, gs::Vector{A}, v::AbstractPathKey, p::AbstractPathKeys, itrs::Vector{T}, M::Int=Threads.nthreads()) where {T} where {A<:AbstractGraph}
+function tʳmapdatagrow!(f::Function, gs::Vector{A}, v::AbstractEdge, p::AbstractEdges, itrs::Vector{T}, M::Int=Threads.nthreads()) where {T} where {A<:AbstractGraph}
     ranges = equalranges(length(itrs), M)
     @sync for r ∈ ranges
         Threads.@spawn mapdatagrow!(f, gs[r], v, p, itrs[r])
@@ -853,19 +853,19 @@ function tʳmapdatagrow!(f::Function, gs::Vector{A}, v::AbstractPathKey, p::Abst
     return gs
 end
 
-function tʳmapdatagrow(f::Function, v::AbstractPathKey, p::AbstractPathKeys, itrs::Vector{T}, M::Int=Threads.nthreads()) where {T}
+function tʳmapdatagrow(f::Function, v::AbstractEdge, p::AbstractEdges, itrs::Vector{T}, M::Int=Threads.nthreads()) where {T}
     gs = [f() for _ = 1:length(itrs)]
     tʳmapdatagrow!(f, gs, v, p, itrs, M)
 end
 
 
-# function mapdatagrow!(f::Function, gs::Vector{A}, v::AbstractPathKey, p::AbstractPathKeys, itrs::Vector{T}) where {T} where {A<:AbstractGraph}
+# function mapdatagrow!(f::Function, gs::Vector{A}, v::AbstractEdge, p::AbstractEdges, itrs::Vector{T}) where {T} where {A<:AbstractGraph}
 #     for i ∈ eachindex(gs, itrs)
 #         datagrow!(f, gs[i], v, p, itrs[i])
 #     end
 #     return gs
 # end
-# function mapdatagrow(f::Function, v::AbstractPathKey, p::AbstractPathKeys, itrs::Vector{T}) where {T}
+# function mapdatagrow(f::Function, v::AbstractEdge, p::AbstractEdges, itrs::Vector{T}) where {T}
 #     gs = Vector{typeof(f())}(undef, length(itrs))
 #     # @inbounds for n ∈ eachindex(itrs)
 #     #     gs[n] = datagrow(f, v, p, eachcol(itrs[n]))
@@ -874,7 +874,7 @@ end
 #     return gs
 # end
 
-# function tmapdatagrow!(f::Function, gs::Vector{A}, v::AbstractPathKey, p::AbstractPathKeys, itrs::Vector{T}, M::Int=Threads.nthreads()) where {T} where {A<:AbstractGraph}
+# function tmapdatagrow!(f::Function, gs::Vector{A}, v::AbstractEdge, p::AbstractEdges, itrs::Vector{T}, M::Int=Threads.nthreads()) where {T} where {A<:AbstractGraph}
 #     N = length(itrs)
 #     ranges = equalranges(N, M)
 #     @inbounds @sync for m ∈ eachindex(ranges)
@@ -883,7 +883,7 @@ end
 #     return gs
 # end
 
-# function tmapdatagrow(f::Function, v::AbstractPathKey, p::AbstractPathKeys, itrs::Vector{T},
+# function tmapdatagrow(f::Function, v::AbstractEdge, p::AbstractEdges, itrs::Vector{T},
 #                       M::Int=Threads.nthreads()) where {T}
 #     N = length(itrs)
 #     ranges = equalranges(N, M)

@@ -13,19 +13,19 @@ qmat4 = reshape([1:200000;], (100, 2000));
 qmat5 = reshape([1:200000;], (200, 1000));
 qmat6 = reshape([1:200000;], (10, 20000));
 
-# default PathKeys
-pni = PathKeys([IndexedPathKey(i) for i = 1:4]);
-pm = PathKeys([[IndexedPathKey(i) for i = 1:3]; IndexedPathKey(string, 4)]);
-pni2 = PathKeys([IndexedPathKey(i) for i = 1:20]);
-pm2 = PathKeys([[IndexedPathKey(i) for i = 1:10]; IndexedPathKey(string, 11); [IndexedPathKey(i) for i = 12:20]]);
-pni3 = PathKeys([IndexedPathKey(i) for i = 1:50]);
-pm3 = PathKeys([[IndexedPathKey(i) for i = 1:10]; IndexedPathKey(string, 11); [IndexedPathKey(i) for i = 12:50]]);
-pni4 = PathKeys([IndexedPathKey(i) for i = 1:100]);
-pm4 = PathKeys([[IndexedPathKey(i) for i = 1:10]; IndexedPathKey(string, 11); [IndexedPathKey(i) for i = 12:100]]);
-pni5 = PathKeys([IndexedPathKey(i) for i = 1:200]);
-pm5 = PathKeys([[IndexedPathKey(i) for i = 1:10]; IndexedPathKey(string, 11); [IndexedPathKey(i) for i = 12:200]]);
-pni6 = PathKeys([IndexedPathKey(i) for i = 1:10]);
-pm6 = PathKeys([[IndexedPathKey(i) for i = 1:9]; IndexedPathKey(string, 10)]);
+# default Edges
+pni = Edges([IndexedEdge(i) for i = 1:4]);
+pm = Edges([[IndexedEdge(i) for i = 1:3]; IndexedEdge(string, 4)]);
+pni2 = Edges([IndexedEdge(i) for i = 1:20]);
+pm2 = Edges([[IndexedEdge(i) for i = 1:10]; IndexedEdge(string, 11); [IndexedEdge(i) for i = 12:20]]);
+pni3 = Edges([IndexedEdge(i) for i = 1:50]);
+pm3 = Edges([[IndexedEdge(i) for i = 1:10]; IndexedEdge(string, 11); [IndexedEdge(i) for i = 12:50]]);
+pni4 = Edges([IndexedEdge(i) for i = 1:100]);
+pm4 = Edges([[IndexedEdge(i) for i = 1:10]; IndexedEdge(string, 11); [IndexedEdge(i) for i = 12:100]]);
+pni5 = Edges([IndexedEdge(i) for i = 1:200]);
+pm5 = Edges([[IndexedEdge(i) for i = 1:10]; IndexedEdge(string, 11); [IndexedEdge(i) for i = 12:200]]);
+pni6 = Edges([IndexedEdge(i) for i = 1:10]);
+pm6 = Edges([[IndexedEdge(i) for i = 1:9]; IndexedEdge(string, 10)]);
 
 # gf() = SimpleNode()
 sdg() = SimpleDiGraph()
@@ -89,7 +89,7 @@ fl3_v3g!(dest, x) = (dest[1][1] += length(unique!([p.second.data[1] for p in x])
 
 ################
 prefix = "/nfs/site/home/aradclif/my_cit_scratch1/diagnosis/1276/x76se/gt_g1m/2021-09-15";
-pni7 = PathKeys([IndexedPathKey(i) for i = 1:10]);
+pni7 = Edges([IndexedEdge(i) for i = 1:10]);
 suffix8 = "D117E4C0_36.arrow" # 218MiB
 file8 = joinpath(prefix, suffix8);
 dmat8 = permutedims(hcat([convert(Vector{Any}, copy(col)) for col in Arrow.Table(file8)]...));
@@ -100,10 +100,10 @@ prefix10 = "/nfs/site/home/aradclif/my_cit_scratch1/diagnosis/1276/x76se/gt_g1m/
 suffix10 = "D117E4C0_36.arrow";
 file10 = joinpath(prefix10, suffix10);
 dmat10 = permutedims(hcat([convert(Vector{Any}, copy(col)) for col in Arrow.Table(file10)]...));
-pni10 = PathKeys([IndexedPathKey(x -> Tuple(x), [1, 2]); [IndexedPathKey(i) for i = 3:8]])
-vi10 = IndexedPathKey(cellinst, [10, 9])
-pni10_4 = PathKeys4((IndexedPathKey(x -> Tuple(x), [1, 2]), (IndexedPathKey(i) for i = 3:8)...))
-vi10_4 = IndexedPathKey(cellinst, [10, 9])
+pni10 = Edges([IndexedEdge(x -> Tuple(x), [1, 2]); [IndexedEdge(i) for i = 3:8]])
+vi10 = IndexedEdge(cellinst, [10, 9])
+pni10_4 = Edges4((IndexedEdge(x -> Tuple(x), [1, 2]), (IndexedEdge(i) for i = 3:8)...))
+vi10_4 = IndexedEdge(cellinst, [10, 9])
 ####
 
 # Result: growth on heterogeneous keys. SimpleNode is faster
@@ -200,39 +200,39 @@ bget!(sg, a2, 1,2,3,4,5)
 
 ############################################################################################
 #### 2022-01-11: Add performance tests of meta-unrolling
-p4 = PathKeys(Tuple(IndexedPathKey(i) for i = 1:9))
-v4 = IndexedPathKey(10)
+p4 = Edges(Tuple(IndexedEdge(i) for i = 1:9))
+v4 = IndexedEdge(10)
 
 # @timev datagrow(sdg, v4, p4, eachcol(m_dg));
 
 
-p1 = PathKeys([IndexedPathKey(i) for i = 1:9])
-v1 = IndexedPathKey(10)
+p1 = Edges([IndexedEdge(i) for i = 1:9])
+v1 = IndexedEdge(10)
 @timev datagrow(sdg, v1, p1, eachcol(m_dg));
 @timev datagrow3(sdg, v1, p1, eachcol(m_dg));
 
 L = 100
 rmat = rand(Int, L, 2000);
 
-p4_l = PathKeys(Tuple(IndexedPathKey(i) for i = 1:L-1));
-v4_l = IndexedPathKey(L);
+p4_l = Edges(Tuple(IndexedEdge(i) for i = 1:L-1));
+v4_l = IndexedEdge(L);
 
 @timev datagrow(sdg, v4_l, p4_l, eachcol(rmat));
 @code_warntype datagrow!(sdg, sdg(), v4_l, p4_l, eachcol(rmat), Val(100))
 
-p1_l = PathKeys([IndexedPathKey(i) for i = 1:L-1]);
-v1_l = IndexedPathKey(L);
+p1_l = Edges([IndexedEdge(i) for i = 1:L-1]);
+v1_l = IndexedEdge(L);
 @timev datagrow(sdg, v1_l, p1_l, eachcol(rmat));
 @timev datagrow3(sdg, v1_l, p1_l, eachcol(rmat));
 
 L = 10
 rmat = rand(Int, L, 2000);
-p4_l = PathKeys(Tuple(IndexedPathKey(i) for i = 1:L-1));
-v4_l = IndexedPathKey(L);
+p4_l = Edges(Tuple(IndexedEdge(i) for i = 1:L-1));
+v4_l = IndexedEdge(L);
 
 @benchmark datagrow(sdg, v4_l, p4_l, eachcol(rmat))
 
-p2_l = PathKeys2(Tuple(IndexedPathKey(i) for i = 1:L-1));
+p2_l = Edges2(Tuple(IndexedEdge(i) for i = 1:L-1));
 
 @benchmark datagrow2(sdg, v4_l, p2_l, eachcol(rmat))
 
