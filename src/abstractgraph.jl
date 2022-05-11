@@ -773,8 +773,8 @@ end
 # Possible parallel growth method
 function tdatagrow!(f::Function, g::AbstractGraph, v::AbstractEdges, p::AbstractEdges,
                     itrsource::AbstractDict)
-    @sync for p ∈ t
-        Threads.@spawn datagrow!(f, p.second, v, p, eachcol(itrsource[p.first]))
+    @sync for pₜ ∈ t
+        Threads.@spawn datagrow!(f, pₜ.second, v, p, eachcol(itrsource[pₜ.first]))
         # Alternative:
         # let itr = eachcol(itrsource[p.first])
         #     Threads.@spawn datagrow!(f, p.second, v, p, itr)
