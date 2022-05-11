@@ -615,8 +615,8 @@ end
 # end
 
 # Replaces splatting method
-@generated function grow!(f::Function, g::AbstractGraph, p::AbstractEdges,
-                          itr, ::Val{N}) where {N}
+@generated function grow!(f::Function, g::AbstractGraph, p::AbstractEdges{U, N},
+                          itr) where {U, N} #, ::Val{N}
     quote
         for item ∈ itr
             tmp = g
@@ -625,10 +625,10 @@ end
         return g
     end
 end
-function grow!(f::Function, g::AbstractGraph, p::AbstractEdges, itr)
-    grow!(f, g, p, itr, Val(p.N))
-    return g
-end
+# function grow!(f::Function, g::AbstractGraph, p::AbstractEdges, itr)
+#     grow!(f, g, p, itr) #, Val(p.N)
+#     return g
+# end
 
 # Convenience wrappers, but useful nonetheless
 grow(f::Function, p::AbstractEdges) = grow!(f, f(), p)
@@ -685,7 +685,7 @@ end
 # for whatever the purpose. That would be a potentially massive graph, and
 # direct methods such as this are likely ill-suited.
 @generated function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdge,
-                              p::AbstractEdges, itr, ::Val{N}) where {N}
+                              p::AbstractEdges{U, N}, itr) where {U, N} #, ::Val{N}
     quote
         for item ∈ itr
             tmp = g
@@ -696,14 +696,14 @@ end
     end
 end
 
-function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdge, p::AbstractEdges, itr)
-    datagrow!(f, g, v, p, itr, Val(p.N))
-    return g
-end
+# function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdge, p::AbstractEdges, itr)
+#     datagrow!(f, g, v, p, itr) #, Val(p.N)
+#     return g
+# end
 
 # Cover the second dispatch
 @generated function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdges,
-                              p::AbstractEdges, itr, ::Val{N}) where {N}
+                              p::AbstractEdges{U, N}, itr) where {U, N} #, ::Val{N}
     quote
         for item ∈ itr
             tmp = g
@@ -713,10 +713,10 @@ end
         return g
     end
 end
-function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdges, p::AbstractEdges, itr)
-    datagrow!(f, g, v, p, itr, Val(p.N))
-    return g
-end
+# function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdges, p::AbstractEdges, itr)
+#     datagrow!(f, g, v, p, itr) #, Val(p.N)
+#     return g
+# end
 
 # Convenience wrappers, but useful nonetheless
 datagrow(f::Function, v::AbstractEdges, p::AbstractEdges) = datagrow!(f, f(), v, p)
