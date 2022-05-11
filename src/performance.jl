@@ -235,4 +235,3 @@ v4_l = IndexedEdge(L);
 p2_l = Edges2(Tuple(IndexedEdge(i) for i = 1:L-1));
 
 @benchmark datagrow2(sdg, v4_l, p2_l, eachcol(rmat))
-
