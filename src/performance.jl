@@ -229,6 +229,7 @@ L = 10
 rmat = rand(Int, L, 2000);
 p4_l = Edges(Tuple(IndexedEdge(i) for i = 1:L-1));
 v4_l = IndexedEdge(L);
+v4_l = IndexedLabel(L);
 
 @benchmark datagrow(sdg, v4_l, p4_l, eachcol(rmat))
 

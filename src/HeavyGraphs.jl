@@ -3,9 +3,14 @@ module HeavyGraphs
 using EqualRanges
 # using SetDiffCard
 
-# abstractpathkeys.jl
+# abstractedges.jl
 export AbstractEdge, AbstractIndexedEdge, IndexedEdge,
     AbstractEdges, Edges
+
+# abstractlabels.jl
+export AbstractLabel, Label,
+    AbstractIndexedLabel, IndexedLabel,
+    AbstractLabels, Labels
 
 # abstractgraph.jl
 export AbstractGraph, AbstractSimpleDiGraph, AbstractSimpleGraph,
@@ -57,6 +62,7 @@ export countabsent!, countstatus!, kcountstatus!, kcountabsent!,
     nextnonunit, dimsmultiplier
 
 include("abstractedges.jl")
+include("abstractlabels.jl")
 include("abstractgraph.jl")
 
 include("ndops.jl")
