@@ -254,13 +254,15 @@ Base.getindex(p::AbstractEdges, ::Colon) = p.ftrs
 Base.firstindex(p::AbstractEdges) = 1
 Base.lastindex(p::AbstractEdges{U, N}) where {U, N} = N
 
+Base.keys(p::AbstractEdges) = keys(p.ftrs)
+
 function Base.isequal(p₁::AbstractEdges, p₂::AbstractEdges)
     p₁ === p₂ && return true
     length(p₁) == length(p₂) || return false
-    for n = 1:length(p₁)
-        p₁[n] == p₂[n] || return false
+    for i ∈ eachindex(p₁, p₂) #n = 1:length(p₁)
+        p₁[i] == p₂[i] || return false
     end
-    return true
+    true
 end
 Base.:(==)(p₁::AbstractEdges, p₂::AbstractEdges) = isequal(p₁, p₂)
 
