@@ -634,7 +634,7 @@ end
 grow(f::Function, p::AbstractEdges) = grow!(f, f(), p)
 grow(f::Function, p::AbstractEdges, itr) = grow!(f, f(), p, itr)
 
-function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdges, p::AbstractEdges)
+function datagrow!(f::Function, g::AbstractGraph, v::T, p::AbstractEdges) where {T<:Union{AbstractLabel, AbstractLabels}}
     for x ∈ p
         get_datapush!(f, g, v(x), x...)
     end
@@ -648,12 +648,12 @@ end
 #     end
 #     return g
 # end
-function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdge, p::AbstractEdges)
-    for x ∈ p
-        get_datapush!(f, g, v(x), x...)
-    end
-    return g
-end
+# function datagrow!(f::Function, g::AbstractGraph, v::AbstractLabel, p::AbstractEdges)
+#     for x ∈ p
+#         get_datapush!(f, g, v(x), x...)
+#     end
+#     return g
+# end
 # function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdge, p::AbstractEdges, itr)
 #     x = Vector{Any}(undef, p.N)
 #     for item ∈ itr
@@ -684,8 +684,8 @@ end
 # if L is 500, one should _seriously_ consider something besides HeavyGraphs
 # for whatever the purpose. That would be a potentially massive graph, and
 # direct methods such as this are likely ill-suited.
-@generated function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdge,
-                              p::AbstractEdges{U, N}, itr) where {U, N} #, ::Val{N}
+@generated function datagrow!(f::Function, g::AbstractGraph, v::T,
+                              p::AbstractEdges{U, N}, itr) where {U, N} where {T<:Union{AbstractLabel, AbstractLabels}}#, ::Val{N}
     quote
         for item ∈ itr
             tmp = g
@@ -702,27 +702,27 @@ end
 # end
 
 # Cover the second dispatch
-@generated function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdges,
-                              p::AbstractEdges{U, N}, itr) where {U, N} #, ::Val{N}
-    quote
-        for item ∈ itr
-            tmp = g
-            Base.Cartesian.@nexprs $N i -> tmp = get!(f, tmp, p[i](item))
-            push!(tmp.data, v(item))
-        end
-        return g
-    end
-end
+# @generated function datagrow!(f::Function, g::AbstractGraph, v::AbstractLabels,
+#                               p::AbstractEdges{U, N}, itr) where {U, N} #, ::Val{N}
+#     quote
+#         for item ∈ itr
+#             tmp = g
+#             Base.Cartesian.@nexprs $N i -> tmp = get!(f, tmp, p[i](item))
+#             push!(tmp.data, v(item))
+#         end
+#         return g
+#     end
+# end
 # function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdges, p::AbstractEdges, itr)
 #     datagrow!(f, g, v, p, itr) #, Val(p.N)
 #     return g
 # end
 
 # Convenience wrappers, but useful nonetheless
-datagrow(f::Function, v::AbstractEdges, p::AbstractEdges) = datagrow!(f, f(), v, p)
-datagrow(f::Function, v::AbstractEdge, p::AbstractEdges) = datagrow!(f, f(), v, p)
-datagrow(f::Function, v::AbstractEdge, p::AbstractEdges, itr) = datagrow!(f, f(), v, p, itr)
-datagrow(f::Function, v::AbstractEdges, p::AbstractEdges, itr) = datagrow!(f, f(), v, p, itr)
+datagrow(f::Function, v, p) = datagrow!(f, f(), v, p)
+# datagrow(f::Function, v::AbstractLabel, p::AbstractEdges) = datagrow!(f, f(), v, p)
+datagrow(f::Function, v, p, itr) = datagrow!(f, f(), v, p, itr)
+# datagrow(f::Function, v::AbstractLabels, p::AbstractEdges, itr) = datagrow!(f, f(), v, p, itr)
 
 # 2022-01-10: multi-step growth
 function datagrow!(f::Function, x::AbstractGraph, vs::Vector{<:AbstractEdge},
@@ -737,7 +737,7 @@ datagrow(f::Function, vs::Vector{<:AbstractEdge}, ps::Vector{<:AbstractEdges}, i
 
 # 2022-01-11: alternative meta
 @generated function datagrow!(f::Function, x::AbstractGraph,
-                              vs::Tuple{Vararg{T, N} where {T<:AbstractEdge}},
+                              vs::Tuple{Vararg{T, N} where {T<:Union{AbstractLabel, AbstractLabels}}},
                               ps::Tuple{Vararg{S, N} where {S<:AbstractEdges}}, itrs) where {N}
     quote
         Base.Cartesian.@nexprs $N i -> datagrow!(f, x, vs[i], ps[i], itrs[i])
@@ -745,15 +745,14 @@ datagrow(f::Function, vs::Vector{<:AbstractEdge}, ps::Vector{<:AbstractEdges}, i
 end
 # Convenience wrapper
 function datagrow(f::Function,
-                  vs::Tuple{Vararg{T, N} where {T<:AbstractEdge}},
+                  vs::Tuple{Vararg{T, N} where {T<:Union{AbstractLabel, AbstractLabels}}},
                   ps::Tuple{Vararg{S, N} where {S<:AbstractEdges}}, itrs) where {N}
     datagrow!(f, f(), vs, ps, itrs)
 end
 
 ################################
 # Growth from non-flat sources - p. 475, 2021-09-22
-function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdges, p::AbstractEdges,
-                   vitr, pitr)
+function datagrow!(f::Function, g::AbstractGraph, v::T, p::AbstractEdges, vitr, pitr) where {T<:Union{AbstractLabel, AbstractLabels}}
     x = Vector{Any}(undef, p.N)
     for (a, b) ∈ zip(vitr, pitr)
         p(x, b)
@@ -761,18 +760,18 @@ function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdges, p::AbstractE
     end
     return g
 end
-function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdge, p::AbstractEdges,
-                   vitr, pitr)
-    x = Vector{Any}(undef, p.N)
-    for (a, b) ∈ zip(vitr, pitr)
-        p(x, b)
-        get_datapush!(f, g, v(a), x...)
-    end
-    return g
-end
+# function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdge, p::AbstractEdges,
+#                    vitr, pitr)
+#     x = Vector{Any}(undef, p.N)
+#     for (a, b) ∈ zip(vitr, pitr)
+#         p(x, b)
+#         get_datapush!(f, g, v(a), x...)
+#     end
+#     return g
+# end
 # Possible parallel growth method
-function tdatagrow!(f::Function, g::AbstractGraph, v::AbstractEdges, p::AbstractEdges,
-                    itrsource::AbstractDict)
+function tdatagrow!(f::Function, g::AbstractGraph, v::T, p::AbstractEdges,
+                    itrsource::AbstractDict) where {T<:Union{AbstractLabel, AbstractLabels}}
     @sync for pₜ ∈ t
         Threads.@spawn datagrow!(f, pₜ.second, v, p, eachcol(itrsource[pₜ.first]))
         # Alternative:
@@ -822,30 +821,30 @@ function tʳmapgrow(f::Function, p::AbstractEdges, itrs::Vector{T}, M::Int=Threa
 end
 
 ####
-function mapdatagrow!(f::Function, gs::Vector{A}, v::AbstractEdge, p::AbstractEdges, itrs::Vector{T}) where {T} where {A<:AbstractGraph}
+function mapdatagrow!(f::Function, gs::Vector{A}, v::U, p::AbstractEdges, itrs::Vector{T}) where {T} where {A<:AbstractGraph} where {U<:Union{AbstractLabel, AbstractLabels}}
     @inbounds for i ∈ eachindex(gs, itrs)
         datagrow!(f, gs[i], v, p, itrs[i])
     end
     return gs
 end
-function mapdatagrow(f::Function, v::AbstractEdge, p::AbstractEdges, itrs::Vector{T}) where {T}
+function mapdatagrow(f::Function, v::U, p::AbstractEdges, itrs::Vector{T}) where {T} where {U<:Union{AbstractLabel, AbstractLabels}}
     gs = [f() for _ = 1:length(itrs)]
     mapdatagrow!(f, gs, v, p, itrs)
 end
 
-function tmapdatagrow!(f::Function, gs::Vector{A}, v::AbstractEdge, p::AbstractEdges, itrs::Vector{T}) where {T} where {A<:AbstractGraph}
+function tmapdatagrow!(f::Function, gs::Vector{A}, v::U, p::AbstractEdges, itrs::Vector{T}) where {T} where {A<:AbstractGraph} where {U<:Union{AbstractLabel, AbstractLabels}}
     @sync @inbounds for i ∈ eachindex(gs, itrs)
         Threads.@spawn datagrow!(f, gs[i], v, p, itrs[i])
     end
     return gs
 end
 
-function tmapdatagrow(f::Function, v::AbstractEdge, p::AbstractEdges, itrs::Vector{T}) where {T}
+function tmapdatagrow(f::Function, v::U, p::AbstractEdges, itrs::Vector{T}) where {T} where {U<:Union{AbstractLabel, AbstractLabels}}
     gs = [f() for _ = 1:length(itrs)]
     tmapdatagrow!(f, gs, v, p, itrs)
 end
 
-function tʳmapdatagrow!(f::Function, gs::Vector{A}, v::AbstractEdge, p::AbstractEdges, itrs::Vector{T}, M::Int=Threads.nthreads()) where {T} where {A<:AbstractGraph}
+function tʳmapdatagrow!(f::Function, gs::Vector{A}, v::U, p::AbstractEdges, itrs::Vector{T}, M::Int=Threads.nthreads()) where {T} where {A<:AbstractGraph} where {U<:Union{AbstractLabel, AbstractLabels}}
     ranges = equalranges(length(itrs), M)
     @sync for r ∈ ranges
         Threads.@spawn mapdatagrow!(f, gs[r], v, p, itrs[r])
@@ -853,7 +852,7 @@ function tʳmapdatagrow!(f::Function, gs::Vector{A}, v::AbstractEdge, p::Abstrac
     return gs
 end
 
-function tʳmapdatagrow(f::Function, v::AbstractEdge, p::AbstractEdges, itrs::Vector{T}, M::Int=Threads.nthreads()) where {T}
+function tʳmapdatagrow(f::Function, v::U, p::AbstractEdges, itrs::Vector{T}, M::Int=Threads.nthreads()) where {T} where {U<:Union{AbstractLabel, AbstractLabels}}
     gs = [f() for _ = 1:length(itrs)]
     tʳmapdatagrow!(f, gs, v, p, itrs, M)
 end
