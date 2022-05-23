@@ -457,13 +457,14 @@ end
 
 # this should actually be forwardget (abbrev. fget), and a backwardget should exist
 # In fact, providing the dispatch to get! on AbstractSimpleGraph should be enough
-# function Base.get!(f::Function, V₁::AbstractSimpleGraph, k)
-#     V₂ = get!(f, V₁.fadj, k)
-#     setindex!(V₂.badj, V₁, k)
-#     V₂
-# end
+function Base.get!(f::Function, V₁::AbstractSimpleGraph, k)
+    V₂ = get!(f, V₁.fadj, k)
+    setindex!(V₂.badj, V₁, k)
+    V₂
+end
 function bget!(f::Function, V₁::AbstractSimpleGraph, k)
-    V₂ = get!(f, V₁, k) # get!(f, V₁.fadj, k)
+    # V₂ = get!(f, V₁, k) # get!(f, V₁.fadj, k)
+    V₂ = get!(f, V₁.fadj, k)
     setindex!(V₂.badj, V₁, k)
     V₂
 end
