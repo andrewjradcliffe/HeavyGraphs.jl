@@ -331,21 +331,21 @@ SimpleDiGraph{T}() where {T} = SimpleDiGraph(Dict{T, SimpleDiGraph{T}}())
 SimpleDiGraph() = SimpleDiGraph{Any}()
 SimpleDiGraph(::Type{T}) where {T} = SimpleDiGraph{T}()
 
-@benchmark SimpleDiGraph{UInt}()
+# @benchmark SimpleDiGraph{UInt}()
 
-fadj = Dict{UInt, SimpleDiGraph{UInt}}()
-@timev SimpleDiGraph(fadj, [])
-@timev SimpleDiGraph(Dict{UInt, SimpleDiGraph{UInt}}(), [])
-x = SimpleDiGraph(fadj, [])
-@code_warntype keys(x)
-data = []
-@code_warntype SimpleDiGraph(fadj, data)
+# fadj = Dict{UInt, SimpleDiGraph{UInt}}()
+# @timev SimpleDiGraph(fadj, [])
+# @timev SimpleDiGraph(Dict{UInt, SimpleDiGraph{UInt}}(), [])
+# x = SimpleDiGraph(fadj, [])
+# @code_warntype keys(x)
+# data = []
+# @code_warntype SimpleDiGraph(fadj, data)
 
-usdg() = SimpleDiGraph{UInt}()
-@timev get!(usdg, usdg(), 0x1, 0x2, 0x3)
-@code_warntype get!(usdg, x, 0x1, 0x2, 0x3)
-@code_warntype get!(sdg, sdg(), 0x1, 0x2, 0x3)
-@timev get!(sdg, sdg(), 0x1, 0x2, 0x3)
+# usdg() = SimpleDiGraph{UInt}()
+# @timev get!(usdg, usdg(), 0x1, 0x2, 0x3)
+# @code_warntype get!(usdg, x, 0x1, 0x2, 0x3)
+# @code_warntype get!(sdg, sdg(), 0x1, 0x2, 0x3)
+# @timev get!(sdg, sdg(), 0x1, 0x2, 0x3)
 
 #### Outer constructors: SimpleGraph
 SimpleGraph(fadj::Dict{T,SimpleGraph{T}}, badj::Dict{T,SimpleGraph{T}}) where {T} = SimpleGraph(fadj, badj, [])
@@ -425,7 +425,7 @@ function SimpleGraph(g::SimpleDiGraph{T}) where {T}
     fadj = sg.fadj
     badj = sg.badj
     for p ∈ g
-        fadj[p.first] = SimpleGraph{T}(p.second)
+        fadj[p.first] = SimpleGraph(p.second)
         fadj[p.first].badj[p.first] = sg
     end
     sg
@@ -578,16 +578,7 @@ function get_datapush!(f::Function, g::AbstractGraph, v, k1)
     push!(tmp.data, v)
     tmp
 end
-# function get_datapush!(f::Function, g::AbstractGraph, v, k1, k2)
-#     tmp = get!(f, g, k1, k2)
-#     push!(tmp.data, v)
-#     tmp
-# end
-# function get_datapush!(f::Function, g::AbstractGraph, v, k1, k2, ks::Vararg{Any, N}) where {N}
-#     tmp = get!(f, g, k1, k2, ks...)
-#     push!(tmp.data, v)
-#     tmp
-# end
+
 function get_datapush!(f::Function, g::AbstractGraph, v, k1, ks...)
     tmp = get!(f, g, k1, ks...)
     push!(tmp.data, v)
@@ -602,18 +593,9 @@ function grow!(f::Function, g::AbstractGraph, p::AbstractEdges)
     end
     return g
 end
-# function grow!(f::Function, g::AbstractGraph, p::AbstractEdges, itr)
-#     x = Vector{Any}(undef, p.N)
-#     for item ∈ itr
-#         p(x, item)
-#         get!(f, g, x...)
-#     end
-#     return g
-# end
 
 # Replaces splatting method
-@generated function grow!(f::Function, g::AbstractGraph, p::AbstractEdges{U, N},
-                          itr) where {U, N} #, ::Val{N}
+@generated function grow!(f::Function, g::AbstractGraph, p::AbstractEdges{U, N}, itr) where {U, N}
     quote
         for item ∈ itr
             tmp = g
@@ -622,10 +604,6 @@ end
         return g
     end
 end
-# function grow!(f::Function, g::AbstractGraph, p::AbstractEdges, itr)
-#     grow!(f, g, p, itr) #, Val(p.N)
-#     return g
-# end
 
 # Convenience wrappers, but useful nonetheless
 grow(f::Function, p::AbstractEdges) = grow!(f, f(), p)
@@ -637,52 +615,9 @@ function datagrow!(f::Function, g::AbstractGraph, v::T, p::AbstractEdges) where 
     end
     return g
 end
-# function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdges, p::AbstractEdges, itr)
-#     x = Vector{Any}(undef, p.N)
-#     for item ∈ itr
-#         p(x, item)
-#         get_datapush!(f, g, v(item), x...)
-#     end
-#     return g
-# end
-# function datagrow!(f::Function, g::AbstractGraph, v::AbstractLabel, p::AbstractEdges)
-#     for x ∈ p
-#         get_datapush!(f, g, v(x), x...)
-#     end
-#     return g
-# end
-# function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdge, p::AbstractEdges, itr)
-#     x = Vector{Any}(undef, p.N)
-#     for item ∈ itr
-#         p(x, item)
-#         get_datapush!(f, g, v(item), x...)
-#     end
-#     return g
-# end
 
-# # Looped datagrow!, just to test speed. It is a substantial gain vs. splatting.
-# # Save for posterity.
-# function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdge, p::AbstractEdges, itr)
-#     N = p.N
-#     for item ∈ itr
-#         tmp = g
-#         for n = 1:N
-#             tmp = get!(f, tmp, p[n](item))
-#         end
-#         push!(tmp.data, v(item))
-#     end
-#     return g
-# end
-
-# Alternative meta using AbstractEdges4.
-# Testing reveals that this is in fact the preferable way to enact datagrow!,
-# in particular when it can be combined with Edges4.
-# For depth up to L=500, the manually-unrolled code beats the loop. Notably,
-# if L is 500, one should _seriously_ consider something besides HeavyGraphs
-# for whatever the purpose. That would be a potentially massive graph, and
-# direct methods such as this are likely ill-suited.
 @generated function datagrow!(f::Function, g::AbstractGraph, v::T,
-                              p::AbstractEdges{U, N}, itr) where {U, N} where {T<:Union{AbstractLabel, AbstractLabels}}#, ::Val{N}
+                              p::AbstractEdges{U, N}, itr) where {U, N} where {T<:Union{AbstractLabel, AbstractLabels}}
     quote
         for item ∈ itr
             tmp = g
@@ -693,33 +628,10 @@ end
     end
 end
 
-# function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdge, p::AbstractEdges, itr)
-#     datagrow!(f, g, v, p, itr) #, Val(p.N)
-#     return g
-# end
-
-# Cover the second dispatch
-# @generated function datagrow!(f::Function, g::AbstractGraph, v::AbstractLabels,
-#                               p::AbstractEdges{U, N}, itr) where {U, N} #, ::Val{N}
-#     quote
-#         for item ∈ itr
-#             tmp = g
-#             Base.Cartesian.@nexprs $N i -> tmp = get!(f, tmp, p[i](item))
-#             push!(tmp.data, v(item))
-#         end
-#         return g
-#     end
-# end
-# function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdges, p::AbstractEdges, itr)
-#     datagrow!(f, g, v, p, itr) #, Val(p.N)
-#     return g
-# end
 
 # Convenience wrappers, but useful nonetheless
 datagrow(f::Function, v, p) = datagrow!(f, f(), v, p)
-# datagrow(f::Function, v::AbstractLabel, p::AbstractEdges) = datagrow!(f, f(), v, p)
 datagrow(f::Function, v, p, itr) = datagrow!(f, f(), v, p, itr)
-# datagrow(f::Function, v::AbstractLabels, p::AbstractEdges, itr) = datagrow!(f, f(), v, p, itr)
 
 # 2022-01-10: multi-step growth
 function datagrow!(f::Function, x::AbstractGraph, vs::Vector{<:AbstractEdge},
@@ -757,15 +669,7 @@ function datagrow!(f::Function, g::AbstractGraph, v::T, p::AbstractEdges, vitr, 
     end
     return g
 end
-# function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdge, p::AbstractEdges,
-#                    vitr, pitr)
-#     x = Vector{Any}(undef, p.N)
-#     for (a, b) ∈ zip(vitr, pitr)
-#         p(x, b)
-#         get_datapush!(f, g, v(a), x...)
-#     end
-#     return g
-# end
+
 # Possible parallel growth method
 function tdatagrow!(f::Function, g::AbstractGraph, v::T, p::AbstractEdges,
                     itrsource::AbstractDict) where {T<:Union{AbstractLabel, AbstractLabels}}
