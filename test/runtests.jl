@@ -129,4 +129,54 @@ using Test
         @test !haspath(x, 5,6,7,8)
         @test !haspath(x, 2,2,3,4)
     end
+    @testset "SimpleGraph: Constructors" begin
+        #
+        x = SimpleGraph()
+        bget!(sg, x, 1,2)
+        size(x)
+        y = SimpleGraph()
+        y1 = bget!(sg, y, 1)
+        y2 = bget!(sg, y1, 2)
+        @test y == x
+        @test x[1] == y[1]
+        @test x[1, 2] == y[1, 2]
+        #
+        x = SimpleGraph()
+        bget!(sg, x, 1)
+        y = SimpleGraph()
+        get!(sg, y, 1)
+        @test x == y
+        bget!(sg, x, 1,2)
+        get!(sg, y, 1,2)
+        @test y == x
+        @test x[1] == y[1]
+        @test x[1, 2] == y[1, 2]
+        get!(sg, x, 1,2,3,4,5)
+        x1 = x[1]
+        @test x1.badj[1] == x
+        x2 = x1[2]
+        @test x2.badj[2] == x1
+        x3 = x[1,2,3]
+        @test x3 == x2[3]
+        @test x[1,2,3,4] == x3[4]
+        tmp_p = x
+        tmp_n = x
+        for i ∈ (1,2,3,4,5)
+            global tmp_n = tmp_p[i]
+            @test tmp_n.badj[i] == tmp_p
+            @test all(==(1), size(tmp_n))
+            global tmp_p = tmp_n
+        end
+        #
+        get!(sg, x, 2,3,4,5,6)
+        @test size(x) == (1, 2,2,2,2,2)
+        tmp_p = x
+        tmp_n = x
+        for i ∈ (2,3,4,5,6)
+            global tmp_n = tmp_p[i]
+            @test tmp_n.badj[i] == tmp_p
+            @test all(==(1), size(tmp_n))
+            global tmp_p = tmp_n
+        end
+    end
 end
