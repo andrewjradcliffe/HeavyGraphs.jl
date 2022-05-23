@@ -178,5 +178,12 @@ using Test
             @test all(==(1), size(tmp_n))
             global tmp_p = tmp_n
         end
+        x[3] = SimpleGraph()
+        x3 = x[3]
+        @test x3.badj[3] == x
+        get!(sg, x, 4)
+        x4 = x[4]
+        @test x4.badj[4] == x
+        @test setindex!(x, SimpleGraph(), 5) == x
     end
 end
