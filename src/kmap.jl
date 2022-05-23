@@ -268,15 +268,15 @@ end
 #### levs_ks
 
 """
-    kmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
-              t::AbstractGraph, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
+    kmapupto!(f::Function, dest::Tuple{Vararg{Array{S}} where S}, ks::Vector,
+              t::AbstractGraph{T}, N::Int, C::Int, levs_ks::Vector{Vector{T}}) where {T}
 
 Level index set-respective analogy to `mapupto!`.
 
 Call signature of `f` is: `f(dest, ks, t::AbstractGraph, N, C, levs_ks)`.
 """
-function kmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
-                   t::AbstractGraph, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
+function kmapupto!(f::Function, dest::Tuple{Vararg{Array{S}} where S}, ks::Vector,
+                   t::AbstractGraph{T}, N::Int, C::Int, levs_ks::Vector{Vector{T}}) where {T}
     # C̃ = C + 1
     # C̃ < N || return dest
     # f(dest, ks, t, N, C, levs_ks)
@@ -301,7 +301,7 @@ end
 
 """
     kmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
-             t::AbstractGraph, N::Int, levs_ks::Vector{Vector{Any}})
+             t::AbstractGraph{T}, N::Int, levs_ks::Vector{Vector{T}}) where {T}
 
 Level index set-respective analogy to `mapupto`.
 
@@ -316,8 +316,8 @@ end
 
 #### filter and levs_ks
 """
-    kmapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
-                    ks::Vector, t::AbstractGraph, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
+    kmapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{S}} where S},
+                    ks::Vector, t::AbstractGraph{T}, N::Int, C::Int, levs_ks::Vector{Vector{T}}) where {T}
 
 Filtered traversal, with level-respective index sets analogy to `mapfilterupto!`.
 
@@ -349,8 +349,8 @@ function kmapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{A
 end
 
 """
-    kmapfilterupto(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
-                   t::AbstractGraph, N::Int, levs_ks::Vector{Vector{Any}})
+    kmapfilterupto(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{S}} where S},
+                   t::AbstractGraph{T}, N::Int, levs_ks::Vector{Vector{T}}) where {T}
 
 Filtered traversal, with level-respective index sets analogy to `mapfilterupto`.
 

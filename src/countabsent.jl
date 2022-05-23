@@ -19,8 +19,8 @@
 # Or, given that we know dest to be a Tuple{Vararg{Array{T}} where T}, it might be:
 # f = (dest, ν, ks) -> incrementrows!(g, dest[2], ν, ks)
 ################
-function countabsent!(f::Function, dest::Tuple{Vararg{Array{T}} where T},
-                      t::AbstractGraph, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
+function countabsent!(f::Function, dest::Tuple{Vararg{Array{S}} where S},
+                      t::AbstractGraph{T}, N::Int, C::Int, levs_ks::Vector{Vector{T}}) where {T}
     Ñ = N - 1
     if C == Ñ
         lev_ks = setdiff(levs_ks[C], keys(t))
@@ -33,8 +33,8 @@ function countabsent!(f::Function, dest::Tuple{Vararg{Array{T}} where T},
     dest
 end
 
-function countabsent!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
-                      t::AbstractGraph, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
+function countabsent!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{S}} where S},
+                      t::AbstractGraph{T}, N::Int, C::Int, levs_ks::Vector{Vector{T}}) where {T}
     Ñ = N - 1
     if C == Ñ
         lev_ks = filter!(fs[C], setdiff(levs_ks[C], keys(t)))
@@ -179,8 +179,8 @@ end
 # fs = [g, h]
 # ca = (dest, ks, x, N, C, levs_ks) -> kcountabsent!(fs, dest[1], x, ks, N, C, levs_ks)
 # mapupto(ca, ((440, 47),), g, 3)
-function kcountabsent!(fs::Vector{Function}, A::AbstractArray, ks::Vector, x::AbstractGraph,
-                       N::Int, C::Int, levs_ks::Vector{Vector{Any}})
+function kcountabsent!(fs::Vector{Function}, A::AbstractArray, ks::Vector, x::AbstractGraph{T},
+                       N::Int, C::Int, levs_ks::Vector{Vector{T}}) where {T}
     # Option 1: single view
     mks = setdiff(levs_ks[C], keys(x))
     isempty(mks) && return A
@@ -261,7 +261,7 @@ function nextnonunit(dims::NTuple{M, Int}, C::Int) where {M}
     dims[C̃] != 1 ? C̃ : nextnonunit(dims, C̃)
 end
 
-function dimsmultiplier(dims::NTuple{M, Int}, N::Int, C::Int, levs_ks::Vector{Vector{Any}}) where {M}
+function dimsmultiplier(dims::NTuple{M, Int}, N::Int, C::Int, levs_ks::Vector{Vector{T}}) where {M} where {T}
     # Could optimize via rearrangement
     # nnu = C ≥ N - 1 ? N - 1 : nextnonunit(dims, C)
     # C̃ = C + 1
@@ -295,8 +295,8 @@ end
 # the meta-programmed code that manually unrolls the loop. It is also slightly
 # more memory-efficient.
 function kcountabsent!(fs::Vector{Function}, dims::NTuple{M, Int}, A::Array{T, M},
-                       ks::Vector, x::AbstractGraph,
-                       N::Int, C::Int, levs_ks::Vector{Vector{Any}}) where {M} where {T<:Number}
+                       ks::Vector, x::AbstractGraph{S},
+                       N::Int, C::Int, levs_ks::Vector{Vector{S}}) where {M} where {T<:Number} where {S}
     mks = setdiff(levs_ks[C], keys(x))
     isempty(mks) && return A
     idxs = ntuple(i -> fs[i](ks[i]), C - 1)
