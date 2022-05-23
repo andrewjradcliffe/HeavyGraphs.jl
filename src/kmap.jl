@@ -46,9 +46,9 @@ See also: [`mapat`](@ref), [`kmapat`](@ref), [`kmapfilterat`](@ref), [`kmapfilte
 
 """
 function kmapat(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                t::AbstractGraph, N::Int)
+                t::AbstractGraph{T}, N::Int) where {T}
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
-    ks = Vector{Any}(undef, N - 1)
+    ks = Vector{T}(undef, N - 1)
     kmapat!(f, dest, ks, t, N, 1)
 end
 
@@ -93,9 +93,9 @@ Call signature of `fs[C]` is: `fs[C](p::Pair)`.
 See also: [`mapfilterat`](@ref), [`kmapat`](@ref), [`kmapat!`](@ref)
 """
 function kmapfilterat(f::Function, fs::Vector{Function},
-                      dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractGraph, N::Int)
+                      dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractGraph{T}, N::Int) where {T}
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
-    ks = Vector{Any}(undef, N - 1)
+    ks = Vector{T}(undef, N - 1)
     kmapfilterat!(f, fs, dest, ks, t, N, 1)
 end
 
@@ -109,14 +109,14 @@ function kmapat!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
 end
 
 function kmapat(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                ts::Vector{<:AbstractGraph}, N::Int)
+                ts::Vector{T}, N::Int) where {U, T<:AbstractGraph{U}}
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
-    ks = Vector{Any}(undef, N - 1)
+    ks = Vector{U}(undef, N - 1)
     kmapat!(f, dest, ks, ts, N, 1)
 end
 
 function tkmapat(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                 ts::Vector{<:AbstractGraph}, L::Int, M::Int=Threads.nthreads())
+                 ts::Vector{T}, L::Int, M::Int=Threads.nthreads()) where {U, T<:AbstractGraph{U}}
     N = length(ts)
     # M = Threads.threads()
     ranges = equalranges(N, M)
@@ -137,15 +137,15 @@ function kmapfilterat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Arr
 end
 
 function kmapfilterat(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                      ts::Vector{<:AbstractGraph}, N::Int)
+                      ts::Vector{T}, N::Int) where {U, T<:AbstractGraph{U}}
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
-    ks = Vector{Any}(undef, N - 1)
+    ks = Vector{U}(undef, N - 1)
     kmapfilterat!(f, fs, dest, ks, ts, N, 1)
 end
 
 function tkmapfilterat(f::Function, fs::Vector{Function},
                        dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                       ts::Vector{<:AbstractGraph}, L::Int, M::Int=Threads.nthreads())
+                       ts::Vector{T}, L::Int, M::Int=Threads.nthreads()) where {U, T<:AbstractGraph{U}}
     N = length(ts)
     # M = Threads.threads()
     ranges = equalranges(N, M)
@@ -204,9 +204,9 @@ Call signature of `f` is: `f(dest, ks, t::AbstractGraph, N, C)`.
 See also: [`mapupto`](@ref), [`kmapfilterupto`](@ref), [`kmapfilterupto!`](@ref)
 
 """
-function kmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractGraph, N::Int)
+function kmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractGraph{T}, N::Int) where {T}
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
-    ks = Vector{Any}(undef, N - 2)
+    ks = Vector{T}(undef, N - 2)
     kmapupto!(f, dest, ks, t, N, 1)
 end
 
@@ -259,9 +259,9 @@ See also: [`mapfilterupto`](@ref), [`kmapupto`](@ref), [`kmapupto!`](@ref)
 
 """
 function kmapfilterupto(f::Function, fs::Vector{Function},
-                        dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractGraph, N::Int)
+                        dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractGraph{T}, N::Int) where {T}
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
-    ks = Vector{Any}(undef, N - 2)
+    ks = Vector{T}(undef, N - 2)
     kmapfilterupto!(f, fs, dest, ks, t, N, 1)
 end
 
@@ -308,9 +308,9 @@ Level index set-respective analogy to `mapupto`.
 Call signature of `f` is: `f(dest, ks, t::AbstractGraph, N, C, levs_ks)`.
 """
 function kmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                  t::AbstractGraph, N::Int, levs_ks::Vector{Vector{Any}})
+                  t::AbstractGraph{T}, N::Int, levs_ks::Vector{Vector{T}}) where {T}
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
-    ks = Vector{Any}(undef, N - 2)
+    ks = Vector{T}(undef, N - 2)
     kmapupto!(f, dest, ks, t, N, 1, levs_ks)
 end
 
@@ -324,8 +324,8 @@ Filtered traversal, with level-respective index sets analogy to `mapfilterupto!`
 Call signature of `f` is: `f(dest, ks, t::AbstractGraph, N, C, levs_ks)`.
 Call signature of `fs[C]` is: `fs[C](p::Pair)`.
 """
-function kmapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
-                         ks::Vector, t::AbstractGraph, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
+function kmapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{S}} where S},
+                         ks::Vector, t::AbstractGraph{T}, N::Int, C::Int, levs_ks::Vector{Vector{T}}) where {T}
     # C̃ = C + 1
     # C̃ < N || return dest
     # f(dest, ks, t, N, C, levs_ks)
@@ -359,9 +359,9 @@ Call signature of `fs[C]` is: `fs[C](p::Pair)`.
 """
 function kmapfilterupto(f::Function, fs::Vector{Function},
                         dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                        t::AbstractGraph, N::Int, levs_ks::Vector{Vector{Any}})
+                        t::AbstractGraph{T}, N::Int, levs_ks::Vector{Vector{T}}) where {T}
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
-    ks = Vector{Any}(undef, N - 2)
+    ks = Vector{T}(undef, N - 2)
     kmapfilterupto!(f, fs, dest, ks, t, N, 1, levs_ks)
 end
 
@@ -375,9 +375,9 @@ function kmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vecto
 end
 
 function kmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                  ts::Vector{<:AbstractGraph}, N::Int)
+                  ts::Vector{T}, N::Int) where {U, T<:AbstractGraph{U}}
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
-    ks = Vector{Any}(undef, N - 2)
+    ks = Vector{U}(undef, N - 2)
     kmapupto!(f, dest, ks, ts, N, 1)
 end
 
@@ -402,11 +402,9 @@ function kmapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{A
     dest
 end
 
-function kmapfilterupto(f::Function, fs::Vector{Function},
-                        dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                        ts::Vector{<:AbstractGraph}, N::Int)
+function kmapfilterupto(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S}, ts::Vector{T}, N::Int) where {U, T<:AbstractGraph{U}}
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
-    ks = Vector{Any}(undef, N - 2)
+    ks = Vector{U}(undef, N - 2)
     kmapfilterupto!(f, fs, dest, ks, ts, N, 1)
 end
 
@@ -426,7 +424,7 @@ end
 #### levs_ks
 
 function kmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
-                   ts::Vector{<:AbstractGraph}, N::Int, C::Int, levs_kss::Vector{Vector{Vector{Any}}})
+                   ts::Vector{T}, N::Int, C::Int, levs_kss::Vector{Vector{Vector{U}}}) where {U, T<:AbstractGraph{U}}
     for i ∈ eachindex(ts)
         kmapupto!(f, dest, ks, ts[i], N, C, levs_kss[i])
     end
@@ -434,15 +432,15 @@ function kmapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vecto
 end
 
 function kmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                  ts::Vector{<:AbstractGraph}, N::Int, levs_kss::Vector{Vector{Vector{Any}}})
+                  ts::Vector{T}, N::Int, levs_kss::Vector{Vector{Vector{U}}}) where {U, T<:AbstractGraph{U}}
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
-    ks = Vector{Any}(undef, N - 2)
+    ks = Vector{U}(undef, N - 2)
     kmapupto!(f, dest, ks, ts, N, 1, levs_kss)
 end
 
 function tkmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                   ts::Vector{<:AbstractGraph}, L::Int, levs_kss::Vector{Vector{Vector{Any}}},
-                   M::Int=Threads.nthreads())
+                   ts::Vector{T}, L::Int, levs_kss::Vector{Vector{Vector{U}}},
+                   M::Int=Threads.nthreads()) where {U, T<:AbstractGraph{U}}
     N = length(ts)
     # M = Threads.threads()
     ranges = equalranges(N, M)
@@ -455,8 +453,8 @@ end
 
 #### filter and levs_ks
 function kmapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
-                         ks::Vector, ts::Vector{<:AbstractGraph}, N::Int, C::Int,
-                         levs_kss::Vector{Vector{Vector{Any}}})
+                         ks::Vector, ts::Vector{T}, N::Int, C::Int,
+                         levs_kss::Vector{Vector{Vector{U}}}) where {U, T<:AbstractGraph{U}}
     for i ∈ eachindex(ts)
         kmapfilterupto!(f, fs, dest, ks, ts[i], N, C, levs_kss[i])
     end
@@ -465,16 +463,16 @@ end
 
 function kmapfilterupto(f::Function, fs::Vector{Function},
                         dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                        ts::Vector{<:AbstractGraph}, N::Int, levs_kss::Vector{Vector{Vector{Any}}})
+                        ts::Vector{T}, N::Int, levs_kss::Vector{Vector{Vector{U}}}) where {U, T<:AbstractGraph{U}}
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
-    ks = Vector{Any}(undef, N - 2)
+    ks = Vector{U}(undef, N - 2)
     kmapfilterupto!(f, fs, dest, ks, ts, N, 1, levs_kss)
 end
 
 function tkmapfilterupto(f::Function, fs::Vector{Function},
                          dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                         ts::Vector{<:AbstractGraph}, L::Int, levs_kss::Vector{Vector{Vector{Any}}},
-                         M::Int=Threads.nthreads())
+                         ts::Vector{T}, L::Int, levs_kss::Vector{Vector{Vector{U}}},
+                         M::Int=Threads.nthreads()) where {U, T<:AbstractGraph{U}}
     N = length(ts)
     # M = Threads.threads()
     ranges = equalranges(N, M)

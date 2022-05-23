@@ -427,8 +427,8 @@ level `C=1`, for which `f` returns true. Call signature of `f` is: `f(t::Abstrac
 
 See also: [`findpathsat!`](@ref)
 """
-function findpathsat(f::Function, t::AbstractGraph, N::Int)
-    findpathsat!(f, Vector{Vector{Any}}(), Vector{Any}(undef, N - 1), t, N, 1)
+function findpathsat(f::Function, t::AbstractGraph{T}, N::Int) where {T}
+    findpathsat!(f, Vector{Vector{T}}(), Vector{T}(undef, N - 1), t, N, 1)
 end
 
 ####
@@ -467,8 +467,8 @@ Recursion runs over all nodes on all levels. Call signature of `f` is: `f(t::Abs
 
 See also: [`findpathsall!`](@ref)
 """
-function findpathsall(f::Function, t::AbstractGraph)
-    findpathsall!(f, Vector{Vector{Any}}(), Any[], t)
+function findpathsall(f::Function, t::AbstractGraph{T}) where {T}
+    findpathsall!(f, Vector{Vector{T}}(), T[], t)
 end
 
 """
@@ -501,8 +501,8 @@ Return a vector of the Cartesian indices of elements for which `f` returns true.
 Proceed to `N - 1`th level, begin recursion which acts on all levels, the first of which is `N`.
 Call signature of `f` is: `f(t::AbstractGraph)`.
 """
-function findpathsfrom(f::Function, t::AbstractGraph, N::Int)
-    findpathsfrom!(f, Vector{Vector{Any}}(), t, N, 1)
+function findpathsfrom(f::Function, t::AbstractGraph{T}, N::Int) where {T}
+    findpathsfrom!(f, Vector{Vector{T}}(), t, N, 1)
 end
 
 """
@@ -536,8 +536,8 @@ Return a vector of the Cartesian indices of elements for which `f` returns true.
 Recursion runs over all nodes on all levels up to and including `N`.
 Call signature of `f` is: `f(t::AbstractGraph)`.
 """
-function findpathsthrough(f::Function, t::AbstractGraph, N::Int)
-    findpathsthrough!(f, Vector{Vector{Any}}(), Any[], t, N)
+function findpathsthrough(f::Function, t::AbstractGraph{T}, N::Int) where {T}
+    findpathsthrough!(f, Vector{Vector{T}}(), T[], t, N)
 end
 
 """

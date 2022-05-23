@@ -418,8 +418,8 @@ level-respective index sets, `levs_ks` as arguments to `f`.
 
 Call signature of `f` is: `f(dest, t::AbstractGraph, N, C, levs_ks)`.
 """
-function mapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T},
-                  t::AbstractGraph, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
+function mapupto!(f::Function, dest::Tuple{Vararg{Array{S}} where S},
+                  t::AbstractGraph{T}, N::Int, C::Int, levs_ks::Vector{Vector{T}}) where {T}
     # C̃ = C + 1
     # f(dest, t, N, C, levs_ks)
     # C̃ < N || return dest
@@ -450,7 +450,7 @@ level-respective index sets, `levs_ks` as arguments to `f`.
 Call signature of `f` is: `f(dest, t::AbstractGraph, N, C, levs_ks)`.
 """
 function mapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                 t::AbstractGraph, N::Int, levs_ks::Vector{Vector{Any}})
+                 t::AbstractGraph{T}, N::Int, levs_ks::Vector{Vector{T}}) where {T}
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     mapupto!(f, dest, t, N, 1, levs_ks)
 end
@@ -467,8 +467,8 @@ the current level `C`, and the vector of level-respective index sets,
 Call signature of `f` is: `f(dest, t::AbstractGraph, N, C, levs_ks)`.
 Call signature of `fs[C]` is: `fs[C](p::Pair)`.
 """
-function mapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
-                        t::AbstractGraph, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
+function mapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{S}} where S},
+                        t::AbstractGraph{T}, N::Int, C::Int, levs_ks::Vector{Vector{T}}) where {T}
     # C̃ = C + 1
     # f(dest, t, N, C, levs_ks)
     # C̃ < N || return dest
@@ -503,8 +503,8 @@ Call signature of `f` is: `f(dest, t::AbstractGraph, N, C, levs_ks)`.
 Call signature of `fs[C]` is: `fs[C](p::Pair)`.
 """
 function mapfilterupto(f::Function, fs::Vector{Function},
-                       dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractGraph,
-                       N::Int, levs_ks::Vector{Vector{Any}})
+                       dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractGraph{T},
+                       N::Int, levs_ks::Vector{Vector{T}}) where {T}
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     mapfilterupto!(f, fs, dest, t, N, 1, levs_ks)
 end
@@ -567,8 +567,8 @@ end
 
 #### levs_ks
 
-function mapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T},
-                  ts::Vector{<:AbstractGraph}, N::Int, C::Int, levs_kss::Vector{Vector{Vector{Any}}})
+function mapupto!(f::Function, dest::Tuple{Vararg{Array{S}} where S},
+                  ts::Vector{T}, N::Int, C::Int, levs_kss::Vector{Vector{Vector{U}}}) where {U, T<:AbstractGraph{U}}
     for i ∈ eachindex(ts)
         mapupto!(f, dest, ts[i], N, C, levs_kss[i])
     end
@@ -576,14 +576,14 @@ function mapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T},
 end
 
 function mapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                 ts::Vector{<:AbstractGraph}, N::Int, levs_kss::Vector{Vector{Vector{Any}}})
+                 ts::Vector{T}, N::Int, levs_kss::Vector{Vector{Vector{U}}}) where {U, T<:AbstractGraph{U}}
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     mapupto!(f, dest, ts, N, 1, levs_kss)
 end
 
 function tmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                  ts::Vector{<:AbstractGraph}, L::Int, levs_kss::Vector{Vector{Vector{Any}}},
-                  M::Int=Threads.nthreads())
+                  ts::Vector{T}, L::Int, levs_kss::Vector{Vector{Vector{U}}},
+                  M::Int=Threads.nthreads()) where {U, T<:AbstractGraph{U}}
     N = length(ts)
     # M = Threads.threads()
     ranges = equalranges(N, M)
@@ -595,9 +595,9 @@ function tmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
 end
 
 #### filter and levs_ks
-function mapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
-                        ts::Vector{<:AbstractGraph}, N::Int, C::Int,
-                        levs_kss::Vector{Vector{Vector{Any}}})
+function mapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{S}} where S},
+                        ts::Vector{T}, N::Int, C::Int,
+                        levs_kss::Vector{Vector{Vector{U}}}) where {U, T<:AbstractGraph{U}}
     for i ∈ eachindex(ts)
         mapfilterupto!(f, fs, dest, ts[i], N, C, levs_kss[i])
     end
@@ -606,15 +606,15 @@ end
 
 function mapfilterupto(f::Function, fs::Vector{Function},
                        dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                       ts::Vector{<:AbstractGraph}, N::Int, levs_kss::Vector{Vector{Vector{Any}}})
+                       ts::Vector{T}, N::Int, levs_kss::Vector{Vector{Vector{U}}}) where {U, T<:AbstractGraph{U}}
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     mapfilterupto!(f, fs, dest, ts, N, 1, levs_kss)
 end
 
 function tmapfilterupto(f::Function, fs::Vector{Function},
                         dims::Tuple{Vararg{NTuple{S, Int}} where S},
-                        ts::Vector{<:AbstractGraph}, L::Int, levs_kss::Vector{Vector{Vector{Any}}},
-                        M::Int=Threads.nthreads())
+                        ts::Vector{T}, L::Int, levs_kss::Vector{Vector{Vector{U}}},
+                        M::Int=Threads.nthreads()) where {U, AbstractGraph{U}}
     N = length(ts)
     # M = Threads.threads()
     ranges = equalranges(N, M)
