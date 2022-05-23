@@ -63,7 +63,8 @@ export countabsent!, countstatus!, kcountstatus!, kcountabsent!,
 
 include("abstractedges.jl")
 include("abstractlabels.jl")
-include("abstractgraph.jl")
+# include("abstractgraph.jl")
+include("abstractgraph2.jl")
 
 include("ndops.jl")
 
