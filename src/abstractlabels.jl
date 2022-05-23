@@ -60,10 +60,10 @@ Base.isequal(x::Label, y::Label) = x.f === y.f
 #### For constructing tuples (or a single in the special case)
 
 abstract type AbstractLabels{U, N} end
-struct Labels{U<:Tuple{Vararg{T, N} where {T<:AbstractLabel}} where {N}, N} <: AbstractLabels{U, N}
+struct Labels{U<:Tuple{Vararg{AbstractLabel, N}} where {N}, N} <: AbstractLabels{U, N}
     ftrs::U
 end
-Labels(ftrs::U) where {U<:Tuple{Vararg{T, N} where {T<:AbstractLabel}}} where {N} = Labels{U, N}(ftrs)
+Labels(ftrs::U) where {U<:Tuple{Vararg{AbstractLabel, N}}} where {N} = Labels{U, N}(ftrs)
 
 Base.length(x::AbstractLabels{U, N}) where {U, N} = N
 

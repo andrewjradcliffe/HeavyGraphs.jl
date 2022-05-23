@@ -8,11 +8,11 @@
 # Alas, it seems to be slightly faster to use Arrays for access,
 # but for subsequent operations, e.g. a .+ b, Tuple{Vararg{Array}} is much faster,
 # or, quantitatively, about 12x faster.
-# Note: Tuple{Vararg{Array{T} where T}} ≡ Tuple{Vararg{Array{T}} where T}
+# Note: Tuple{Vararg{Array{T} where T}} ≡ Tuple{Vararg{AbstractArray}}
 
 #### A draft of analyzeat!, p. 483, 2021-10-03; p. 500-507, 2021-10-12
 """
-    mapat!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, t::AbstractGraph, N::Int, C::Int)
+    mapat!(f::Function, dest::Tuple{Vararg{AbstractArray}}, t::AbstractGraph, N::Int, C::Int)
 
 Transform the graph/tree `t` by applying `f` to each element at a given level, `N`.
 Results are stored in `dest`; it is assumed that the number and dimensions of arrays
@@ -23,7 +23,7 @@ Call signature of `f` is: `f(dest, t::AbstractGraph)`.
 See also: [`mapat`](@ref), [`mapfilterat`](@ref), [`mapfilterat!`](@ref)
 
 """
-function mapat!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, t::AbstractGraph, N::Int, C::Int)
+function mapat!(f::Function, dest::Tuple{Vararg{AbstractArray}}, t::AbstractGraph, N::Int, C::Int)
     isempty(t) && return dest
     C̃ = C + 1
     if C̃ < N
@@ -39,7 +39,7 @@ function mapat!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, t::AbstractG
 end
 
 """
-    mapat(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractGraph, N::Int)
+    mapat(f::Function, dims::Tuple{Vararg{Tuple{Vararg{Int}}}}, t::AbstractGraph, N::Int)
 
 Transform the graph/tree `t` by applying `f` to each element at a given level, `N`.
 Results are stored in a tuple of zero-initialized arrays, the number and dimension of which
@@ -50,14 +50,14 @@ Call signature of `f` is: `f(dest, t::AbstractGraph)`.
 See also: [`mapat!`](@ref), [`mapfilterat`](@ref), [`mapfilterat!`](@ref)
 
 """
-function mapat(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractGraph, N::Int)
+function mapat(f::Function, dims::Tuple{Vararg{Tuple{Vararg{Int}}}}, t::AbstractGraph, N::Int)
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     mapat!(f, dest, t, N, 1)
 end
 
 #### filter
 """
-    mapfilterat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+    mapfilterat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{AbstractArray}},
                  t::AbstractGraph, N::Int, C::Int)
 
 Performs a filtered traversal in which a subset is formed at each level from
@@ -68,7 +68,7 @@ Call signature of `fs[C]` is: `fs[C](p::Pair)`.
 
 See also: [`mapfilterat`](@ref), [`mapat`](@ref), [`mapat!`](@ref)
 """
-function mapfilterat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+function mapfilterat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{AbstractArray}},
                       t::AbstractGraph, N::Int, C::Int)
     isempty(t) && return dest
     C̃ = C + 1
@@ -86,7 +86,7 @@ function mapfilterat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Arra
 end
 
 """
-    mapfilterat(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+    mapfilterat(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{Tuple{Vararg{Int}}}},
                 t::AbstractGraph, N::Int)
 
 Performs a filtered traversal in which a subset is formed at each level from
@@ -97,14 +97,14 @@ Call signature of `fs[C]` is: `fs[C](p::Pair)`.
 
 See also: [`mapfilterat!`](@ref), [`mapat`](@ref), [`mapat!`](@ref)
 """
-function mapfilterat(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+function mapfilterat(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{Tuple{Vararg{Int}}}},
                      t::AbstractGraph, N::Int)
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     mapfilterat!(f, fs, dest, t, N, 1)
 end
 
 ################ reduction of vector of into single dest
-function mapat!(f::Function, dest::Tuple{Vararg{Array{T}} where T},
+function mapat!(f::Function, dest::Tuple{Vararg{AbstractArray}},
                 ts::Vector{<:AbstractGraph}, N::Int, C::Int)
     for t ∈ ts
         mapat!(f, dest, t, N, C)
@@ -112,13 +112,13 @@ function mapat!(f::Function, dest::Tuple{Vararg{Array{T}} where T},
     dest
 end
 
-function mapat(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+function mapat(f::Function, dims::Tuple{Vararg{Tuple{Vararg{Int}}}},
                ts::Vector{<:AbstractGraph}, N::Int)
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     mapat!(f, dest, ts, N, 1)
 end
 
-function tmapat(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+function tmapat(f::Function, dims::Tuple{Vararg{Tuple{Vararg{Int}}}},
                 ts::Vector{<:AbstractGraph}, L::Int, M::Int=Threads.nthreads())
     N = length(ts)
     # M = Threads.threads()
@@ -137,7 +137,7 @@ function tmapat(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
 end
 
 #### filter
-function mapfilterat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+function mapfilterat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{AbstractArray}},
                       ts::Vector{<:AbstractGraph}, N::Int, C::Int)
     for t ∈ ts
         mapfilterat!(f, fs, dest, t, N, C)
@@ -145,13 +145,13 @@ function mapfilterat!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Arra
     dest
 end
 
-function mapfilterat(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+function mapfilterat(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{Tuple{Vararg{Int}}}},
                      ts::Vector{<:AbstractGraph}, N::Int)
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     mapfilterat!(f, fs, dest, ts, N, 1)
 end
 
-function tmapfilterat(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+function tmapfilterat(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{Tuple{Vararg{Int}}}},
                       ts::Vector{<:AbstractGraph}, L::Int, M::Int=Threads.nthreads())
     N = length(ts)
     # M = Threads.threads()
@@ -165,7 +165,7 @@ end
 
 ################################################################
 """
-    mapat_pairs!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, t::AbstractGraph,
+    mapat_pairs!(f::Function, dest::Tuple{Vararg{AbstractArray}}, t::AbstractGraph,
                  N::Int, C::Int)
 
 Analogous to `mapat!`, but call signature of `f` is: `f(dest, p::Pair)`.
@@ -173,7 +173,7 @@ Analogous to `mapat!`, but call signature of `f` is: `f(dest, p::Pair)`.
 See also: [`mapat!`](@ref), [`mapfilterat_pairs!`]
 
 """
-function mapat_pairs!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, t::AbstractGraph,
+function mapat_pairs!(f::Function, dest::Tuple{Vararg{AbstractArray}}, t::AbstractGraph,
                       N::Int, C::Int)
     isempty(t) && return dest
     C̃ = C + 1
@@ -190,14 +190,14 @@ function mapat_pairs!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, t::Abs
 end
 
 """
-    mapat_pairs(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractGraph, N::Int)
+    mapat_pairs(f::Function, dims::Tuple{Vararg{Tuple{Vararg{Int}}}}, t::AbstractGraph, N::Int)
 
 Analogous to `mapat`, but call signature of `f` is: `f(dest, p::Pair)`.
 
 See also: [`mapat`](@ref), [`mapfilterat_pairs`](@ref)
 
 """
-function mapat_pairs(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractGraph,
+function mapat_pairs(f::Function, dims::Tuple{Vararg{Tuple{Vararg{Int}}}}, t::AbstractGraph,
                      N::Int)
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     mapat_pairs!(f, dest, t, N, 1)
@@ -205,7 +205,7 @@ end
 
 #### filter
 """
-    mapfilterat_pairs!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+    mapfilterat_pairs!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{AbstractArray}},
                        t::AbstractGraph, N::Int, C::Int)
 
 Analogous to `mapfilterat!`, but call signature of `f` is: `f(dest, p::Pair)`.
@@ -213,7 +213,7 @@ Call signature of `fs[C]` remains unchanged: `fs[C](p::Pair)`.
 
 See also: [`mapfilterat!`](@ref), [`mapfilterat_pairs`](@ref)
 """
-function mapfilterat_pairs!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+function mapfilterat_pairs!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{AbstractArray}},
                             t::AbstractGraph, N::Int, C::Int)
     isempty(t) && return dest
     C̃ = C + 1
@@ -232,7 +232,7 @@ end
 
 """
     mapfilterat_pairs(f::Function, fs::Vector{Function},
-                      dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractGraph, N::Int)
+                      dims::Tuple{Vararg{Tuple{Vararg{Int}}}}, t::AbstractGraph, N::Int)
 
 Analogous to `mapfilterat`, but call signature of `f` is: `f(dest, p::Pair)`.
 Call signature of `fs[C]` remains unchanged: `fs[C](p::Pair)`.
@@ -240,13 +240,13 @@ Call signature of `fs[C]` remains unchanged: `fs[C](p::Pair)`.
 See also: [`mapfilterat`](@ref), [`mapfilterat_pairs!`](@ref)
 """
 function mapfilterat_pairs(f::Function, fs::Vector{Function},
-                           dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractGraph, N::Int)
+                           dims::Tuple{Vararg{Tuple{Vararg{Int}}}}, t::AbstractGraph, N::Int)
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     mapfilterat_pairs!(f, fs, dest, t, N, 1)
 end
 
 ################ reduction of vector of into single dest
-function mapat_pairs!(f::Function, dest::Tuple{Vararg{Array{T}} where T},
+function mapat_pairs!(f::Function, dest::Tuple{Vararg{AbstractArray}},
                       ts::Vector{<:AbstractGraph}, N::Int, C::Int)
     for t ∈ ts
         mapat_pairs!(f, dest, t, N, C)
@@ -254,13 +254,13 @@ function mapat_pairs!(f::Function, dest::Tuple{Vararg{Array{T}} where T},
     dest
 end
 
-function mapat_pairs(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+function mapat_pairs(f::Function, dims::Tuple{Vararg{Tuple{Vararg{Int}}}},
                      ts::Vector{<:AbstractGraph}, N::Int)
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     mapat_pairs!(f, dest, ts, N, 1)
 end
 
-function tmapat_pairs(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+function tmapat_pairs(f::Function, dims::Tuple{Vararg{Tuple{Vararg{Int}}}},
                       ts::Vector{<:AbstractGraph}, L::Int, M::Int=Threads.nthreads())
     N = length(ts)
     # M = Threads.threads()
@@ -279,7 +279,7 @@ function tmapat_pairs(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
 end
 
 #### filter
-function mapfilterat_pairs!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+function mapfilterat_pairs!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{AbstractArray}},
                             ts::Vector{<:AbstractGraph}, N::Int, C::Int)
     for t ∈ ts
         mapfilterat_pairs!(f, fs, dest, t, N, C)
@@ -288,14 +288,14 @@ function mapfilterat_pairs!(f::Function, fs::Vector{Function}, dest::Tuple{Varar
 end
 
 function mapfilterat_pairs(f::Function, fs::Vector{Function},
-                           dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                           dims::Tuple{Vararg{Tuple{Vararg{Int}}}},
                            ts::Vector{<:AbstractGraph}, N::Int)
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     mapfilterat_pairs!(f, fs, dest, ts, N, 1)
 end
 
 function tmapfilterat_pairs(f::Function, fs::Vector{Function},
-                            dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                            dims::Tuple{Vararg{Tuple{Vararg{Int}}}},
                             ts::Vector{<:AbstractGraph}, L::Int, M::Int=Threads.nthreads())
     N = length(ts)
     # M = Threads.threads()
@@ -310,7 +310,7 @@ end
 ################################################################
 
 """
-    mapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, t::AbstractGraph, N::Int)
+    mapupto!(f::Function, dest::Tuple{Vararg{AbstractArray}}, t::AbstractGraph, N::Int)
 
 Transform the graph/tree `t` by applying `f` to each element on each level up to a
 given level `N`. Results are stored in `dest`; it is assumed that the number and
@@ -320,7 +320,7 @@ Call signature of `f` is: `f(dest, t::AbstractGraph)`.
 
 See also: [`mapupto`](@ref), [`mapfilterupto`](@ref), [`mapfilterupto!`](@ref)
 """
-function mapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, t::AbstractGraph, N::Int, C::Int)
+function mapupto!(f::Function, dest::Tuple{Vararg{AbstractArray}}, t::AbstractGraph, N::Int, C::Int)
     # C̃ = C + 1
     # C̃ < N || return dest
     # f(dest, t)
@@ -338,7 +338,7 @@ function mapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, t::Abstrac
 end
 
 """
-    mapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractGraph, N::Int)
+    mapupto(f::Function, dims::Tuple{Vararg{Tuple{Vararg{Int}}}}, t::AbstractGraph, N::Int)
 
 Transform the graph/tree `t` by applying `f` to each element on each level up to a
 given level `N`. Results are stored in a tuple of zero-initialized arrays, the number
@@ -348,7 +348,7 @@ Call signature of `f` is: `f(dest, t::AbstractGraph)`.
 
 See also: [`mapupto!`](@ref), [`mapfilterupto`](@ref), [`mapfilterupto!`](@ref)
 """
-function mapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractGraph, N::Int)
+function mapupto(f::Function, dims::Tuple{Vararg{Tuple{Vararg{Int}}}}, t::AbstractGraph, N::Int)
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     mapupto!(f, dest, t, N, 1)
 end
@@ -366,7 +366,7 @@ Call signature of `fs[C]` is: `fs[C](p::Pair)`.
 
 See also: [`mapfilterupto`](@ref), [`mapupto`](@ref), [`mapupto!`](@ref)
 """
-function mapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+function mapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{AbstractArray}},
                         t::AbstractGraph, N::Int, C::Int)
     # C̃ = C + 1
     # f(dest, t)
@@ -391,7 +391,7 @@ function mapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Ar
 end
 
 """
-    mapfilterupto(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+    mapfilterupto(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{Tuple{Vararg{Int}}}},
                   t::AbstractGraph, N::Int)
 
 Performs a filtered traversal in which a subset is formed at each level from
@@ -403,14 +403,14 @@ Call signature of `fs[C]` is: `fs[C](p::Pair)`.
 See also: [`mapfilterupto!`](@ref), [`mapupto`](@ref), [`mapupto!`](@ref)
 """
 function mapfilterupto(f::Function, fs::Vector{Function},
-                       dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractGraph, N::Int)
+                       dims::Tuple{Vararg{Tuple{Vararg{Int}}}}, t::AbstractGraph, N::Int)
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     mapfilterupto!(f, fs, dest, t, N, 1)
 end
 
 #### levs_ks
 """
-    mapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T},
+    mapupto!(f::Function, dest::Tuple{Vararg{AbstractArray}},
              t::AbstractGraph, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
 
 Provides the given level `N`, the current level `C`, and the vector of
@@ -418,7 +418,7 @@ level-respective index sets, `levs_ks` as arguments to `f`.
 
 Call signature of `f` is: `f(dest, t::AbstractGraph, N, C, levs_ks)`.
 """
-function mapupto!(f::Function, dest::Tuple{Vararg{Array{S}} where S},
+function mapupto!(f::Function, dest::Tuple{Vararg{AbstractArray}},
                   t::AbstractGraph{T}, N::Int, C::Int, levs_ks::Vector{Vector{T}}) where {T}
     # C̃ = C + 1
     # f(dest, t, N, C, levs_ks)
@@ -441,7 +441,7 @@ function mapupto!(f::Function, dest::Tuple{Vararg{Array{S}} where S},
 end
 
 """
-    mapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+    mapupto(f::Function, dims::Tuple{Vararg{Tuple{Vararg{Int}}}},
             t::AbstractGraph, N::Int, levs_ks::Vector{Vector{Any}})
 
 Provides the given level `N`, the current level `C`, and the vector of
@@ -449,7 +449,7 @@ level-respective index sets, `levs_ks` as arguments to `f`.
 
 Call signature of `f` is: `f(dest, t::AbstractGraph, N, C, levs_ks)`.
 """
-function mapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+function mapupto(f::Function, dims::Tuple{Vararg{Tuple{Vararg{Int}}}},
                  t::AbstractGraph{T}, N::Int, levs_ks::Vector{Vector{T}}) where {T}
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     mapupto!(f, dest, t, N, 1, levs_ks)
@@ -457,7 +457,7 @@ end
 
 #### filter and levs_ks
 """
-    mapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+    mapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{AbstractArray}},
                    t::AbstractGraph, N::Int, C::Int, levs_ks::Vector{Vector{Any}})
 
 Performs filtered traversal; provides the given level `N`,
@@ -467,7 +467,7 @@ the current level `C`, and the vector of level-respective index sets,
 Call signature of `f` is: `f(dest, t::AbstractGraph, N, C, levs_ks)`.
 Call signature of `fs[C]` is: `fs[C](p::Pair)`.
 """
-function mapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{S}} where S},
+function mapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{AbstractArray}},
                         t::AbstractGraph{T}, N::Int, C::Int, levs_ks::Vector{Vector{T}}) where {T}
     # C̃ = C + 1
     # f(dest, t, N, C, levs_ks)
@@ -492,7 +492,7 @@ function mapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Ar
 end
 
 """
-    mapfilterupto(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+    mapfilterupto(f::Function, fs::Vector{Function}, dims::Tuple{Vararg{Tuple{Vararg{Int}}}},
                   t::AbstractGraph, N::Int, levs_ks::Vector{Vector{Any}})
 
 Performs filtered traversal; provides the given level `N`,
@@ -503,14 +503,14 @@ Call signature of `f` is: `f(dest, t::AbstractGraph, N, C, levs_ks)`.
 Call signature of `fs[C]` is: `fs[C](p::Pair)`.
 """
 function mapfilterupto(f::Function, fs::Vector{Function},
-                       dims::Tuple{Vararg{NTuple{S, Int}} where S}, t::AbstractGraph{T},
+                       dims::Tuple{Vararg{Tuple{Vararg{Int}}}}, t::AbstractGraph{T},
                        N::Int, levs_ks::Vector{Vector{T}}) where {T}
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     mapfilterupto!(f, fs, dest, t, N, 1, levs_ks)
 end
 
 ################ reduction of vector of into single dest
-function mapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T},
+function mapupto!(f::Function, dest::Tuple{Vararg{AbstractArray}},
                   ts::Vector{<:AbstractGraph}, N::Int, C::Int)
     for t ∈ ts
         mapupto!(f, dest, t, N, C)
@@ -518,13 +518,13 @@ function mapupto!(f::Function, dest::Tuple{Vararg{Array{T}} where T},
     dest
 end
 
-function mapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+function mapupto(f::Function, dims::Tuple{Vararg{Tuple{Vararg{Int}}}},
                  ts::Vector{<:AbstractGraph}, N::Int)
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     mapupto!(f, dest, ts, N, 1)
 end
 
-function tmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+function tmapupto(f::Function, dims::Tuple{Vararg{Tuple{Vararg{Int}}}},
                   ts::Vector{<:AbstractGraph}, L::Int, M::Int=Threads.nthreads())
     N = length(ts)
     # M = Threads.threads()
@@ -537,7 +537,7 @@ function tmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
 end
 
 #### filter
-function mapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{T}} where T},
+function mapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{AbstractArray}},
                         ts::Vector{<:AbstractGraph}, N::Int, C::Int)
     for t ∈ ts
         mapfilterupto!(f, fs, dest, t, N, C)
@@ -546,14 +546,14 @@ function mapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Ar
 end
 
 function mapfilterupto(f::Function, fs::Vector{Function},
-                       dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                       dims::Tuple{Vararg{Tuple{Vararg{Int}}}},
                        ts::Vector{<:AbstractGraph}, N::Int)
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     mapfilterupto!(f, fs, dest, ts, N, 1)
 end
 
 function tmapfilterupto(f::Function, fs::Vector{Function},
-                        dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                        dims::Tuple{Vararg{Tuple{Vararg{Int}}}},
                         ts::Vector{<:AbstractGraph}, L::Int, M::Int=Threads.nthreads())
     N = length(ts)
     # M = Threads.threads()
@@ -567,7 +567,7 @@ end
 
 #### levs_ks
 
-function mapupto!(f::Function, dest::Tuple{Vararg{Array{S}} where S},
+function mapupto!(f::Function, dest::Tuple{Vararg{AbstractArray}},
                   ts::Vector{T}, N::Int, C::Int, levs_kss::Vector{Vector{Vector{U}}}) where {U, T<:AbstractGraph{U}}
     for i ∈ eachindex(ts)
         mapupto!(f, dest, ts[i], N, C, levs_kss[i])
@@ -575,13 +575,13 @@ function mapupto!(f::Function, dest::Tuple{Vararg{Array{S}} where S},
     dest
 end
 
-function mapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+function mapupto(f::Function, dims::Tuple{Vararg{Tuple{Vararg{Int}}}},
                  ts::Vector{T}, N::Int, levs_kss::Vector{Vector{Vector{U}}}) where {U, T<:AbstractGraph{U}}
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     mapupto!(f, dest, ts, N, 1, levs_kss)
 end
 
-function tmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
+function tmapupto(f::Function, dims::Tuple{Vararg{Tuple{Vararg{Int}}}},
                   ts::Vector{T}, L::Int, levs_kss::Vector{Vector{Vector{U}}},
                   M::Int=Threads.nthreads()) where {U, T<:AbstractGraph{U}}
     N = length(ts)
@@ -595,7 +595,7 @@ function tmapupto(f::Function, dims::Tuple{Vararg{NTuple{S, Int}} where S},
 end
 
 #### filter and levs_ks
-function mapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{S}} where S},
+function mapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{AbstractArray}},
                         ts::Vector{T}, N::Int, C::Int,
                         levs_kss::Vector{Vector{Vector{U}}}) where {U, T<:AbstractGraph{U}}
     for i ∈ eachindex(ts)
@@ -605,16 +605,16 @@ function mapfilterupto!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Ar
 end
 
 function mapfilterupto(f::Function, fs::Vector{Function},
-                       dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                       dims::Tuple{Vararg{Tuple{Vararg{Int}}}},
                        ts::Vector{T}, N::Int, levs_kss::Vector{Vector{Vector{U}}}) where {U, T<:AbstractGraph{U}}
     dest = ntuple(i -> zeros(Int, dims[i]), length(dims))
     mapfilterupto!(f, fs, dest, ts, N, 1, levs_kss)
 end
 
 function tmapfilterupto(f::Function, fs::Vector{Function},
-                        dims::Tuple{Vararg{NTuple{S, Int}} where S},
+                        dims::Tuple{Vararg{Tuple{Vararg{Int}}}},
                         ts::Vector{T}, L::Int, levs_kss::Vector{Vector{Vector{U}}},
-                        M::Int=Threads.nthreads()) where {U, AbstractGraph{U}}
+                        M::Int=Threads.nthreads()) where {U, T<:AbstractGraph{U}}
     N = length(ts)
     # M = Threads.threads()
     ranges = equalranges(N, M)

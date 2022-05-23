@@ -16,10 +16,10 @@
 ##
 # The f itself is a closure around some increment!(g, dest, ν, ks) function, e.g.
 # f = (dest, ν, ks) -> incrementrows!(g, dest, ν, ks)
-# Or, given that we know dest to be a Tuple{Vararg{Array{T}} where T}, it might be:
+# Or, given that we know dest to be a Tuple{Vararg{AbstractArray}}, it might be:
 # f = (dest, ν, ks) -> incrementrows!(g, dest[2], ν, ks)
 ################
-function countabsent!(f::Function, dest::Tuple{Vararg{Array{S}} where S},
+function countabsent!(f::Function, dest::Tuple{Vararg{AbstractArray}},
                       t::AbstractGraph{T}, N::Int, C::Int, levs_ks::Vector{Vector{T}}) where {T}
     Ñ = N - 1
     if C == Ñ
@@ -33,7 +33,7 @@ function countabsent!(f::Function, dest::Tuple{Vararg{Array{S}} where S},
     dest
 end
 
-function countabsent!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{Array{S}} where S},
+function countabsent!(f::Function, fs::Vector{Function}, dest::Tuple{Vararg{AbstractArray}},
                       t::AbstractGraph{T}, N::Int, C::Int, levs_ks::Vector{Vector{T}}) where {T}
     Ñ = N - 1
     if C == Ñ
@@ -49,7 +49,7 @@ end
 ################################################################
 #### p. 540-545, 2021-10-25
 # levs_ks::Vector{Vector{Any}} ∈ 𝔻²
-# dest::Tuple{Vararg{Array{T}} where T} ∈ 𝔻², with dest[2] ∈ ℕᴵ, dest[1] ∈ ℕᴵˣᴶ
+# dest::Tuple{Vararg{AbstractArray}} ∈ 𝔻², with dest[2] ∈ ℕᴵ, dest[1] ∈ ℕᴵˣᴶ
 # f::Function : closure around some increment!(g, dest, ν, ks)
 ## e.g. of countabsent!
 # db::Dict{String,Int}
@@ -64,12 +64,12 @@ end
 # end
 # f = (dest, ν, rk, ck) -> incrementrowcol!(g, h, dest[1], ν, rk, ck)
 ################
-function countstatus!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, k, t::AbstractGraph)
+function countstatus!(f::Function, dest::Tuple{Vararg{AbstractArray}}, k, t::AbstractGraph)
     status = t.data[1]
     f(dest, 1, k, status)
     dest
 end
-function countstatus!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, p::Pair)
+function countstatus!(f::Function, dest::Tuple{Vararg{AbstractArray}}, p::Pair)
     countstatus!(f, dest, p.first, p.second)
 end
 ################
@@ -87,7 +87,7 @@ end
 #     (k) -> ds[k]
 # end
 # f = (dest, ν, ks...) -> ndadd!([d, g, h], dest[1], ν, ks...)
-function kcountstatus!(f::Function, dest::Tuple{Vararg{Array{T}} where T}, ks::Vector,
+function kcountstatus!(f::Function, dest::Tuple{Vararg{AbstractArray}}, ks::Vector,
                        g::AbstractGraph)
     status = g.data[1]
     f(dest, ks..., status)

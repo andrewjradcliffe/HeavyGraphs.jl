@@ -645,19 +645,32 @@ datagrow(f::Function, vs::Vector{<:AbstractEdge}, ps::Vector{<:AbstractEdges}, i
     datagrow!(f, f(), vs, ps, itrs)
 
 # 2022-01-11: alternative meta
+# @generated function datagrow!(f::Function, x::AbstractGraph,
+#                               vs::Tuple{Vararg{T, N} where {T<:Union{AbstractLabel, AbstractLabels}}},
+#                               ps::Tuple{Vararg{S, N} where {S<:AbstractEdges}}, itrs) where {N}
+#     quote
+#         Base.Cartesian.@nexprs $N i -> datagrow!(f, x, vs[i], ps[i], itrs[i])
+#     end
+# end
 @generated function datagrow!(f::Function, x::AbstractGraph,
-                              vs::Tuple{Vararg{T, N} where {T<:Union{AbstractLabel, AbstractLabels}}},
-                              ps::Tuple{Vararg{S, N} where {S<:AbstractEdges}}, itrs) where {N}
+                              vs::Tuple{Vararg{Union{AbstractLabel, AbstractLabels}, N}},
+                              ps::Tuple{Vararg{AbstractEdges, N}}, itrs) where {N}
     quote
         Base.Cartesian.@nexprs $N i -> datagrow!(f, x, vs[i], ps[i], itrs[i])
     end
 end
 # Convenience wrapper
+# function datagrow(f::Function,
+#                   vs::Tuple{Vararg{T, N} where {T<:Union{AbstractLabel, AbstractLabels}}},
+#                   ps::Tuple{Vararg{S, N} where {S<:AbstractEdges}}, itrs) where {N}
+#     datagrow!(f, f(), vs, ps, itrs)
+# end
 function datagrow(f::Function,
-                  vs::Tuple{Vararg{T, N} where {T<:Union{AbstractLabel, AbstractLabels}}},
-                  ps::Tuple{Vararg{S, N} where {S<:AbstractEdges}}, itrs) where {N}
+                  vs::Tuple{Vararg{Union{AbstractLabel, AbstractLabels}, N}},
+                  ps::Tuple{Vararg{AbstractEdges, N}}, itrs) where {N}
     datagrow!(f, f(), vs, ps, itrs)
 end
+
 
 ################################
 # Growth from non-flat sources - p. 475, 2021-09-22

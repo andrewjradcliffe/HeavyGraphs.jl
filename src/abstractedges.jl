@@ -236,11 +236,10 @@ end
 # testing reveals that performance is essentially the same.
 
 abstract type AbstractEdges{U, N} end
-struct Edges{U<:Tuple{Vararg{T, N} where {T<:AbstractEdge}} where {N}, N} <: AbstractEdges{U, N}
+struct Edges{U<:Tuple{Vararg{AbstractEdge, N}} where {N}, N} <: AbstractEdges{U, N}
     ftrs::U
 end
-Edges(ftrs::U) where {U<:Tuple{Vararg{T, N} where {T<:AbstractEdge}}} where {N} =
-    Edges{U,N}(ftrs)
+Edges(ftrs::U) where {U<:Tuple{Vararg{AbstractEdge, N}}} where {N} = Edges{U,N}(ftrs)
 
 Base.length(p::AbstractEdges{U, N}) where {U, N} = N
 
