@@ -165,10 +165,10 @@ using Test
         tmp_p = x
         tmp_n = x
         for i ∈ (1,2,3,4,5)
-            global tmp_n = tmp_p[i]
+            tmp_n = tmp_p[i]
             @test tmp_n.badj[i] == tmp_p
             @test all(==(1), size(tmp_n))
-            global tmp_p = tmp_n
+            tmp_p = tmp_n
         end
         #
         get!(usg, x, 2,3,4,5,6)
@@ -176,10 +176,10 @@ using Test
         tmp_p = x
         tmp_n = x
         for i ∈ (2,3,4,5,6)
-            global tmp_n = tmp_p[i]
+            tmp_n = tmp_p[i]
             @test tmp_n.badj[i] == tmp_p
             @test all(==(1), size(tmp_n))
-            global tmp_p = tmp_n
+            tmp_p = tmp_n
         end
         x[3] = SimpleGraph()
         x3 = x[3]
