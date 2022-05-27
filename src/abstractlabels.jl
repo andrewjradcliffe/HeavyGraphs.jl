@@ -41,7 +41,7 @@ IndexedLabel(i::CartesianIndex{N}) where {N} = IndexedLabel(identity, i)
 
 #### functor: default behavior for all IndexedLabel
 function (x::AbstractIndexedLabel)(A)
-    @inbounds x.f(getindex(A, x.i))
+    x.f(getindex(A, x.i))
 end
 
 #### For constructing singles, which can then be composed into a tuple
