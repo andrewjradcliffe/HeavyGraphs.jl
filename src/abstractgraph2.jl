@@ -597,9 +597,14 @@ end
 # Replaces splatting method
 @generated function grow!(f::Function, g::AbstractGraph, p::AbstractEdges{U, N}, itr) where {U, N}
     quote
+        # for item ∈ itr
+        #     tmp = g
+        #     Base.Cartesian.@nexprs $N i -> tmp = get!(f, tmp, p[i](item))
+        # end
+        Base.Cartesian.@nextract $N e i -> p[i]
         for item ∈ itr
             tmp = g
-            Base.Cartesian.@nexprs $N i -> tmp = get!(f, tmp, p[i](item))
+            Base.Cartesian.@nexprs $N i -> tmp = get!(f, tmp, e_i(item))
         end
         return g
     end
@@ -619,9 +624,15 @@ end
 @generated function datagrow!(f::Function, g::AbstractGraph, v::T,
                               p::AbstractEdges{U, N}, itr) where {U, N} where {T<:Union{AbstractLabel, AbstractLabels}}
     quote
+        # for item ∈ itr
+        #     tmp = g
+        #     Base.Cartesian.@nexprs $N i -> tmp = get!(f, tmp, p[i](item))
+        #     push!(tmp.data, v(item))
+        # end
+        Base.Cartesian.@nextract $N e i -> p[i]
         for item ∈ itr
             tmp = g
-            Base.Cartesian.@nexprs $N i -> tmp = get!(f, tmp, p[i](item))
+            Base.Cartesian.@nexprs $N i -> tmp = get!(f, tmp, e_i(item))
             push!(tmp.data, v(item))
         end
         return g
