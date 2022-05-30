@@ -31,6 +31,9 @@ Base.eltype(::A) where {A<:AbstractGraph{T}} where {T} = Pair{T, A}
 
 Base.hash(g::AbstractGraph, h::UInt) = hash(g.fadj, hash(g.data, h))
 
+Base.keytype(::A) where {A<:AbstractGraph{T}} where {T} = T
+Base.valtype(::A) where {A<:AbstractGraph{T}} where {T} = A
+
 #### Opt-ins: AbstractGraph
 # Despite the temptation to re-name keys≡edges and values≡vertices,
 # it seems logical to avoid re-naming known functions.
