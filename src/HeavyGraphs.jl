@@ -14,7 +14,7 @@ export AbstractLabel, Label,
 
 # abstractgraph.jl
 export AbstractGraph, AbstractSimpleDiGraph, AbstractSimpleGraph,
-    SimpleDiGraph, SimpleGraph, sdg, sg
+    SimpleDiGraph, SimpleGraph, sdg, sg, usdg, usg
 
 export haspath, depth, maxbreadth, findmaxbreadth, rlength, rlength2, maxsize
 

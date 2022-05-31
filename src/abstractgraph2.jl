@@ -437,6 +437,8 @@ end
 #### Convenience shorthand constructors
 sdg() = SimpleDiGraph()
 sg() = SimpleGraph()
+usdg() = SimpleDiGraph{UInt}()
+usg() = SimpleGraph{UInt}()
 
 ################################################################
 #### Opt-ins: AbstractSimpleGraph
