@@ -22,6 +22,7 @@ export isbidirectional, bget!, bget, hasbipath
 
 export get_datapush!
 
+# growth.jl
 export grow!, grow, datagrow!, datagrow, tdatagrow!
 
 export mapgrow!, mapgrow, tmapgrow!, tmapgrow, tʳmapgrow!, tʳmapgrow,
@@ -65,6 +66,7 @@ include("abstractedges.jl")
 include("abstractlabels.jl")
 # include("abstractgraph.jl")
 include("abstractgraph2.jl")
+include("growth.jl")
 
 include("ndops.jl")
 
