@@ -1,23 +1,23 @@
 #
-# Date created: 2021-10-26
+# Date created: 2022-05-23
 # Author: aradclif
 #
 #
 ############################################################################################
-abstract type AbstractGraph end
+abstract type AbstractGraph{T} end
 
-abstract type AbstractSimpleDiGraph <: AbstractGraph end
+abstract type AbstractSimpleDiGraph{T} <: AbstractGraph{T} end
 
-abstract type AbstractSimpleGraph <: AbstractGraph end
+abstract type AbstractSimpleGraph{T} <: AbstractGraph{T} end
 
-struct SimpleDiGraph <: AbstractSimpleDiGraph
-    fadj::Dict{Any, SimpleDiGraph}
+struct SimpleDiGraph{T} <: AbstractSimpleDiGraph{T}
+    fadj::Dict{T, SimpleDiGraph{T}}
     data::Vector{Any}
 end
 
-struct SimpleGraph <: AbstractSimpleGraph
-    fadj::Dict{Any, SimpleGraph}
-    badj::Dict{Any, SimpleGraph}
+struct SimpleGraph{T} <: AbstractSimpleGraph{T}
+    fadj::Dict{T, SimpleGraph{T}}
+    badj::Dict{T, SimpleGraph{T}}
     data::Vector{Any}
 end
 
@@ -27,12 +27,12 @@ Base.iterate(g::A, state) where {A<:AbstractGraph} = iterate(g.fadj, state)
 
 Base.length(g::A) where {A<:AbstractGraph} = length(g.fadj)
 
-Base.eltype(::A) where {A<:AbstractGraph} = Pair{Any, A}
+Base.eltype(::A) where {A<:AbstractGraph{T}} where {T} = Pair{T, A}
 
-# Testing reveals that while the return values are type-unstable, this
-# is ≈ 2 times faster than converting to UInt.
 Base.hash(g::AbstractGraph, h::UInt) = hash(g.fadj, hash(g.data, h))
-# Base.hash(g::AbstractSimpleGraph, h::UInt) = hash(g.fadj, hash(g.badj, hash(g.data, h)))
+
+Base.keytype(::A) where {A<:AbstractGraph{T}} where {T} = T
+Base.valtype(::A) where {A<:AbstractGraph{T}} where {T} = A
 
 #### Opt-ins: AbstractGraph
 # Despite the temptation to re-name keys≡edges and values≡vertices,
@@ -52,8 +52,6 @@ end
 function Base.get(f::Function, g::A, k1, k2)::Union{Nothing, A} where {A<:AbstractGraph}
     tmp = get(f, g, k1)
     tmp === nothing ? nothing : get(f, tmp, k2)
-    # tmp === nothing && return nothing
-    # get(f, tmp, k2)
 end
 function Base.get(f::Function, g::A, k1, k2, ks::Vararg{Any, N})::Union{Nothing, A} where {N} where {A<:AbstractGraph}
     tmp = get(f, g, k1)
@@ -80,23 +78,6 @@ haspath(g::A, k1) where {A<:AbstractGraph} = isa(get(_returnnothing, g, k1), Abs
 haspath(g::A, k1, k2) where {A<:AbstractGraph} = isa(get(_returnnothing, g, k1, k2), AbstractGraph)
 haspath(g::A, k1, k2, ks...) where {A<:AbstractGraph} = isa(get(_returnnothing, g, k1, k2, ks...), AbstractGraph)
 
-# Enforcing type-stability on the return value should not be necessary
-# function Base.get!(f::Function, g::A, k1) where {A<:AbstractGraph}
-#     get!(f, g.fadj, k1)
-# end
-# function Base.get!(f::Function, g::A, k1, k2) where {A<:AbstractGraph}
-#     get!(f, get!(f, g, k1), k2)
-# end
-# function Base.get!(f::Function, g::A, k1, k2, ks::Vararg{S, N}) where {S, N} where {A<:AbstractGraph}
-#     tmp = get!(f, get!(f, g, k1), k2)#get!(f, g, k1, k2)
-#     for k ∈ ks
-#         tmp = get!(f, tmp, k)
-#     end
-#     tmp
-# end
-# function Base.get!(f::Function, g::A, k1, k2, ks::Vararg{Any, N}) where {N} where {A<:AbstractGraph}
-#     get!(f, get!(f, get!(f, g, k1), k2), ks...)
-# end
 
 # Simplified methods, eliminating unnecessary 2-arg with Vararg version
 @inline function Base.get!(f::Function, x::A, k₁) where {A<:AbstractGraph}
@@ -119,25 +100,6 @@ end
     end
 end
 
-
-# Likewise, type-stability enforcement by annotated return type should be unnecessary.
-# function Base.getindex(g::A, k1) where {A<:AbstractGraph}
-#     getindex(g.fadj, k1)
-# end
-# function Base.getindex(g::A, k1, k2) where {A<:AbstractGraph}
-#     getindex(getindex(g, k1), k2)
-# end
-# function Base.getindex(g::A, k1, k2, ks::Vararg{Any, N}) where {N} where {A<:AbstractGraph}
-#     getindex(getindex(getindex(g, k1), k2), ks...)
-# end
-# function Base.getindex(g::A, k1, k2, ks::Vararg{S, N}) where {S, N} where {A<:AbstractGraph}
-#     tmp = getindex(getindex(g, k1), k2)#getindex(g, k1, k2)
-#     for k ∈ ks
-#         tmp = getindex(tmp, k)
-#     end
-#     tmp
-# end
-
 @inline function Base.getindex(x::A, k₁) where {A<:AbstractGraph}
     getindex(x.fadj, k₁)
 end
@@ -153,15 +115,6 @@ end
         tmp = getindex(x, k₁)
         Base.Cartesian.@nexprs $N i -> tmp = getindex(tmp, ks[i])
         return tmp
-    end
-end
-
-# A useful utility; essentially, firstat
-function Base.first(x::AbstractGraph, N::Int, C::Int=1)
-    if C == N
-        return first(x)
-    else
-        return first(first(x).second, N, C + 1)
     end
 end
 
@@ -372,34 +325,80 @@ end
 # end
 Base.:(==)(a::AbstractGraph, b::AbstractGraph) = Base.isequal(a, b)
 
-################################################################
 #### Outer constructors: SimpleDiGraph
-SimpleDiGraph(fadj::Dict{Any,SimpleDiGraph}) = SimpleDiGraph(fadj, [])
-SimpleDiGraph(data::Vector{Any}) = SimpleDiGraph(Dict{Any,SimpleDiGraph}(), data)
-# SimpleDiGraph() = SimpleDiGraph(Dict{Any,SimpleDiGraph}())
-SimpleDiGraph() = SimpleDiGraph(Dict{Any,SimpleDiGraph}(), [])
+SimpleDiGraph(fadj::Dict{T,SimpleDiGraph{T}}) where {T} = SimpleDiGraph(fadj, [])
+SimpleDiGraph{T}(data::Vector{Any}) where {T} = SimpleDiGraph(Dict{T,SimpleDiGraph{T}}(), data)
+SimpleDiGraph(data::Vector{Any}) = SimpleDiGraph{Any}(data)
+
+SimpleDiGraph{T}() where {T} = SimpleDiGraph(Dict{T, SimpleDiGraph{T}}())
+SimpleDiGraph() = SimpleDiGraph{Any}()
+SimpleDiGraph(::Type{T}) where {T} = SimpleDiGraph{T}()
+
+# @benchmark SimpleDiGraph{UInt}()
+
+# fadj = Dict{UInt, SimpleDiGraph{UInt}}()
+# @timev SimpleDiGraph(fadj, [])
+# @timev SimpleDiGraph(Dict{UInt, SimpleDiGraph{UInt}}(), [])
+# x = SimpleDiGraph(fadj, [])
+# @code_warntype keys(x)
+# data = []
+# @code_warntype SimpleDiGraph(fadj, data)
+
+# usdg() = SimpleDiGraph{UInt}()
+# @timev get!(usdg, usdg(), 0x1, 0x2, 0x3)
+# @code_warntype get!(usdg, x, 0x1, 0x2, 0x3)
+# @code_warntype get!(sdg, sdg(), 0x1, 0x2, 0x3)
+# @timev get!(sdg, sdg(), 0x1, 0x2, 0x3)
 
 #### Outer constructors: SimpleGraph
-SimpleGraph(fadj::Dict{Any,SimpleGraph}, badj::Dict{Any,SimpleGraph}) = SimpleGraph(fadj, badj, [])
-SimpleGraph(fadj::Dict{Any,SimpleGraph}) = SimpleGraph(fadj, Dict{Any,SimpleGraph}())
-SimpleGraph(data::Vector{Any}) = SimpleGraph(Dict{Any,SimpleGraph}(), Dict{Any,SimpleGraph}(), data)
-SimpleGraph(fadj::Dict{Any,SimpleGraph}, data::Vector{Any}) =
-    SimpleGraph(fadj, Dict{Any,SimpleGraph}(), data)
-# SimpleGraph() = SimpleGraph(Dict{Any,SimpleGraph}())
-SimpleGraph() = SimpleGraph(Dict{Any,SimpleGraph}(), Dict{Any,SimpleGraph}(), [])
+SimpleGraph(fadj::Dict{T,SimpleGraph{T}}, badj::Dict{T,SimpleGraph{T}}) where {T} = SimpleGraph(fadj, badj, [])
+SimpleGraph(fadj::Dict{T,SimpleGraph{T}}) where {T} = SimpleGraph(fadj, Dict{T,SimpleGraph{T}}())
+SimpleGraph{T}(data::Vector{Any}) where {T} = SimpleGraph(Dict{T,SimpleGraph{T}}(), Dict{T,SimpleGraph{T}}(), data)
+SimpleGraph(data::Vector{Any}) = SimpleGraph{Any}(data)
+
+SimpleGraph(fadj::Dict{T,SimpleGraph{T}}, data::Vector{Any}) where {T} =
+    SimpleGraph(fadj, Dict{T,SimpleGraph{T}}(), data)
+
+SimpleGraph{T}() where {T} = SimpleGraph(Dict{T, SimpleGraph{T}}())
+SimpleGraph() = SimpleGraph{Any}()
+SimpleGraph(::Type{T}) where {T} = SimpleGraph{T}()
 
 #### Conversion
 # Tentatively defined, but far less complex than in node.jl and abstractnode.jl
-Base.convert(::Type{T}, g::AbstractSimpleGraph) where {T<:AbstractSimpleGraph} = T(g)
-Base.convert(::Type{T}, g::AbstractSimpleDiGraph) where {T<:AbstractSimpleDiGraph} = T(g)
-Base.convert(::Type{T}, g::T) where {T<:AbstractSimpleGraph} = g
-Base.convert(::Type{T}, g::T) where {T<:AbstractSimpleDiGraph} = g
+# Base.convert(::Type{T}, g::AbstractSimpleGraph) where {T<:AbstractSimpleGraph} = T(g)
+# Base.convert(::Type{T}, g::AbstractSimpleDiGraph) where {T<:AbstractSimpleDiGraph} = T(g)
+# Base.convert(::Type{T}, g::T) where {T<:AbstractSimpleGraph} = g
+# Base.convert(::Type{T}, g::T) where {T<:AbstractSimpleDiGraph} = g
 
 # SimpleGraph to SimpleDiGraph is the most sensible conversion. From DiGraph to Graph is fuzzy.
 # Actually, they are both well-defined.
-Base.convert(::Type{T}, g::AbstractSimpleGraph) where {T<:AbstractSimpleDiGraph} = T(g)
-Base.convert(::Type{T}, g::AbstractSimpleDiGraph) where {T<:AbstractSimpleGraph} = T(g)
+# Base.convert(::Type{T}, g::AbstractSimpleGraph) where {T<:AbstractSimpleDiGraph} = T(g)
+# Base.convert(::Type{T}, g::AbstractSimpleDiGraph) where {T<:AbstractSimpleGraph} = T(g)
 
+#### Conversions in light of types
+# SimpleDiGraph
+Base.convert(::Type{T}, x::T) where {T<:AbstractGraph} = x
+Base.convert(::Type{T}, x::AbstractSimpleDiGraph{S}) where {U, T<:AbstractSimpleDiGraph{U}, S} = T(x)
+
+SimpleDiGraph{T}(x::SimpleDiGraph{T}) where {T} = x
+SimpleDiGraph{T}(x::SimpleDiGraph{U}) where {T, U} =
+    SimpleDiGraph(convert(Dict{T, SimpleDiGraph{T}}, x.fadj), x.data)
+
+Base.promote_rule(::Type{T₁}, ::Type{T₂}) where {U₁, U₂, T₁<:AbstractSimpleDiGraph{U₁}, T₂<:AbstractSimpleDiGraph{U₂}} = SimpleDiGraph{promote_type(U₁, U₂)}
+
+# SimpleGraph
+Base.convert(::Type{T}, x::AbstractSimpleGraph{S}) where {U, T<:AbstractSimpleGraph{U}, S} = T(x)
+SimpleGraph{T}(x::SimpleGraph{T}) where {T} = x
+SimpleGraph{T}(x::SimpleGraph{U}) where {T, U} =
+    SimpleGraph(convert(Dict{T, SimpleGraph{T}}, x.fadj), convert(Dict{T, SimpleGraph{T}}, x.badj), x.data)
+
+Base.convert(::Type{T}, x::AbstractSimpleDiGraph{S}) where {U, T<:AbstractSimpleGraph{U}, S} = T(x)
+
+SimpleGraph{T}(x::SimpleDiGraph{T}) where {T} = SimpleGraph(x.fadj, x.data)
+SimpleGraph{T}(x::SimpleDiGraph{U}) where {T, U} =
+    SimpleGraph(convert(Dict{T, SimpleGraph{T}}, x.fadj), x.data)
+
+Base.promote_rule(::Type{T₁}, ::Type{T₂}) where {U₁, U₂, T₁<:AbstractSimpleGraph{U₁}, T₂<:AbstractSimpleGraph{U₂}} = SimpleGraph{promote_type(U₁, U₂)}
 #### Promotion
 # Not currently well-defined, as conversion of a SimpleGraph to SimpleDiGraph is
 # actually a simplification. In other words, one can convert SimpleGraph to SimpleDiGraph,
@@ -424,8 +423,8 @@ SimpleDiGraph(g::AbstractSimpleGraph) = SimpleDiGraph(g.fadj, g.data)
 #     SimpleDiGraph(convert(Dict{Any, SimpleDiGraph}, g.fadj), g.data)
 
 # see p. 553-557
-function SimpleGraph(g::SimpleDiGraph)
-    sg = SimpleGraph(g.data)
+function SimpleGraph(g::SimpleDiGraph{T}) where {T}
+    sg = SimpleGraph{T}(g.data)
     fadj = sg.fadj
     badj = sg.badj
     for p ∈ g
@@ -438,6 +437,8 @@ end
 #### Convenience shorthand constructors
 sdg() = SimpleDiGraph()
 sg() = SimpleGraph()
+usdg() = SimpleDiGraph{UInt}()
+usg() = SimpleGraph{UInt}()
 
 ################################################################
 #### Opt-ins: AbstractSimpleGraph
@@ -582,315 +583,9 @@ function get_datapush!(f::Function, g::AbstractGraph, v, k1)
     push!(tmp.data, v)
     tmp
 end
-# function get_datapush!(f::Function, g::AbstractGraph, v, k1, k2)
-#     tmp = get!(f, g, k1, k2)
-#     push!(tmp.data, v)
-#     tmp
-# end
-# function get_datapush!(f::Function, g::AbstractGraph, v, k1, k2, ks::Vararg{Any, N}) where {N}
-#     tmp = get!(f, g, k1, k2, ks...)
-#     push!(tmp.data, v)
-#     tmp
-# end
+
 function get_datapush!(f::Function, g::AbstractGraph, v, k1, ks...)
     tmp = get!(f, g, k1, ks...)
     push!(tmp.data, v)
     tmp
 end
-
-############################################################################################
-#### Methods of grow_(:field)! : see p. 443-446, 451-455, 2021-09-14/15
-function grow!(f::Function, g::AbstractGraph, p::AbstractEdges)
-    for x ∈ p
-        get!(f, g, x...)
-    end
-    return g
-end
-# function grow!(f::Function, g::AbstractGraph, p::AbstractEdges, itr)
-#     x = Vector{Any}(undef, p.N)
-#     for item ∈ itr
-#         p(x, item)
-#         get!(f, g, x...)
-#     end
-#     return g
-# end
-
-# Replaces splatting method
-@generated function grow!(f::Function, g::AbstractGraph, p::AbstractEdges{U, N},
-                          itr) where {U, N} #, ::Val{N}
-    quote
-        for item ∈ itr
-            tmp = g
-            Base.Cartesian.@nexprs $N i -> tmp = get!(f, tmp, p[i](item))
-        end
-        return g
-    end
-end
-# function grow!(f::Function, g::AbstractGraph, p::AbstractEdges, itr)
-#     grow!(f, g, p, itr) #, Val(p.N)
-#     return g
-# end
-
-# Convenience wrappers, but useful nonetheless
-grow(f::Function, p::AbstractEdges) = grow!(f, f(), p)
-grow(f::Function, p::AbstractEdges, itr) = grow!(f, f(), p, itr)
-
-function datagrow!(f::Function, g::AbstractGraph, v::T, p::AbstractEdges) where {T<:Union{AbstractLabel, AbstractLabels}}
-    for x ∈ p
-        get_datapush!(f, g, v(x), x...)
-    end
-    return g
-end
-# function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdges, p::AbstractEdges, itr)
-#     x = Vector{Any}(undef, p.N)
-#     for item ∈ itr
-#         p(x, item)
-#         get_datapush!(f, g, v(item), x...)
-#     end
-#     return g
-# end
-# function datagrow!(f::Function, g::AbstractGraph, v::AbstractLabel, p::AbstractEdges)
-#     for x ∈ p
-#         get_datapush!(f, g, v(x), x...)
-#     end
-#     return g
-# end
-# function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdge, p::AbstractEdges, itr)
-#     x = Vector{Any}(undef, p.N)
-#     for item ∈ itr
-#         p(x, item)
-#         get_datapush!(f, g, v(item), x...)
-#     end
-#     return g
-# end
-
-# # Looped datagrow!, just to test speed. It is a substantial gain vs. splatting.
-# # Save for posterity.
-# function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdge, p::AbstractEdges, itr)
-#     N = p.N
-#     for item ∈ itr
-#         tmp = g
-#         for n = 1:N
-#             tmp = get!(f, tmp, p[n](item))
-#         end
-#         push!(tmp.data, v(item))
-#     end
-#     return g
-# end
-
-# Alternative meta using AbstractEdges4.
-# Testing reveals that this is in fact the preferable way to enact datagrow!,
-# in particular when it can be combined with Edges4.
-# For depth up to L=500, the manually-unrolled code beats the loop. Notably,
-# if L is 500, one should _seriously_ consider something besides HeavyGraphs
-# for whatever the purpose. That would be a potentially massive graph, and
-# direct methods such as this are likely ill-suited.
-@generated function datagrow!(f::Function, g::AbstractGraph, v::T,
-                              p::AbstractEdges{U, N}, itr) where {U, N} where {T<:Union{AbstractLabel, AbstractLabels}}#, ::Val{N}
-    quote
-        for item ∈ itr
-            tmp = g
-            Base.Cartesian.@nexprs $N i -> tmp = get!(f, tmp, p[i](item))
-            push!(tmp.data, v(item))
-        end
-        return g
-    end
-end
-
-# function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdge, p::AbstractEdges, itr)
-#     datagrow!(f, g, v, p, itr) #, Val(p.N)
-#     return g
-# end
-
-# Cover the second dispatch
-# @generated function datagrow!(f::Function, g::AbstractGraph, v::AbstractLabels,
-#                               p::AbstractEdges{U, N}, itr) where {U, N} #, ::Val{N}
-#     quote
-#         for item ∈ itr
-#             tmp = g
-#             Base.Cartesian.@nexprs $N i -> tmp = get!(f, tmp, p[i](item))
-#             push!(tmp.data, v(item))
-#         end
-#         return g
-#     end
-# end
-# function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdges, p::AbstractEdges, itr)
-#     datagrow!(f, g, v, p, itr) #, Val(p.N)
-#     return g
-# end
-
-# Convenience wrappers, but useful nonetheless
-datagrow(f::Function, v, p) = datagrow!(f, f(), v, p)
-# datagrow(f::Function, v::AbstractLabel, p::AbstractEdges) = datagrow!(f, f(), v, p)
-datagrow(f::Function, v, p, itr) = datagrow!(f, f(), v, p, itr)
-# datagrow(f::Function, v::AbstractLabels, p::AbstractEdges, itr) = datagrow!(f, f(), v, p, itr)
-
-# 2022-01-10: multi-step growth
-function datagrow!(f::Function, x::AbstractGraph, vs::Vector{<:AbstractEdge},
-                   ps::Vector{<:AbstractEdges}, itrs::Vector)
-    for i ∈ eachindex(vs, ps, itrs)
-        datagrow!(f, x, vs[i], ps[i], itrs[i])
-    end
-    return x
-end
-datagrow(f::Function, vs::Vector{<:AbstractEdge}, ps::Vector{<:AbstractEdges}, itrs::Vector) =
-    datagrow!(f, f(), vs, ps, itrs)
-
-# 2022-01-11: alternative meta
-@generated function datagrow!(f::Function, x::AbstractGraph,
-                              vs::Tuple{Vararg{T, N} where {T<:Union{AbstractLabel, AbstractLabels}}},
-                              ps::Tuple{Vararg{S, N} where {S<:AbstractEdges}}, itrs) where {N}
-    quote
-        Base.Cartesian.@nexprs $N i -> datagrow!(f, x, vs[i], ps[i], itrs[i])
-    end
-end
-# Convenience wrapper
-function datagrow(f::Function,
-                  vs::Tuple{Vararg{T, N} where {T<:Union{AbstractLabel, AbstractLabels}}},
-                  ps::Tuple{Vararg{S, N} where {S<:AbstractEdges}}, itrs) where {N}
-    datagrow!(f, f(), vs, ps, itrs)
-end
-
-################################
-# Growth from non-flat sources - p. 475, 2021-09-22
-function datagrow!(f::Function, g::AbstractGraph, v::T, p::AbstractEdges, vitr, pitr) where {T<:Union{AbstractLabel, AbstractLabels}}
-    x = Vector{Any}(undef, p.N)
-    for (a, b) ∈ zip(vitr, pitr)
-        p(x, b)
-        get_datapush!(f, g, v(a), x...)
-    end
-    return g
-end
-# function datagrow!(f::Function, g::AbstractGraph, v::AbstractEdge, p::AbstractEdges,
-#                    vitr, pitr)
-#     x = Vector{Any}(undef, p.N)
-#     for (a, b) ∈ zip(vitr, pitr)
-#         p(x, b)
-#         get_datapush!(f, g, v(a), x...)
-#     end
-#     return g
-# end
-# Possible parallel growth method
-function tdatagrow!(f::Function, g::AbstractGraph, v::T, p::AbstractEdges,
-                    itrsource::AbstractDict) where {T<:Union{AbstractLabel, AbstractLabels}}
-    @sync for pₜ ∈ t
-        Threads.@spawn datagrow!(f, pₜ.second, v, p, eachcol(itrsource[pₜ.first]))
-        # Alternative:
-        # let itr = eachcol(itrsource[p.first])
-        #     Threads.@spawn datagrow!(f, p.second, v, p, itr)
-        # end
-    end
-    return g
-end
-
-################
-# 2021-11-10: map constructors for vectors of iterables
-function mapgrow!(f::Function, gs::Vector{A}, p::AbstractEdges, itrs::Vector{T}) where {T} where {A<:AbstractGraph}
-    @inbounds for i ∈ eachindex(gs, itrs)
-        grow!(f, gs[i], p, itrs[i])
-    end
-    return gs
-end
-function mapgrow(f::Function, p::AbstractEdges, itrs::Vector{T}) where {T}
-    gs = [f() for _ = 1:length(itrs)]
-    mapgrow!(f, gs, p, itrs)
-end
-
-function tmapgrow!(f::Function, gs::Vector{A}, p::AbstractEdges, itrs::Vector{T}) where {T} where {A<:AbstractGraph}
-    @sync @inbounds for i ∈ eachindex(gs, itrs)
-        Threads.@spawn grow!(f, gs[i], p, itrs[i])
-    end
-    return gs
-end
-
-function tmapgrow(f::Function, p::AbstractEdges, itrs::Vector{T}) where {T}
-    gs = [f() for _ = 1:length(itrs)]
-    tmapgrow!(f, gs, p, itrs)
-end
-
-function tʳmapgrow!(f::Function, gs::Vector{A}, p::AbstractEdges, itrs::Vector{T}, M::Int=Threads.nthreads()) where {T} where {A<:AbstractGraph}
-    ranges = equalranges(length(itrs), M)
-    @sync for r ∈ ranges
-        Threads.@spawn mapgrow!(f, gs[r], p, itrs[r])
-    end
-    return gs
-end
-
-function tʳmapgrow(f::Function, p::AbstractEdges, itrs::Vector{T}, M::Int=Threads.nthreads()) where {T}
-    gs = [f() for _ = 1:length(itrs)]
-    tʳmapgrow!(f, gs, p, itrs, M)
-end
-
-####
-function mapdatagrow!(f::Function, gs::Vector{A}, v::U, p::AbstractEdges, itrs::Vector{T}) where {T} where {A<:AbstractGraph} where {U<:Union{AbstractLabel, AbstractLabels}}
-    @inbounds for i ∈ eachindex(gs, itrs)
-        datagrow!(f, gs[i], v, p, itrs[i])
-    end
-    return gs
-end
-function mapdatagrow(f::Function, v::U, p::AbstractEdges, itrs::Vector{T}) where {T} where {U<:Union{AbstractLabel, AbstractLabels}}
-    gs = [f() for _ = 1:length(itrs)]
-    mapdatagrow!(f, gs, v, p, itrs)
-end
-
-function tmapdatagrow!(f::Function, gs::Vector{A}, v::U, p::AbstractEdges, itrs::Vector{T}) where {T} where {A<:AbstractGraph} where {U<:Union{AbstractLabel, AbstractLabels}}
-    @sync @inbounds for i ∈ eachindex(gs, itrs)
-        Threads.@spawn datagrow!(f, gs[i], v, p, itrs[i])
-    end
-    return gs
-end
-
-function tmapdatagrow(f::Function, v::U, p::AbstractEdges, itrs::Vector{T}) where {T} where {U<:Union{AbstractLabel, AbstractLabels}}
-    gs = [f() for _ = 1:length(itrs)]
-    tmapdatagrow!(f, gs, v, p, itrs)
-end
-
-function tʳmapdatagrow!(f::Function, gs::Vector{A}, v::U, p::AbstractEdges, itrs::Vector{T}, M::Int=Threads.nthreads()) where {T} where {A<:AbstractGraph} where {U<:Union{AbstractLabel, AbstractLabels}}
-    ranges = equalranges(length(itrs), M)
-    @sync for r ∈ ranges
-        Threads.@spawn mapdatagrow!(f, gs[r], v, p, itrs[r])
-    end
-    return gs
-end
-
-function tʳmapdatagrow(f::Function, v::U, p::AbstractEdges, itrs::Vector{T}, M::Int=Threads.nthreads()) where {T} where {U<:Union{AbstractLabel, AbstractLabels}}
-    gs = [f() for _ = 1:length(itrs)]
-    tʳmapdatagrow!(f, gs, v, p, itrs, M)
-end
-
-
-# function mapdatagrow!(f::Function, gs::Vector{A}, v::AbstractEdge, p::AbstractEdges, itrs::Vector{T}) where {T} where {A<:AbstractGraph}
-#     for i ∈ eachindex(gs, itrs)
-#         datagrow!(f, gs[i], v, p, itrs[i])
-#     end
-#     return gs
-# end
-# function mapdatagrow(f::Function, v::AbstractEdge, p::AbstractEdges, itrs::Vector{T}) where {T}
-#     gs = Vector{typeof(f())}(undef, length(itrs))
-#     # @inbounds for n ∈ eachindex(itrs)
-#     #     gs[n] = datagrow(f, v, p, eachcol(itrs[n]))
-#     # end
-#     mapdatagrow!(f, gs, v, p, itrs)
-#     return gs
-# end
-
-# function tmapdatagrow!(f::Function, gs::Vector{A}, v::AbstractEdge, p::AbstractEdges, itrs::Vector{T}, M::Int=Threads.nthreads()) where {T} where {A<:AbstractGraph}
-#     N = length(itrs)
-#     ranges = equalranges(N, M)
-#     @inbounds @sync for m ∈ eachindex(ranges)
-#         Threads.@spawn mapdatagrow!(f, gs[ranges[m]], v, p, itrs[ranges[m]])
-#     end
-#     return gs
-# end
-
-# function tmapdatagrow(f::Function, v::AbstractEdge, p::AbstractEdges, itrs::Vector{T},
-#                       M::Int=Threads.nthreads()) where {T}
-#     N = length(itrs)
-#     ranges = equalranges(N, M)
-#     gs = Vector{Vector{typeof(f())}}(undef, M)
-#     # Threads.@threads for m ∈ 1:M #eachindex(ranges)
-#     @inbounds @sync for m ∈ eachindex(ranges)
-#         Threads.@spawn gs[m] = mapdatagrow(f, v, p, itrs[ranges[m]])
-#     end
-#     return vcat(gs...)
-# end
