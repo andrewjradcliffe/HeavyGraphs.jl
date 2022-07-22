@@ -27,14 +27,16 @@ end
 Base.:(==)(x::AbstractEdge, y::AbstractEdge) = isequal(x, y)
 
 #### Outer constructors for IndexedEdge
-IndexedEdge(i::Int) = IndexedEdge(identity, i)
-IndexedEdge(i::Vector{Int}) = IndexedEdge(identity, i)
-IndexedEdge(i::UnitRange{Int}) = IndexedEdge(identity, i)
+IndexedEdge(i::T) where {T<:Integer} = IndexedEdge(identity, i)
+IndexedEdge(i::Vector{T}) where {T<:Integer} = IndexedEdge(identity, i)
+IndexedEdge(i::UnitRange{T}) where {T<:Integer} = IndexedEdge(identity, i)
 IndexedEdge(i::CartesianIndex{N}) where {N} = IndexedEdge(identity, i)
 
 #### functor: default behavior for all IndexedEdge
-function (x::AbstractIndexedEdge)(A)
-    @inbounds x.f(getindex(A, x.i))
+function (x::AbstractIndexedEdge)(A::T) where {T}
+    i = x.i
+    Base.@boundscheck checkbounds(A, i)
+    @inbounds x.f(getindex(A, i))
 end
 
 
@@ -79,6 +81,8 @@ Base.:(==)(x::AbstractEdges, y::AbstractEdges) = isequal(x, y)
 Edges(gen::T) where {T<:Base.Generator} = Edges(Tuple(gen))
 Edges(x::AbstractEdge) = Edges((x,))
 Edges(xs::Vararg{AbstractEdge, N}) where {N} = Edges(xs)
+Edges(gen::Base.Generator{UnitRange{T}, typeof(identity)}) where {T<:Integer} =
+    Edges(map(IndexedEdge, gen)...)
 
 #### functor: Edges
 @generated function (x::AbstractEdges{U, N})(B, A) where {U, N}

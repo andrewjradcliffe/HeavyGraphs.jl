@@ -34,13 +34,13 @@ end
 # IndexedLabel(f::T, i::U) where {T, U} = IndexedLabel{T, U}(f, i)
 
 #### Outer constructors for IndexedLabel
-IndexedLabel(i::Int) = IndexedLabel(identity, i)
-IndexedLabel(i::Vector{Int}) = IndexedLabel(identity, i)
-IndexedLabel(i::UnitRange{Int}) = IndexedLabel(identity, i)
+IndexedLabel(i::T) where {T<:Integer} = IndexedLabel(identity, i)
+IndexedLabel(i::Vector{T}) where {T<:Integer} = IndexedLabel(identity, i)
+IndexedLabel(i::UnitRange{T}) where {T<:Integer} = IndexedLabel(identity, i)
 IndexedLabel(i::CartesianIndex{N}) where {N} = IndexedLabel(identity, i)
 
 #### functor: default behavior for all IndexedLabel
-function (x::AbstractIndexedLabel)(A)
+function (x::AbstractIndexedLabel)(A::T) where {T}
     x.f(getindex(A, x.i))
 end
 
@@ -54,7 +54,7 @@ Label() = Label(identity)
 
 Base.isequal(x::Label, y::Label) = x.f === y.f
 
-(x::AbstractLabel)(A) = x.f(A)
+(x::AbstractLabel)(A::T) where {T} = x.f(A)
 
 ################################################################
 #### For constructing tuples (or a single in the special case)
@@ -93,6 +93,8 @@ Base.:(==)(x::AbstractLabels, y::AbstractLabels) = isequal(x, y)
 Labels(gen::T) where {T<:Base.Generator} = Labels(Tuple(gen))
 Labels(x::AbstractLabel) = Labels((x,))
 Labels(xs::Vararg{AbstractLabel, N}) where {N} = Labels(xs)
+Labels(gen::Base.Generator{UnitRange{T}, typeof(identity)}) where {T<:Integer} =
+    Labels(map(IndexedLabel, gen)...)
 
 Labels(fs::Vararg{Function, N}) where {N} = Labels(ntuple(i -> Label(fs[i]), Val(N)))
 Labels(fs::NTuple{N, Function}) where {N} = Labels(ntuple(i -> Label(fs[i]), Val(N)))
