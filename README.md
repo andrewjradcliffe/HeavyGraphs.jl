@@ -65,7 +65,7 @@ necessity, became a labor of love, but, ultimately, ended up a potato
 -- the computational complexity is terrible, the constructors rather
 esoteric, and memory locality an abomination. However, it was an
 excellent playground for all manner of advanced design patterns in
-Julia. But, for the prospective readership, the author advises to the
+Julia. But, for the prospective readership, the author advises the
 [KISS principle](https://en.wikipedia.org/wiki/KISS_principle) -- if
 disobeyed, one's work will end at precisely the location of this package
 (i.e. the rubbish heap).
