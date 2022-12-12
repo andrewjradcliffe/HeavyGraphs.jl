@@ -57,3 +57,15 @@ leading to a recursion which dispatches to a fast, type-stable loop at
 the first occurrence of an NTuple, otherwise reverting to a recursion
 which consumes two elements of the Varargs tuple before repeating the
 cycle.
+
+## Author's Notes
+Certainly not the most performant implementation of graph data types!
+But, it is quite flexible and customizeable. This package began as a
+necessity, became a labor of love, but, ultimately, ended up a potato
+-- the computational complexity is terrible, the constructors rather
+esoteric, and memory locality an abomination. However, it was an
+excellent playground for all manner of advanced design patterns in
+Julia. But, for the prospective readership, the author advises to the
+[KISS principle](https://en.wikipedia.org/wiki/KISS_principle) -- if
+disobeyed, one's work will end at precisely the location of this package
+(i.e. the rubbish heap).
